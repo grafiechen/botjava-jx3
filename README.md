@@ -7,4 +7,4 @@ _✨ [botpy文档](https://bot.q.qq.com/wiki/develop/pythonsdk/) ✨_
 
 _✨ [JX3APi文档](https://www.jx3api.com/) ✨_
 
-_✨ [JX3APi-BOT文档](https://github.com/JX3API/jx3api-java/) ✨_
+_✨ [JX3APi-JAVA文档](https://github.com/JX3API/jx3api-java/) ✨_
