@@ -7,6 +7,7 @@ import com.person.botjava.util.TimeUtils;
 import com.person.botjava.ws.contants.Opcode;
 import com.person.botjava.ws.dto.IdentifyDto;
 import com.person.botjava.ws.dto.Payload;
+import com.person.botjava.ws.dto.ResumeDto;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,10 @@ public class BotWebSocketHandler extends TextWebSocketHandler {
      * 接收事件时候的s字段，在resume的时候，将s字段的值，当作seq传递回去
      */
     private static Integer seq = null;
+    /**
+     * 鉴权成功后，返回的session_id
+     */
+    private static String sessionId = null;
 
     public BotWebSocketHandler(BotWebSocketClientInitializer webSocketClientInitializer) {
         this.webSocketClientInitializer = webSocketClientInitializer;
@@ -91,12 +96,25 @@ public class BotWebSocketHandler extends TextWebSocketHandler {
         super.afterConnectionClosed(session, status);
         logger.error("WebSocket connection closed, try reConnect");
         webSocketClientInitializer.checkOnConnect();
+        afterReconnect();
     }
+
 
     @Override
     protected void handlePongMessage(WebSocketSession session, PongMessage message) throws Exception {
         super.handlePongMessage(session, message);
         logger.info("Received Pong message.");
+    }
+
+    private void afterReconnect() {
+        ResumeDto resumeDto = new ResumeDto();
+        resumeDto.setToken(botWSProperties.getToken());
+        resumeDto.setSessionId(sessionId);
+        resumeDto.setSeq(seq);
+        Payload payload = new Payload();
+        payload.setOp(Opcode.RESUME.getCode());
+        payload.setD(resumeDto);
+        sendMessage(payload);
     }
 
     /**
@@ -192,6 +210,7 @@ public class BotWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void reconnectMessage(Payload payload) {
+        logger.info("接收到重连反馈信息，payload=>{}",payload);
     }
 
     private void heartBeat(Payload payload) {
@@ -199,6 +218,12 @@ public class BotWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void dispatchMessage(Payload payload) {
+        logger.info("接收到处理消息,message=>{}", payload);
+        // t为ready时，说明是鉴权成功返回的消息
+        if ("READY".equals(payload.getT())) {
+            LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) payload.getD();
+            sessionId = (String) map.get("session_id");
+        }
     }
 
     private void invalidSession(String message, Payload payload) {
