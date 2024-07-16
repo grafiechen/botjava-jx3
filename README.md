@@ -12,7 +12,7 @@ _✨ [JX3API-JAVA文档](https://github.com/JX3API/jx3api-java/)：基于JX3API�
 
 ## NOTE
 目前主要是填与jx3 api相关的坑。主要是群聊方面，故暂不实现频道相关内容
-- [ ] ws鉴权模块
+- [x] ws鉴权模块
 - [ ] api鉴权模块
 - [ ] ws消息接收与处理
 - [ ] 官方群聊消息发送处理

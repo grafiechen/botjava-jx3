@@ -12,7 +12,7 @@ public class Payload {
     /**
      * opcode
      */
-    private String op;
+    private Integer op;
     /**
      * 下行消息都会有一个序列号，标识消息的唯一性，客户端需要再发送心跳的时候，携带客户端收到的最新的s。
      */

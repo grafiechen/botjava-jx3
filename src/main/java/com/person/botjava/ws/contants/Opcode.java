@@ -1,5 +1,8 @@
 package com.person.botjava.ws.contants;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 客户端操作描述枚举
  *
@@ -35,8 +38,15 @@ public enum Opcode {
     HEARTBEAT_ACK(11, "当发送心跳成功之后，就会收到该消息"),
     HTTP_CALLBACK_ACK(12, "仅用于 http 回调模式的回包，代表机器人收到了平台推送的数据");
 
-    private Integer code;
-    private String note;
+    private final Integer code;
+    private final String note;
+    private static final Map<Integer, Opcode> opcodeMap = new HashMap<>();
+
+    static {
+        for (Opcode opcode : values()) {
+            opcodeMap.put(opcode.code, opcode);
+        }
+    }
 
     Opcode(Integer code, String note) {
         this.code = code;
@@ -49,5 +59,9 @@ public enum Opcode {
 
     public String getNote() {
         return note;
+    }
+
+    public static Opcode getByCode(int code) {
+        return opcodeMap.get(code);
     }
 }

@@ -21,15 +21,24 @@ public class BotWSProperties {
     /**
      * shard 该参数是用来进行水平分片的。该参数是个拥有两个元素的数组。例如：[0,4]，代表分为四个片，当前链接是第 0 个片，业务稍后应该继续建立 shard 为[1,4],[2,4],[3,4]的链接，才能完整接收事件。更多详细的内容可以参考Shard。
      * 需要填写成在正确的 [0,1] 这种格式
+     * 默认 [0,1]
      */
-    private String shard;
+    private Integer[] shard = {0, 1};
     /**
      * properties 目前无实际作用，可以按照自己的实际情况填写，也可以留空,
-     * 需要根据实际情况填写成正确的 jsonString
+     * 需要根据实际情况填写成正确的 jsonString,需要可以转换成一个正确的Map
      */
     private String properties;
     /**
      * intents 是此次连接所需要接收的事件，具体可参考  <a href="https://bot.q.qq.com/wiki/develop/api/gateway/intents.html">Intents</a>
      */
-    private Integer intents;
+    private Long intents;
+    /**
+     * ws的链接地址
+     */
+    private String url;
+    /**
+     * 重连最大次数， 默认10
+     */
+    private Integer reConnectMaxTimes = 10;
 }
