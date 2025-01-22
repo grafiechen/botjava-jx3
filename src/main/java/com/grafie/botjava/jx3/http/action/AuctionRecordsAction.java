@@ -1,0 +1,10 @@
+package com.grafie.botjava.jx3.http.action;
+
+/**
+ * 拍卖记录
+ * 阵营拍卖记录。
+ *  @author grafie.chen
+ * @since 2025/1/22  17:28
+ */
+public class AuctionRecordsAction {
+}
