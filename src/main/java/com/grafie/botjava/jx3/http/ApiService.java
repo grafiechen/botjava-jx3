@@ -110,8 +110,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
         params.put("num", num);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -125,8 +125,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("num", num);
         params.put("server", server);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -139,8 +139,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_ACTIVE_CELEBS;
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -157,8 +157,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("subject", subject);
         params.put("limit", limit);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -175,8 +175,8 @@ public class ApiService {
         params.put("server", server);
         params.put("flower", flower);
         params.put("map", map);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -189,8 +189,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_HOME_FURNITURE;
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -203,8 +203,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_HOME_TRAVEL;
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
 
@@ -218,8 +218,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_SCHOOL_MATRIX;
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -232,8 +232,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_SERVER_MASTER;
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -246,8 +246,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_SERVER_CHECK;
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -260,8 +260,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_SERVER_STATUS;
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -277,8 +277,8 @@ public class ApiService {
             limit = 10;
         }
         params.put("limit", limit);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -294,8 +294,8 @@ public class ApiService {
             limit = 10;
         }
         params.put("limit", limit);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
 
@@ -307,8 +307,8 @@ public class ApiService {
     public BaseResult<SaohuaRandomData> saohuaRandom() {
         MethodEnum methodEnum = MethodEnum.DATA_SAOHUA_RANDOM;
         Map<String, Object> params = new HashMap<>();
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -326,8 +326,8 @@ public class ApiService {
             limit = 10;
         }
         params.put("limit", limit);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -344,8 +344,8 @@ public class ApiService {
         params.put("server", server);
         params.put("name", name);
         params.put("ticket", ticket);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -362,8 +362,8 @@ public class ApiService {
         params.put("server", server);
         params.put("name", name);
         params.put("limit", limit);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -378,8 +378,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
         params.put("num", num);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -394,8 +394,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
         params.put("limit", limit);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -414,8 +414,8 @@ public class ApiService {
         params.put("name", name);
         params.put("mode", mode);
         params.put("ticket", ticket);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -432,8 +432,8 @@ public class ApiService {
         params.put("limit", limit);
         params.put("mode", mode);
         params.put("ticket", ticket);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -448,8 +448,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("mode", mode);
         params.put("ticket", ticket);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -466,8 +466,8 @@ public class ApiService {
         params.put("server", server);
         params.put("keyword", keyword);
         params.put("table", table);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -491,8 +491,8 @@ public class ApiService {
         params.put("server", server);
         params.put("table", table);
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -509,8 +509,8 @@ public class ApiService {
         params.put("server", server);
         params.put("name", name);
         params.put("ticket", ticket);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -529,8 +529,8 @@ public class ApiService {
         params.put("name", name);
         params.put("role", role);
         params.put("ticket", ticket);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -547,8 +547,8 @@ public class ApiService {
         params.put("server", server);
         params.put("name", name);
         params.put("ticket", ticket);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -565,8 +565,8 @@ public class ApiService {
         params.put("server", server);
         params.put("name", name);
         params.put("ticket", ticket);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
 
@@ -584,8 +584,8 @@ public class ApiService {
         params.put("server", server);
         params.put("roleid", roleId);
         params.put("ticket", ticket);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
 
@@ -599,8 +599,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_SCHOOL_FORCE;
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -614,8 +614,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_SCHOOL_SKILL;
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -628,8 +628,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_SERVER_SAND;
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -645,8 +645,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
         params.put("limit", limit);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
 
@@ -660,8 +660,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_SERVER_ANTIVICE;
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -678,8 +678,8 @@ public class ApiService {
         params.put("class", subclass);
         params.put("server", server);
         params.put("limit", limit);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -697,8 +697,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -713,8 +713,8 @@ public class ApiService {
         params.put("name", name);
         params.put("server", server);
         params.put("limit", limit);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -726,8 +726,8 @@ public class ApiService {
     public BaseResult<ActiveMonsterData> activeMonster() {
         MethodEnum methodEnum = MethodEnum.DATA_ACTIVE_MONSTER;
         Map<String, Object> params = new HashMap<>();
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -743,8 +743,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
         params.put("keyword", keyword);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -760,8 +760,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
         params.put("keyword", keyword);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -783,8 +783,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("table", table);
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
 
@@ -802,8 +802,8 @@ public class ApiService {
         params.put("server", server);
         params.put("name", name);
         params.put("limit", limit);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -820,8 +820,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
         params.put("limit", limit);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -837,8 +837,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -856,8 +856,8 @@ public class ApiService {
         params.put("server", server);
         params.put("name", name);
         params.put("limit", limit);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -872,8 +872,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
         params.put("num", num);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -892,8 +892,8 @@ public class ApiService {
         params.put("column", column);
         params.put("this_time", thisTime);
         params.put("that_time", thatTime);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -909,8 +909,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -925,8 +925,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_AUCTION_RECORDS;
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -943,8 +943,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -963,8 +963,8 @@ public class ApiService {
         params.put("server", server);
         params.put("body", body);
         params.put("force", force);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -978,8 +978,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_HORSE_RECORDS;
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -993,8 +993,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_HORSE_EVENT;
         Map<String, Object> params = new HashMap<>();
         params.put("server", server);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -1010,8 +1010,8 @@ public class ApiService {
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
         params.put("text", text);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -1024,8 +1024,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_IDIOM_SOLITAIRE;
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -1037,8 +1037,8 @@ public class ApiService {
     public BaseResult<SaohuaContentData> saohuaContent() {
         MethodEnum methodEnum = MethodEnum.DATA_SAOHUA_CONTENT;
         Map<String, Object> params = new HashMap<>();
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -1069,8 +1069,8 @@ public class ApiService {
         params.put("speech_rate", speechRate);
         params.put("pitch_rate", pitchRate);
         params.put("text", text);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -1091,8 +1091,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_MUSIC_TENCENT;
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
     }
 
     /**
@@ -1105,8 +1105,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_MUSIC_NETEASE;
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -1120,8 +1120,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_MUSIC_KUGOU;
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -1135,8 +1135,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_FRAUD_DETAIL;
         Map<String, Object> params = new HashMap<>();
         params.put("uin", uin);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -1151,8 +1151,8 @@ public class ApiService {
         MethodEnum methodEnum = MethodEnum.DATA_TABLE_RECORDS;
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -1170,8 +1170,8 @@ public class ApiService {
         params.put("name", name);
         params.put("server", server);
         params.put("ticket", ticket);
-        RequestResult requestResult = doPostRequest(methodEnum.getMethodPath(), params);
-        return getResultRealData(requestResult, methodEnum);
+        MessageInfo messageInfo = doPostRequest(methodEnum.getMethodPath(), params);
+        return getResultRealData(messageInfo, methodEnum);
 
     }
 
@@ -1182,41 +1182,41 @@ public class ApiService {
      * @param params 使用的参数
      * @return 返回内容
      */
-    public RequestResult doPostRequest(String path, Map<String, Object> params) {
+    public MessageInfo doPostRequest(String path, Map<String, Object> params) {
         params.put("token", apiProperties.getApiToken());
         logger.info("请求接口=>{},参数=>{}", path, params);
-        Mono<RequestResult> mono = this.webClient.method(HttpMethod.POST)
+        Mono<MessageInfo> mono = this.webClient.method(HttpMethod.POST)
                 .uri(uriBuilder -> uriBuilder.path(path).build())
                 .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON).bodyValue(params).retrieve().bodyToMono(RequestResult.class);
+                .contentType(MediaType.APPLICATION_JSON).bodyValue(params).retrieve().bodyToMono(MessageInfo.class);
         return mono.block();
     }
 
     /**
      * 获取序列化后的返回值
      *
-     * @param requestResult 返回值信息
+     * @param messageInfo 返回值信息
      * @param methodEnum    请求枚举
      * @return 序列化后的返回值，根据 MethodEnum.resultBeanClass 进行序列化
      */
-    public <T> BaseResult<T> getResultRealData(RequestResult requestResult, MethodEnum methodEnum) {
-        if (requestResult == null) {
-            logger.error("返回值不为空，请求名称=>{},请求地址=>{},返回值信息=>{}", methodEnum.getMethodName(), methodEnum.getMethodPath(), requestResult);
+    public <T> BaseResult<T> getResultRealData(MessageInfo messageInfo, MethodEnum methodEnum) {
+        if (messageInfo == null) {
+            logger.error("返回值不为空，请求名称=>{},请求地址=>{},返回值信息=>{}", methodEnum.getMethodName(), methodEnum.getMethodPath(), messageInfo);
             BaseResult baseResult = new BaseResult();
             baseResult.setCode(500);
             baseResult.setMsg("服务器返回值为空");
             return baseResult;
         }
-        if (HttpStatus.OK.value() != requestResult.getCode()) {
-            logger.error("返回值不成功，请求名称=>{},请求地址=>{},返回值信息=>{}", methodEnum.getMethodName(), methodEnum.getMethodPath(), requestResult);
+        if (HttpStatus.OK.value() != messageInfo.getCode()) {
+            logger.error("返回值不成功，请求名称=>{},请求地址=>{},返回值信息=>{}", methodEnum.getMethodName(), methodEnum.getMethodPath(), messageInfo);
             BaseResult baseResult = new BaseResult();
-            baseResult.setCode(requestResult.getCode());
-            baseResult.setMsg(requestResult.getMsg());
+            baseResult.setCode(messageInfo.getCode());
+            baseResult.setMsg(messageInfo.getMsg());
             return baseResult;
         }
         BaseResult baseResult = new BaseResult();
-        baseResult.setCode(requestResult.getCode());
-        baseResult.setMsg(requestResult.getMsg());
+        baseResult.setCode(messageInfo.getCode());
+        baseResult.setMsg(messageInfo.getMsg());
         // 根据枚举优先判断pClass类型，区分主体对象是不是List
         if (List.class.isAssignableFrom(methodEnum.getpClass())) {
             TypeFactory typeFactory = objectMapper.getTypeFactory();
@@ -1224,21 +1224,21 @@ public class ApiService {
             try {
                 List<T> result = null;
                 if (methodEnum.getJsonKey() == null) {
-                    result = objectMapper.readValue(objectMapper.writeValueAsString(requestResult.getData()), listType);
+                    result = objectMapper.readValue(objectMapper.writeValueAsString(messageInfo.getData()), listType);
                 } else {
-                    result = objectMapper.readValue(((Map<String, String>) requestResult.getData()).get(methodEnum.getJsonKey()), listType);
+                    result = objectMapper.readValue(((Map<String, String>) messageInfo.getData()).get(methodEnum.getJsonKey()), listType);
                 }
                 baseResult.setData(result);
             } catch (JsonProcessingException e) {
-                logger.error("序列化参数时，出现异常，请求参数=>{}", requestResult.getData(), e);
+                logger.error("序列化参数时，出现异常，请求参数=>{}", messageInfo.getData(), e);
                 // 不想给调用方加thr了，换个runtime抛出去把
                 throw new RuntimeException("序列化参数时，出现异常");
             }
         } else {
             if (methodEnum.getJsonKey() == null) {
-                baseResult.setData(objectMapper.convertValue(requestResult.getData(), methodEnum.getResultBeanClass()));
+                baseResult.setData(objectMapper.convertValue(messageInfo.getData(), methodEnum.getResultBeanClass()));
             } else {
-                baseResult.setData(objectMapper.convertValue(((Map<String, String>) requestResult.getData()).get(methodEnum.getJsonKey()), methodEnum.getResultBeanClass()));
+                baseResult.setData(objectMapper.convertValue(((Map<String, String>) messageInfo.getData()).get(methodEnum.getJsonKey()), methodEnum.getResultBeanClass()));
             }
         }
         return baseResult;

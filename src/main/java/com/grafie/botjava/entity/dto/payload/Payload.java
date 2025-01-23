@@ -1,4 +1,4 @@
-package com.grafie.botjava.entity.dto;
+package com.grafie.botjava.entity.dto.payload;
 
 import lombok.Data;
 

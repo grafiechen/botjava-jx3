@@ -4,7 +4,7 @@ import com.grafie.botjava.action.BaseAction;
 import com.grafie.botjava.action.CallbackValidAction;
 import com.grafie.botjava.contants.OpCode;
 import com.grafie.botjava.contants.PayloadTEnum;
-import com.grafie.botjava.entity.dto.Payload;
+import com.grafie.botjava.entity.dto.payload.Payload;
 import com.grafie.botjava.util.SpringContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

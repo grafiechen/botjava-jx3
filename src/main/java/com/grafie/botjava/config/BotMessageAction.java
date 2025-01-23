@@ -10,6 +10,7 @@ import java.lang.annotation.Target;
 /**
  * 自动托管给spring。
  * 用于某些action需要使用上下文的情况。
+ *
  * @author jinpeng.chen
  * @since 2025/1/22  15:44
  */
@@ -17,5 +18,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Component
 public @interface BotMessageAction {
-    String value() default "";
+
 }

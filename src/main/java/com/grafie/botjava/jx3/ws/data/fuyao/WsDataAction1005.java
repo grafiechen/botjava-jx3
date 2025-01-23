@@ -1,0 +1,25 @@
+package com.grafie.botjava.jx3.ws.data.fuyao;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.grafie.botjava.jx3.ws.data.BaseWsData;
+import com.grafie.botjava.jx3.ws.data.WsActionData;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+import java.util.List;
+
+/**
+ * 扶摇结束点名
+ *
+ * @author Grafie
+ * @since 1.0.0
+ */
+@EqualsAndHashCode(callSuper = true)
+@Data
+@ToString(callSuper = true)
+@WsActionData(actionCode = 1005)
+public class WsDataAction1005 extends BaseWsData {
+    @JsonProperty("name")
+    private List<String> names;
+}

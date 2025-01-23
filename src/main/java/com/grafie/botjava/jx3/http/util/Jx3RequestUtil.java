@@ -24,7 +24,7 @@ import java.util.Map;
  * @since 2025/1/22  15:36
  */
 @Slf4j
-public class RequestUtl {
+public class Jx3RequestUtil {
     private final WebClient webClient;
     /**
      * 相关api参数
@@ -33,7 +33,7 @@ public class RequestUtl {
 
     private ObjectMapper objectMapper;
 
-    public RequestUtl(ApiProperties apiProperties, ObjectMapper objectMapper) {
+    public Jx3RequestUtil(ApiProperties apiProperties, ObjectMapper objectMapper) {
         this.apiProperties = apiProperties;
         this.webClient = WebClient.builder().baseUrl(apiProperties.getApiUrl()).defaultHeader("token", apiProperties.getApiToken()).defaultHeader(HttpHeaders.USER_AGENT, "Nonebot2-jx3-bot").build();
         this.objectMapper = objectMapper;

@@ -1,8 +1,6 @@
 package com.grafie.botjava.action;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.grafie.botjava.config.BotMessageAction;
-import com.grafie.botjava.entity.dto.Payload;
+import com.grafie.botjava.entity.dto.payload.Payload;
 import com.grafie.botjava.entity.dto.SignResult;
 import com.grafie.botjava.entity.dto.check.ServerCheckDto;
 import com.grafie.botjava.util.BotPropertyUtil;

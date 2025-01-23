@@ -14,6 +14,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @EnableJX3ApiHttp
+@EnableJX3ApiWS
 public @interface EnableJX3Api {
 
 }

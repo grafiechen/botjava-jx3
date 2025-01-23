@@ -1,6 +1,6 @@
 package com.grafie.botjava.action;
 
-import com.grafie.botjava.entity.dto.Payload;
+import com.grafie.botjava.entity.dto.payload.Payload;
 import lombok.extern.slf4j.Slf4j;
 
 /**

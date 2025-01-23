@@ -2,12 +2,14 @@ package com.grafie.botjava.jx3.http.action.base;
 
 
 import com.grafie.botjava.entity.GroupInfo;
-import com.grafie.botjava.entity.dto.GroupAtMessageCreateDto;
+import com.grafie.botjava.entity.dto.group.at.GroupAtMessageCreateDto;
 import com.grafie.botjava.jx3.config.ApiProperties;
 import com.grafie.botjava.jx3.http.BaseResult;
+import com.grafie.botjava.jx3.http.MessageInfo;
 import com.grafie.botjava.jx3.http.MethodEnum;
 import com.grafie.botjava.jx3.http.RequestResult;
-import com.grafie.botjava.jx3.http.util.RequestUtl;
+import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
+import com.grafie.botjava.jx3.http.util.REGEX;
 import com.grafie.botjava.mapper.GroupInfoMapper;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -21,38 +23,51 @@ import java.util.Map;
  */
 
 public abstract class Jx3BaseAction {
+
     protected ApiProperties apiProperties;
-    protected RequestUtl requestUtl;
+    protected Jx3RequestUtil jx3RequestUtil;
     protected GroupInfoMapper groupInfoMapper;
     @Value("${my.default-server}")
     private String defaultServer;
-    protected String groupOpenid;
+    protected GroupAtMessageCreateDto groupAtMessageCreateDto;
 
-    public Jx3BaseAction(ApiProperties apiProperties, RequestUtl requestUtl) {
+    public Jx3BaseAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil) {
         this.apiProperties = apiProperties;
-        this.requestUtl = requestUtl;
+        this.jx3RequestUtil = jx3RequestUtil;
     }
 
     /**
      * 需要按照不同调用方法的顺序进行传参
      *
      * @param requestRegex 请求参数
-     * @param methodEnum   方法枚举
+     * @param regex        方法枚举
      * @return 返回结果
      */
-    public <T> BaseResult<T> doRequest(GroupAtMessageCreateDto atMessageCreateDto, String requestRegex, MethodEnum methodEnum) {
-        groupOpenid = atMessageCreateDto.getGroupOpenid();
-        RequestResult requestResult = deal(requestRegex);
-        return requestUtl.getResultRealData(requestResult, methodEnum);
+    public MessageInfo doRequest(GroupAtMessageCreateDto atMessageCreateDto, String requestRegex, REGEX regex) {
+        this.groupAtMessageCreateDto = atMessageCreateDto;
+        return doAction(requestRegex, regex.getMethodEnum());
+    }
+
+    public MessageInfo doAction(String requestRegex, MethodEnum methodEnum) {
+        Map<String, Object> requestParam = getRequestParam(requestRegex);
+        RequestResult requestResult = jx3RequestUtil.doPostRequest(methodEnum.getMethodPath(), requestParam);
+        BaseResult baseResult = jx3RequestUtil.getResultRealData(requestResult, methodEnum);
+        return dealAfterJx3ApiRequest(baseResult);
     }
 
     /**
-     * 具体的处理方法
-     *
-     * @param requestRegex 请求参数
-     * @return RequestResult
+     * 交给各个子类处理的生成请求参数的基类
+     * @param requestRegex qq发过来的表达式
+     * @return
      */
-    protected abstract RequestResult deal(String requestRegex);
+    protected abstract Map<String, Object> getRequestParam(String requestRegex);
+
+    /**
+     * 请求jx3Api之后，过来的
+     * @param baseResult 需要拼装成真正返回值的内容
+     * @return
+     */
+    protected abstract MessageInfo dealAfterJx3ApiRequest(BaseResult baseResult);
 
     /**
      * 设置服务
@@ -62,7 +77,7 @@ public abstract class Jx3BaseAction {
 
     public void getDefaultServer(Map<String, Object> requestParam) {
         if (requestParam.get("server") == null) {
-            GroupInfo groupInfo = groupInfoMapper.findByOpenGroupId(groupOpenid);
+            GroupInfo groupInfo = groupInfoMapper.findByOpenGroupId(groupAtMessageCreateDto.getGroupOpenid());
             String requestSever = null;
             if (groupInfo == null) {
                 requestSever = defaultServer;

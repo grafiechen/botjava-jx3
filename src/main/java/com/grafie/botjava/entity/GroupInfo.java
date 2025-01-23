@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 /**
  * @author grafie.chen
@@ -13,6 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(name = "group_info")
 public class GroupInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,4 +29,15 @@ public class GroupInfo {
      * 服务器名称
      */
     private String server;
+    /**
+     * 服务器推送
+     */
+    @Column(name = "ws_server")
+    private Integer wsServer;
+    @CreationTimestamp
+    @Column(name = "create_time", updatable = false)
+    private LocalDateTime createTime;
+    @CreationTimestamp
+    @Column(name = "update_time", updatable = true)
+    private LocalDateTime updateTime;
 }

@@ -1,0 +1,21 @@
+package com.grafie.botjava.jx3.ws.data.fuyao;
+
+import com.grafie.botjava.jx3.ws.data.BaseWsData;
+import com.grafie.botjava.jx3.ws.data.WsActionData;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+/**
+ * 扶摇开启
+ *
+ * @author Grafie
+ * @since 1.0.0
+ */
+@EqualsAndHashCode(callSuper = true)
+@Data
+@ToString(callSuper = true)
+@WsActionData(actionCode = 1004)
+public class WsDataAction1004 extends BaseWsData {
+
+}
