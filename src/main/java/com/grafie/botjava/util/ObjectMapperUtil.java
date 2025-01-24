@@ -26,7 +26,7 @@ public class ObjectMapperUtil {
      *
      * @return ObjectMapper
      */
-    public static ObjectMapper getObjectMapper() throws JsonProcessingException {
+    public static ObjectMapper getObjectMapper(){
         return objectMapper;
     }
 

@@ -33,5 +33,4 @@ public class TxBotProperty {
      */
     private String clientSecret;
 
-
 }

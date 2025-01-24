@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+    <title>template</title>
+    <link href="css/github-markdown.css" rel="stylesheet">
+    <style>
+        *:not([class*='icon']):not(.fa):not(.fas):not(i) {
+            font-family: 'HarmonyOS Sans SC', 'HarmonyOS SansSC', 'HarmonyOS', 'Microsoft YaHei', serif !important;
+        }
+
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        .th1 {
+            position: relative;
+            top: 1px;
+        }
+
+        body {
+            box-sizing: border-box;
+            min-width: 950px;
+            max-width: 950px;
+            min-height: 3000px;
+            max-height: 3000px;
+            margin: 0 auto;
+            padding: 25px;
+        }
+    </style>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/echarts.min.js"></script>
+    <script type="text/javascript">
+        function subText(jsonStr, nickname, sweet, server) {
+            $("#nickname").text(nickname);
+            $("#sweet").text(sweet);
+            if (server) {
+                $("#server").text(server);
+            }
+            // jsonStr = $.parseJSON(jsonStr);
+            let priceData = jsonStr["data"];
+            let info = priceData["desc"];
+            let imageUrl = priceData['view'];
+            let name = priceData["name"] + "（" + priceData["alias"] + "）";
+            let xAxisData = [];
+            let priceTrend = [];
+            if (info != null && info.length > 0) {
+                $("#priceDescription").html(info);
+            }
+            // 标题
+            $("#priceTitle").html(name);
+            // 定义价格数据
+            priceData = priceData["data"];
+            // 图片
+            if (imageUrl != null && imageUrl.length > 0) {
+                let image = $("#priceImage");
+                image.attr("src", imageUrl);
+            }
+
+            const saleCodeMapping = {
+                1: '出售',
+                2: '收购',
+                3: '想出',
+                4: '想收',
+                5: '成交',
+                6: '正出',
+                7: '公示',
+            };
+
+            let region = [0, 1, 2, 3, 4, 5];
+            let regionHtml = {
+                0: "<table style='text-align: left;'><tbody>",
+                1: "<table style='text-align: left;'><tbody>",
+                2: "<table style='text-align: left;'><tbody>",
+                3: "<table style='text-align: left;'><tbody>",
+                4: "<table style='text-align: left;'><tbody>",
+                5: "<table style='text-align: left;'><tbody>"
+            };
+            let regionCount = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+            $.each(region, function (index, regionId) {
+                let priceRegionList = priceData[regionId];
+                $.each(priceRegionList, function (index, priceRecord) {
+                    let tradeTime = priceRecord["date"];
+                    let price = Math.round(priceRecord["value"]);
+                    let server = priceRecord["server"];
+                    xAxisData.push(tradeTime);
+                    priceTrend.push(price);
+                    const saleCode = priceRecord["sales"];
+                    if (regionCount[regionId] < 5) {
+                        regionHtml[regionId] += "<tr style='border: none;background-color: rgba(0, 0, 0, 0);'><td style='border: none;'><span style='color:#FF8200;'>" + tradeTime + "</span></td>" + "<td style='border: none;text-align:center;'>" + server + "</td>" + "<td style='border: none;'><span style='color:#008E97;'>¥" + price + "</span></td><td style='border: none;'>" + saleCodeMapping[saleCode] + "</td></tr>";
+                        regionCount[regionId] += 1;
+                    }
+                });
+            });
+            // 注入js
+            $.each(region, function (index, number) {
+                regionHtml[number] += "</tbody></table>";
+                if (regionCount[number] > 0) {
+                    // 有内容才注入
+                    $("#region_" + number + "_data").html(regionHtml[number]);
+                }
+            });
+            // 有10条才显示走势
+            if (priceTrend.length >= 10) {
+                // 根据日期排序
+                let minIndex;
+                for (let i = 0; i < xAxisData.length - 1; i++) {
+                    minIndex = i;
+                    for (let j = i + 1; j < xAxisData.length; j++) {
+                        let date1 = new Date(xAxisData[j]);
+                        let date2 = new Date(xAxisData[minIndex]);
+                        // let date1 = getDate(xAxisData[j]);
+                        // let date2 = getDate(xAxisData[minIndex]);
+                        if (date1.getTime() < date2.getTime()) {
+                            minIndex = j;
+                        }
+                    }
+                    xAxisData = swapByIndex(i, minIndex, xAxisData);
+                    priceTrend = swapByIndex(i, minIndex, priceTrend);
+                }
+                // 基于准备好的dom，初始化echarts实例
+                let myChart = echarts.init(document.getElementById('trend'));
+                // 指定图表的配置项和数据
+                let option = {
+                    animation: false,
+                    textStyle: {
+                        fontFamily: 'HarmonyOS Sans SC',
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        textStyle: {fontSize: 20},
+                        // data: [name + ' | 价格走势']
+                        data: [name]
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: xAxisData
+                    },
+                    yAxis: {
+                        type: 'value',
+                        scale: true
+                    },
+                    series: [{
+                        name: name + ' | 价格走势',
+                        type: 'line',
+                        data: priceTrend,
+                        connectNulls: true,
+                        markPoint: {
+                            data: [
+                                {type: 'max', name: '最大值'},
+                                {type: 'min', name: '最小值'}
+                            ]
+                        },
+                        markLine: {
+                            data: [
+                                {type: 'average', name: '平均值'}
+                            ]
+                        },
+                    }],
+                    force: {
+                        layoutAnimation: false,
+                    }
+                };
+                // 使用刚指定的配置项和数据显示图表。
+                myChart.setOption(option);
+            } else {
+                $("#trend").remove();
+            }
+        }
+
+        function swapByIndex(i, minIndex, arr) {
+            let temp = arr[i];
+            arr[i] = arr[minIndex];
+            arr[minIndex] = temp;
+            return arr;
+        }
+
+        function getDate(strDate) {
+            let dateSplit = strDate.split("/");
+            dateSplit[0] = "20" + dateSplit[0];
+            return new Date(dateSplit[0], dateSplit[1], dateSplit[2]);
+        }
+    </script>
+</head>
+
+<body>
+<article id="main" class="markdown-body">
+    <table style="font-size: 20px">
+        <thead>
+        <tr>
+            <th class="th1" id="priceTitle" colspan="2"></th>
+        </tr>
+        </thead>
+        <tbody style="text-align: center">
+        <tr>
+            <th colspan="2"><img style="margin-top:6px" id="priceImage" width="100%" height="100%"
+                                 src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/PjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+PHN2ZyB0PSIxNjE3ODY2MzI1NzY4IiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9IjE5MTkiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCI+PGRlZnM+PHN0eWxlIHR5cGU9InRleHQvY3NzIj48L3N0eWxlPjwvZGVmcz48cGF0aCBkPSJNMjg3Ljc3NCAyNTYuMWwtOC41NDggNS4wMjhjLTEuNTA4IDEuMDA3LTMuMDE4IDIuMDExLTMuNTE4IDMuNTE4czAgNy4wNDEgMCA5LjA1MGMwLjUwMiA2LjUzNyAwLjUwMiAxNC41OC01LjAyOCAxOS4xMDQtNS4wMjggNC4wMjItMTEuNTYyIDIuNTEzLTE2LjU5LTAuNTAybC00LjAyMi0yLjAxMXYtNC41MjVjMC0zLjUxOCAwLjUwMi02LjUzNyAwLjUwMi05LjU1MiAwLTUuNTMxLTYuMDMyLTYuMDMyLTEwLjU1OS02LjAzMi00LjAyMiAwLTcuNTQgMC41MDItMTEuNTYyIDEuMDA3LTQuMDIyIDAuNTAyLTguMDQzIDEuNTA4LTExLjU2Mi0xLjAwNy00LjUyNS0zLjAxOC01LjAyOC04LjU0OC01LjAyOC0xMy41NzMgMC0xLjUwOCAwLjUwMi0zLjAxOCAxLjAwNy00LjAyMiAzLjAxOC01LjUzMSA4LjU0OC01LjAyOCAxMy41NzMtNi4wMzIgNy4wNDEtMS4wMDcgMTQuMDc3LTEuMDA3IDIxLjExNS0xLjUwOCAxMi41NjctMS4wMDcgMTguNjAyLTUuNTMxIDI5LjE2MS0xMS4wNjEgMy41MTgtMi4wMTEgNi4wMzItNC4wMjIgMTAuNTU5LTQuMDIyIDYuNTM3IDAgMTEuNTYyIDguNTQ4IDExLjU2MiAxNC41OCAwLjUwMiA2LjUzNy02LjAzMiA5LjA1MC0xMS4wNjEgMTEuNTYydjB6TTE4My4yMDMgMzIxLjk2MWMwIDEuMDA3IDAuNTAyIDIuMDExIDAuNTAyIDMuNTE4IDAgMi41MTMgMCA0LjUyNSAwIDcuMDQxLTAuNTAyIDYuNTM3LTIuNTEzIDE0LjU4LTEwLjU1OSAxNC41OC01LjAyOCAwLTEwLjA1NC0xLjAwNy0xMi4wNjYtNi4wMzItMi4wMTEtNC4wMjIgMC0xMC41NTktMS4wMDctMTEuNTYyLTEuMDA3LTEuMDA3LTYuMDMyLTAuNTAyLTcuNTQtMC41MDItNC41MjUgMC41MDItMTAuNTU5IDEuNTA4LTE1LjA4NCAwLjUwMmwtNC41MjUtMS4wMDctMS4wMDctNC41MjVjLTAuNTAyLTMuMDE4LTEuNTA4LTQuNTI1LTEuNTA4LTcuNTR2MGMwLTIuMDExIDAuNTAyLTQuMDIyIDIuMDExLTYuMDMyIDIuNTEzLTMuNTE4IDYuMDMyLTMuNTE4IDEwLjA1NC00LjAyMiAxNS41ODQtMi4wMTEgMTcuNTk3IDEuMDA3IDMyLjY3OS02LjUzNyAzLjUxOC0yLjAxMSAxMC4wNTQtNi41MzcgMTQuMDc3LTYuNTM3IDYuNTM3IDAgMTEuNTYyIDcuMDQxIDExLjU2MiAxMy41NzMgMCA3LjA0MS03LjU0IDEwLjA1NC0xMy4wNzIgMTIuNTY3LTAuNTAyIDAtMy41MTggMS41MDgtNC41MjUgMi41MTN6IiBwLWlkPSIxOTIwIj48L3BhdGg+PHBhdGggZD0iTTI3NS43MDggNzE0LjEwNmMtNi4wMzIgMC0xMi4wNjYtMy41MTgtMTUuNTg0LTkuMDUwLTI0LjEzMi00My4yMzYtMzYuNy05Mi4wMDMtMzYuNy0xNDEuNzc1IDAtMTYwLjM3NyAxMzAuMjEzLTI5MC41OTEgMjkwLjU5MS0yOTAuNTkxczI5MC41OTEgMTMwLjIxMyAyOTAuNTkxIDI5MC41OTFjMCA0Mi4yMy05LjA1MCA4Mi45NTUtMjYuMTQyIDEyMS4xNjMtNC4wMjIgOS4wNTAtMTQuNTggMTMuMDcyLTIzLjYzMSA4LjU0OC05LjA1MC00LjAyMi0xMy4wNzItMTQuNTgtOC41NDgtMjMuNjMxIDE1LjA4NC0zMy4xODIgMjMuMTI2LTY4Ljg3OCAyMy4xMjYtMTA2LjA3OSAwLTE0MC4yNjgtMTE0LjEyNS0yNTQuODk0LTI1NC44OTQtMjU0Ljg5NC0xNDAuMjY4IDAtMjU0Ljg5NCAxMTQuMTI1LTI1NC44OTQgMjU0Ljg5NCAwIDQzLjc0MSAxMS4wNjEgODYuNDczIDMyLjE3NCAxMjQuMTc4IDUuMDI4IDguNTQ4IDEuNTA4IDE5LjYwNy03LjA0MSAyNC4xMzItMy4wMTggMi4wMTEtNi4wMzIgMi41MTMtOS4wNTAgMi41MTN6IiBwLWlkPSIxOTIxIj48L3BhdGg+PHBhdGggZD0iTTc3OS45NjYgNTIwLjU0OGMtMTAuMDU0IDAtMTcuNTk3LTguMDQzLTE3LjU5Ny0xNy41OTd2LTMxOC43NDJjMC03LjA0MSA0LjAyMi0xMy4wNzIgMTAuMDU0LTE2LjA5MHMxMy41NzMtMi4wMTEgMTkuMTA0IDIuNTEzbDk2LjAyNSA3OC40MjljNy41NCA2LjAzMiA4LjU0OCAxNy41OTcgMi41MTMgMjUuMTM5cy0xNy41OTcgOC41NDgtMjUuMTM5IDIuNTEzbC02Ni44NjQtNTQuNzk5djI4MC41MzRjLTAuNTAyIDEwLjA1NC04LjU0OCAxOC4wOTgtMTguMDk4IDE4LjA5OHoiIHAtaWQ9IjE5MjIiPjwvcGF0aD48cGF0aCBkPSJNNDE3LjQ4NCA2MTEuNTQ1Yy00LjUyNSAwLTkuMDUwLTEuNTA4LTEyLjU2Ny01LjAyOGwtNDkuMjY5LTQ4Ljc2NWMtNy4wNDEtNy4wNDEtNy4wNDEtMTguMDk4IDAtMjUuMTM5czE4LjA5OC03LjA0MSAyNS4xMzkgMGw0OS4yNjkgNDguNzY1YzcuMDQxIDcuMDQxIDcuMDQxIDE4LjA5OCAwIDI1LjEzOS0zLjUxOCAzLjAxOC04LjA0MyA1LjAyOC0xMi41NjcgNS4wMjh6IiBwLWlkPSIxOTIzIj48L3BhdGg+PHBhdGggZD0iTTM3MS4yMzEgNjEyLjU1Yy00LjUyNSAwLTkuMDUwLTEuNTA4LTEyLjA2Ni01LjAyOC03LjA0MS02LjUzNy03LjU0LTE4LjA5OC0wLjUwMi0yNS4xMzlsNDcuNzYzLTUwLjI3NWM2LjUzNy03LjA0MSAxOC4wOTgtNy41NCAyNS4xMzktMC41MDIgNy4wNDEgNi41MzcgNy41NCAxOC4wOTggMC41MDIgMjUuMTM5bC00OC4yNjUgNTAuNzc4Yy0zLjAxOCAzLjUxOC03LjU0IDUuMDI4LTEyLjU2NyA1LjAyOHoiIHAtaWQ9IjE5MjQiPjwvcGF0aD48cGF0aCBkPSJNNjUzLjc3NSA2MTEuNTQ1Yy00LjUyNSAwLTkuMDUwLTEuNTA4LTEyLjU2Ny01LjAyOGwtNDkuMjY5LTQ4Ljc2NWMtNy4wNDEtNy4wNDEtNy4wNDEtMTguMDk4IDAtMjUuMTM5czE4LjA5OC03LjA0MSAyNS4xMzkgMGw0OS4yNjkgNDguNzY1YzcuMDQxIDcuMDQxIDcuMDQxIDE4LjA5OCAwIDI1LjEzOS0zLjAxOCAzLjAxOC04LjA0MyA1LjAyOC0xMi41NjcgNS4wMjh6IiBwLWlkPSIxOTI1Ij48L3BhdGg+PHBhdGggZD0iTTYwOC4wMjUgNjEyLjU1Yy00LjUyNSAwLTkuMDUwLTEuNTA4LTEyLjA2Ni01LjAyOC03LjA0MS02LjUzNy03LjU0LTE4LjA5OC0wLjUwMi0yNS4xMzlsNDguMjY1LTUwLjc3OGM2LjUzNy03LjA0MSAxOC4wOTgtNy41NCAyNS4xMzktMC41MDIgNy4wNDEgNi41MzcgNy41NCAxOC4wOTggMC41MDIgMjUuMTM5bC00OC4yNjUgNTAuNzc4Yy00LjAyMiA0LjAyMi04LjU0OCA1LjUzMS0xMy4wNzIgNS41MzF6IiBwLWlkPSIxOTI2Ij48L3BhdGg+PHBhdGggZD0iTTE4My4yMDMgNzg0LjQ5MWMtMTEuNTYyIDAtMjIuNjI0LTguMDQzLTM4LjcxMy0yMS42MTctNy4wNDEtNi4wMzItMTQuMDc3LTkuMDUwLTIwLjYxMy04LjA0My03LjU0IDEuMDA3LTE1LjA4NCA2LjAzMi0yMS42MTcgMTUuMDg0LTUuNTMxIDguMDQzLTE3LjA5MyA5LjU1Mi0yNC42MzQgNC4wMjItOC4wNDMtNS41MzEtOS41NTItMTcuMDkzLTQuMDIyLTI0LjYzNCAxMi41NjctMTcuMDkzIDI4LjY1Ny0yNy42NTEgNDYuMjU0LTI5LjY2MyAxMS41NjItMS41MDggMjkuMTYxIDAuNTAyIDQ4LjI2NSAxNi41OSA3LjA0MSA2LjAzMiAxMi41NjcgMTAuNTU5IDE1LjU4NCAxMi4wNjYgMS41MDgtMS4wMDcgMy4wMTgtMi4wMTEgNC4wMjItMy4wMTggMy4wMTgtMi41MTMgNy4wNDEtNS4wMjggMTEuNTYyLTguNTQ4IDI4LjY1Ny0xOS42MDcgNDEuNzI5LTEzLjA3MiA2My44NDkgMS4wMDdsMy4wMTggMi4wMTFjOS41NTIgNi4wMzIgMTIuMDY2IDcuMDQxIDEzLjA3MiA3LjA0MSAxLjAwNy0wLjUwMiA2LjAzMi0zLjUxOCAxMC41NTktNi4wMzJsNy41NC01LjAyOGMyNS42MzktMTYuMDkwIDQzLjIzNi0yNS4xMzkgNzYuOTIxLTIuNTEzIDIyLjEyMSAxNC41OCAyMi4xMjEgMTQuNTggMzguMjA5IDMuNTE4IDIuNTEzLTIuMDExIDUuNTMxLTQuMDIyIDguNTQ4LTYuMDMyIDI5LjY2My0xOS42MDcgNDQuNzQ1LTEzLjA3MiA2Ni44NjQtMS41MDhsNC41MjUgMi41MTNjMy4wMTggMS41MDggNS41MzEgMy4wMTggOC4wNDMgNC41MjUgNi4wMzIgMy4wMTggMTIuMDY2IDYuNTM3IDE0LjU4IDcuMDQxIDIuMDExLTAuNTAyIDguMDQzLTQuMDIyIDEzLjU3My03LjU0IDUuMDI4LTMuMDE4IDExLjU2Mi02LjUzNyAxOS42MDctMTEuMDYxIDI0LjYzNC0xMy4wNzIgNDIuMjMtMTQuMDc3IDgxLjk0NyAxNi4wOTAgMS4wMDcgMC41MDIgNy41NC0xLjAwNyAxOC42MDItMTAuNTU5IDI2LjY0NS0yNC4xMzIgNDcuMjU5LTEyLjU2NyA2Mi4zNC00LjAyMiAxMS4wNjEgNi41MzcgMjIuNjI0IDEzLjA3MiA0MS43MjkgMTIuNTY3IDMuNTE4IDAgOS41NTItNC4wMjIgMTUuMDg0LTcuNTQgMTMuMDcyLTkuMDUwIDM0LjY5LTIzLjYzMSA2Mi44NDMtNS4wMjggMzEuMTcgMjAuNjEzIDMyLjY3OSAyMS42MTcgNjYuODY0LTEuNTA4IDguMDQzLTUuNTMxIDE3LjU5Ny03LjU0IDI2LjY0NS01LjUzMSAxMi41NjcgMi41MTMgMjQuMTMyIDExLjU2MiAzNC4xODggMjcuMTQ5IDUuNTMxIDguMDQzIDMuMDE4IDE5LjEwNC01LjAyOCAyNC42MzQtOC4wNDMgNS41MzEtMTkuMTA0IDMuMDE4LTI0LjYzNC01LjAyOC01LjUzMS04LjA0My05LjU1Mi0xMS4wNjEtMTEuMDYxLTExLjU2MiAwIDAgMCAwIDAgMC00Ny43NjMgMzEuNjc0LTY0Ljg1NCAyOS4xNjEtMTA2LjU4MyAxLjUwOC03LjA0MS00LjUyNS05LjU1Mi00LjAyMi0yMy4xMjYgNS4wMjgtOS4wNTAgNi4wMzItMjAuMTEgMTMuNTczLTM0LjY5IDEzLjU3My0yOS4xNjEgMC00Ny43NjMtMTAuNTU5LTU5LjgyNi0xNy41OTctMTMuMDcyLTcuNTQtMTMuMDcyLTcuNTQtMjAuNjEzLTAuNTAyLTMzLjE4MiAzMC4xNjMtNTUuODA1IDE5LjEwNC02My44NDkgMTIuNTY3LTI4LjE1NS0yMS4xMTUtMzIuMTc0LTE5LjEwNC00My43NDEtMTMuMDcyLTcuNTQgNC4wMjItMTMuNTczIDcuNTQtMTguNjAyIDEwLjU1OS0yNy42NTEgMTYuMDkwLTM0LjE4OCAxNi4wOTAtNjIuODQzIDAuNTAyLTIuNTEzLTEuNTA4LTUuMDI4LTIuNTEzLTguMDQzLTQuNTI1bC00LjUyNS0yLjUxM2MtMTYuNTktOS4wNTAtMTYuNTktOS4wNTAtMzAuMTYzIDAtMy4wMTggMi4wMTEtNS41MzEgNC4wMjItOC4wNDMgNS41MzEtMjUuNjM5IDE3LjU5Ny0zOS43MTcgMjIuMTIxLTc3LjkyNi0zLjUxOC0xNi4wOTAtMTEuMDYxLTE2LjU5LTEwLjU1OS0zOC4yMDkgMy4wMThsLTcuNTQgNS4wMjhjLTIyLjEyMSAxNC4wNzctMzMuMTgyIDE3LjU5Ny02MS44MzktMS4wMDdsLTMuNTE4LTIuMDExYy01LjUzMS0zLjUxOC0xMS41NjItNy41NC0xMy41NzMtNy41NCAwIDAtMi41MTMgMC41MDItMTEuMDYxIDYuMDMyLTQuMDIyIDIuNTEzLTcuMDQxIDUuMDI4LTEwLjA1NCA3LjA0MS0xMC4wNTQgOC41NDgtMTguMDk4IDEyLjA2Ni0yNi4xNDIgMTIuMDY2eiIgcC1pZD0iMTkyNyI+PC9wYXRoPjxwYXRoIGQ9Ik0yNDIuMDI1IDg1NC44NzRjLTExLjA2MSAwLTIxLjYxNy05LjA1MC0zNS42OTYtMjMuMTI2LTMuNTE4LTMuNTE4LTguNTQ4LTcuNTQtMTMuNTczLTcuMDQxLTUuMDI4IDAuNTAyLTExLjA2MSA2LjAzMi0xNi4wOTAgMTQuMDc3LTUuMDI4IDguNTQ4LTE2LjA5MCAxMS4wNjEtMjQuNjM0IDYuMDMyLTguNTQ4LTUuMDI4LTExLjA2MS0xNi4wOTAtNi4wMzItMjQuNjM0IDExLjA2MS0xOC4wOTggMjYuMTQyLTI5LjE2MSA0Mi4yMy0zMC42NjggMTAuNTU5LTEuMDA3IDI2LjY0NSAxLjAwNyA0My4yMzYgMTcuNTk3IDQuMDIyIDQuNTI1IDcuNTQgNy41NCAxMC4wNTQgOS41NTIgMC41MDIgMCAwLjUwMi0wLjUwMiAwLjUwMi0wLjUwMiAyLjUxMy0yLjUxMyA2LjAzMi01LjUzMSAxMC4wNTQtOC41NDggMjYuMTQyLTIxLjExNSAzOS43MTctMTMuNTczIDU5LjMyNCAxLjAwN2wyLjUxMyAyLjAxMWM0LjAyMiAzLjAxOCA2LjUzNyA0LjUyNSA4LjA0MyA1LjUzMSAyLjAxMS0xLjAwNyA0LjUyNS0zLjAxOCA2LjUzNy01LjAyOGw2LjUzNy01LjAyOGMxOS42MDctMTQuNTggMzcuNzA2LTI4LjE1NSA3MC4zODUtMi41MTMgMTEuMDYxIDkuMDUwIDE1LjU4NCAxMC41NTkgMTYuNTkgMTEuMDYxIDIuMDExLTEuMDA3IDYuMDMyLTQuNTI1IDkuNTUyLTcuMDQxIDIuMDExLTIuMDExIDQuNTI1LTQuMDIyIDcuNTQtNi4wMzIgMjYuNjQ1LTIwLjYxMyA0MS43MjktMTQuMDc3IDYxLjMzNS0xLjUwOGw0LjAyMiAyLjUxM2MyLjUxMyAxLjUwOCA1LjAyOCAzLjAxOCA3LjA0MSA0LjUyNSAzLjUxOCAyLjUxMyA3LjA0MSA0LjUyNSA5LjU1MiA2LjAzMiAyLjAxMS0xLjUwOCA2LjAzMi00LjAyMiA5LjA1MC02LjAzMiA0LjUyNS0zLjAxOCA5LjU1Mi02LjUzNyAxNi41OS0xMS4wNjEgMjQuNjM0LTE2LjA5MCA0Mi4yMy0xMi41NjcgNzIuODk4IDE1LjA4NCAyLjAxMS0xLjAwNyA2LjAzMi0zLjUxOCAxMS4wNjEtOS4wNTAgMjUuMTM5LTI2LjY0NSA0NS43NS0xMi41NjcgNTguMzItNC4wMjIgOS4wNTAgNi4wMzIgMTguMDk4IDEyLjA2NiAzMi42NzkgMTIuMDY2IDEuNTA4IDAgNy4wNDEtNC41MjUgMTAuMDU0LTcuMDQxIDEwLjU1OS04LjU0OCAzMi4xNzQtMjUuNjM5IDU4LjMyLTUuMDI4IDI0LjYzNCAxOS42MDcgMjQuNjM0IDE5LjYwNyA1MS4yODEtMS41MDggNy41NC02LjAzMiAxNi41OS04LjA0MyAyNS4xMzktNi41MzcgMTIuMDY2IDIuNTEzIDIyLjYyNCAxMi4wNjYgMzEuNjc0IDI4LjY1NyA0LjUyNSA4LjU0OCAxLjUwOCAxOS42MDctNy4wNDEgMjQuMTMyLTguNTQ4IDQuNTI1LTE5LjYwNyAxLjUwOC0yNC4xMzItNy4wNDEtMi41MTMtNC41MjUtNS4wMjgtNy41NC02LjUzNy05LjA1MC00MC4yMiAzMS4xNy01Ny4zMTMgMjcuMTQ5LTkyLjUwNS0wLjUwMi0yLjAxMS0xLjUwOC0zLjUxOC0yLjAxMS0zLjUxOC0yLjAxMS0yLjAxMSAwLTcuNTQgNC41MjUtMTAuNTU5IDcuMDQxLTguMDQzIDYuNTM3LTE4LjA5OCAxNC41OC0zMi4xNzQgMTQuNTggMCAwLTAuNTAyIDAtMC41MDIgMC0yNS42MzkgMC00MS43MjktMTEuMDYxLTUyLjc4OS0xOC4wOTgtMi41MTMtMS41MDgtNi4wMzItNC4wMjItNy41NC01LjAyOC0xLjAwNyAwLjUwMi0yLjAxMSAxLjUwOC00LjAyMiA0LjAyMi0zMS4xNyAzMy42ODQtNTMuMjkgMTguMDk4LTU5LjgyNiAxMi41NjctMjEuNjE3LTE5LjEwNC0yMy4xMjYtMTguMDk4LTMxLjE3LTEyLjU2Ny02LjUzNyA0LjAyMi0xMS41NjIgNy41NC0xNS41ODQgMTAuNTU5LTI0LjYzNCAxNy4wOTMtMzIuMTc0IDE3LjA5My01Ny44MTUgMS4wMDctMi4wMTEtMS41MDgtNC4wMjItMi41MTMtNi41MzctNC4wMjJsLTQuMDIyLTIuNTEzYy00LjAyMi0yLjUxMy05LjA1MC02LjAzMi0xMS4wNjEtNi4wMzIgMCAwLTIuNTEzIDAuNTAyLTkuNTUyIDYuMDMyLTIuNTEzIDIuMDExLTQuNTI1IDMuNTE4LTcuMDQxIDUuNTMxLTI0LjEzMiAxOS42MDctMzguNzEzIDIyLjEyMS03MS4zOS0zLjUxOC05LjA1MC03LjA0MS0xMS41NjItNy4wNDEtMTEuNTYyLTcuMDQxLTIuNTEzIDAuNTAyLTkuMDUwIDUuNTMxLTE1LjA4NCAxMC4wNTRsLTYuNTM3IDUuMDI4Yy0yMS4xMTUgMTUuNTg0LTMyLjY3OSAxOC4wOTgtNTcuODE1LTEuMDA3bC0zLjAxOC0yLjAxMWMtMy4wMTgtMi41MTMtNi41MzctNS4wMjgtOC41NDgtNi4wMzItMS4wMDcgMC41MDItMy4wMTggMi4wMTEtNi41MzcgNC41MjUtMy4wMTggMi41MTMtNi4wMzIgNS4wMjgtOC4wNDMgNy4wNDEtOC4wNDMgNi41MzctMTYuMDkwIDEwLjU1OS0yMy42MzEgMTAuNTU5eiIgcC1pZD0iMTkyOCI+PC9wYXRoPjwvc3ZnPg==">
+            </th>
+        </tr>
+        <tr>
+            <th id="priceDescription" colspan="2" style="background-color: #ffffff">该外观没有描述，哎？Σ(⊙▽⊙")</th>
+        </tr>
+        <tr>
+            <th>公示期</th>
+            <th>在售期</th>
+        </tr>
+        <tr>
+            <td id="region_3_data" style="background-color: #ffffff;">该区服没有数据，哎？Σ(⊙▽⊙")</td>
+            <td id="region_4_data" style="background-color: #ffffff">该区服没有数据，哎？Σ(⊙▽⊙")</td>
+        </tr>
+        <tr>
+            <th>电信区</th>
+            <th>双线区</th>
+        </tr>
+        <tr>
+            <td id="region_0_data" style="background-color: #ffffff">该区服没有数据，哎？Σ(⊙▽⊙")</td>
+            <td id="region_1_data" style="background-color: #ffffff">该区服没有数据，哎？Σ(⊙▽⊙")</td>
+        </tr>
+        <tr>
+            <th>无界区</th>
+            <th id="server">服务器</th>
+        </tr>
+        <tr>
+            <td id="region_2_data" style="background-color: #ffffff">该区服没有数据，哎？Σ(⊙▽⊙")</td>
+            <td id="region_5_data" style="background-color: #ffffff">该区服没有数据，哎？Σ(⊙▽⊙")</td>
+        </tr>
+        </tbody>
+    </table>
+    <div id="trend" style="width: 900px;height:450px;"></div>
+    <p id="nickname" style="width:100%;font-size:15px;text-align:center;color:#b2bec3;margin-top:-35px"></p>
+    <p id="sweet" style="width:100%;font-size:15px;text-align:center;color:#b2bec3;margin-top:-15px"></p>
+    <!-- <p style="width:100%;font-size:18px;text-align:center;color:#265531">本图由机器人“萌萌”制作生成</p> -->
+</article>
+</body>
+
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>奇穴列表</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/table.css" rel="stylesheet">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            width: 5px;
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        img {
+            width: 40px;
+            height: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="main">
+        <div class="card" style="background-image: url('img/bg.png');">
+            <div class="card-header">
+                <div class="row">
+                    <div class="col">
+                        <div class="text-center fs-4">
+                            <p><img src="img/book.png" height="40" width="40">奇穴列表</p>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="text-center fs-4">
+                           <p><img src="sect/{{name}}.png" height="40" width="40">  {{ name }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;">奇穴位置</th>
+                            <th style="width: 10%;">奇穴图鉴</th>
+                            <th style="width: 10%;">奇穴名称</th>
+                            <th style="width: 6%;">奇穴类型</th>
+                            <th style="width: 66%;">奇穴介绍</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data %}
+                        <tr>
+                            {% set rowspan = item.data | length %}
+                            <td  rowspan="{{ rowspan }}">第{{ item.level }}层</td>
+                            {% for skill in item.data %}
+                                <td ><img src="{{ skill.icon }}" alt="图标"></td>
+                                <td >{{ skill.name }}</td>
+                                <td >{{ skill.kind }}</td>
+                                <td>{{ skill.desc }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer">
+                <h6 class="text-center fs-5">这里是小猫饼哟(＾Ｕ＾)ノ~ＹＯ</h6>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

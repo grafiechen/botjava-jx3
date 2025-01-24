@@ -4,7 +4,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
@@ -18,13 +17,13 @@ public class RequestUtil {
      * 执行post请求。默认 Content-Type 为 application/json。
      * header只允许是String
      *
-     * @param baseUrl 基础地址
-     * @param url    请求url
+     * @param baseUrl    基础地址
+     * @param url        请求url
      * @param param      请求参数
      * @param headersMap header
      * @return 接口返回的string字符串，根据接口内容
      */
-    public static String doPost(String baseUrl,String url, Map<String, Object> param, Map<String, String> headersMap) {
+    public static <T> T doPost(String baseUrl, String url, Map<String, Object> param, Map<String, String> headersMap, Class<T> clazz) {
         WebClient webClient = WebClient.builder().baseUrl(baseUrl).build();
         try {
             return webClient.method(HttpMethod.POST)
@@ -34,7 +33,7 @@ public class RequestUtil {
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(param)
                     .retrieve()
-                    .bodyToMono(String.class)
+                    .bodyToMono(clazz)
                     .block(); // 同步等待响应
         } catch (WebClientResponseException e) {
             // 处理服务器返回的异常 (4xx 或 5xx 响应)
@@ -47,4 +46,6 @@ public class RequestUtil {
             throw new RuntimeException("Request failed", e);
         }
     }
+
+
 }

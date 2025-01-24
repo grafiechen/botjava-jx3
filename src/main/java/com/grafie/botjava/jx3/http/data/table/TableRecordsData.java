@@ -5,7 +5,7 @@ import lombok.Data;
 
 /**
  * 挂件效果
- * @author jinpeng.chen
+ * @author grafie.chen
  * @since 2024/9/25  10:10
  */
 @Data

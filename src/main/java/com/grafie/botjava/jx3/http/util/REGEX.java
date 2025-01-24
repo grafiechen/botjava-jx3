@@ -7,7 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+/**
+ * @author grafie.chen
+ * @since 2025/1/22  15:36
+ */
 public enum REGEX {
     BindServerCalendar("^绑定 (?<server>\\S+)$", BindServerAction.class, null),
     ActiveCurrent("^日常$|^日常 (?<server>.+?)(?: (?<value>\\S+))?$", ActiveCurrentAction.class, MethodEnum.DATA_ACTIVE_CALENDAR),
@@ -26,9 +29,9 @@ public enum REGEX {
     ActiveMonster("^百战$|^百战 (?<server>\\S+)$", ActiveMonsterAction.class, MethodEnum.DATA_ACTIVE_MONSTER),
     SchoolForce("^奇穴 (?<value>\\S+)$", SchoolForceAction.class, MethodEnum.DATA_SCHOOL_FORCE),
     DungeonRecord("^副本 (?<value>\\S+)$|^副本 (?<server>\\S+) (?<value1>\\S+)$", DungeonRecordAction.class, MethodEnum.DATA_ROLE_CDLIST),
-    // 这三个不对外输出
+    // 这三个需要特殊处理
     LuckAdventurePs("^水墨圈圈 (?<value>\\S+)$", LuckAdventurePsAction.class, null),
-    DpsCompute("^[dD][pP][sS] (?<server>\\S+) (?<roleName>\\S+)(?: (?<loop>\\S+))?", DpsComputeAction.class, null),
+    DpsCompute("^[dD][pP][sS](?: (?<server>\\S+))? (?<roleName>\\S+)(?: (?<loop>\\S+))?", DpsComputeAction.class, null),
     ChiGua("^吃瓜 (?<value>\\S+)$", ChiGuaAction.class, null);
 
     private final Pattern pattern;

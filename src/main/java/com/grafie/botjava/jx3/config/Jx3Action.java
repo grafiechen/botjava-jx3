@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * 自动托管给spring。
  * 用于某些action需要使用上下文的情况。
  *
- * @author jinpeng.chen
+ * @author grafie.chen
  * @since 2025/1/22  15:44
  */
 @Target(ElementType.TYPE)

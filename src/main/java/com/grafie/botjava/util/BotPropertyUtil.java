@@ -2,7 +2,6 @@ package com.grafie.botjava.util;
 
 import com.grafie.botjava.config.TxBotProperty;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,5 +30,9 @@ public class BotPropertyUtil {
      */
     public static String getBotSecret() {
         return txBotProperty.getClientSecret();
+    }
+
+    public static TxBotProperty getTxBotProperty() {
+        return txBotProperty;
     }
 }

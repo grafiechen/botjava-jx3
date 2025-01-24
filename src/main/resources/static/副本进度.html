@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimal-ui">
+    <title>副本进度模板</title>
+    <link href="css/github-markdown.css" rel="stylesheet">
+    <style>
+        *:not([class*='icon']):not(.fa):not(.fas):not(i) {
+            font-family: 'HarmonyOS Sans SC', 'HarmonyOS SansSC', 'HarmonyOS', 'Microsoft YaHei', serif !important;
+        }
+
+        body {
+            box-sizing: border-box;
+            min-width: 1080px;
+            max-width: 1920px;
+            max-height: 1080px;
+            margin: 0 auto;
+            padding: 25px;
+            overflow: hidden;
+            background-color: #f9f9f9;
+        }
+
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        .container {
+            min-width: 1080px;
+            max-width: 1920px;
+            max-height: 1080px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .card {
+            min-width: 1080px;
+            max-width: 1920px;
+            max-height: 1080px;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            /* background-color: #f2f2f2; */
+            /* padding: 20px; */
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .card-header .fs-8 {
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header img {
+            margin-right: 8px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .table th {
+            background-color: #f7f7f7;
+            font-weight: bold;
+        }
+
+        .boss {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 5px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .completed {
+            background-color: #28a745; /* 绿色 */
+        }
+
+        .not-completed {
+            background-color: #dc3545; /* 红色 */
+        }
+
+        .card-footer {
+            /* background-color: #f2f2f2; */
+            /* padding: 15px; */
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .status-legend {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .status-legend div {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-box {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+
+        .status-box.red {
+            background-color: #dc3545; /* 红色 */
+        }
+
+        .status-box.green {
+            background-color: #28a745; /* 绿色 */
+        }
+
+        @media screen and (max-width: 1920px) {
+            .card {
+                width: 100%;
+                height: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="main">
+        <div class="card" >
+            <div class="card-header">
+                <div class="col">
+                    <div class="fs-8 text-center">
+                        <p><img src="img/location.png" height="15" width="15">{{ server }}</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="fs-8 text-center">
+                        <p><img src="img/cube.png" height="15" width="15">{{ name }}</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="fs-8 text-center">
+                        <p><img src="img/header.png" height="15" width="15">{{ globalId }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">副本名称</th>
+                            <th scope="col">副本类型</th>
+                            <th scope="col">完成进度</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for instance in data %}
+                        <tr>
+                            <td>{{ instance.name }}</td>
+                            <td>{{ instance.type }}</td>
+                            <td>
+                                {% for boss in instance.bosses %}
+                                <div class="boss {% if boss.finished %}completed{% else %}not-completed{% endif %}">
+                                    {{ boss.boss_name }}
+                                </div>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="card-footer">
+                <h6>今天副本打完了吗
+                    <div class="status-legend">
+                        <div><span class="status-box red"></span>未击败</div>
+                        <div><span class="status-box green"></span>已击败</div>
+                    </div>
+                </h6>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

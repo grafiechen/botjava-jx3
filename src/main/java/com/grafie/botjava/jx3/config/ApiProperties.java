@@ -28,4 +28,16 @@ public class ApiProperties {
      * 配置的默认服务器
      */
     private String defaultServer;
+    /**
+     * ticket
+     */
+    private String ticket;
+    /**
+     * 机器人名称
+     */
+    private String name;
+    /**
+     * dps计算服务的token
+     */
+    private String dpsToken;
 }

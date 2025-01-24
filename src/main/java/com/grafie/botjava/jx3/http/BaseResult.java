@@ -3,7 +3,7 @@ package com.grafie.botjava.jx3.http;
 import lombok.Data;
 
 /**
- * @author jinpeng.Chen
+ * @author grafie.chen
  * @since 2024/6/23  11:54
  */
 @Data

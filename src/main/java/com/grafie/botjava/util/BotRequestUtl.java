@@ -2,6 +2,7 @@ package com.grafie.botjava.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grafie.botjava.config.TxBotProperty;
+import com.grafie.botjava.entity.dto.TxFileUploadResultDto;
 import com.grafie.botjava.entity.dto.token.AccessTokenDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import java.util.Map;
 @Slf4j
 @Component
 public class BotRequestUtl {
+    public static final String fileUploadUrl = "/v2/groups/%s/files";
 
     /**
      * 上次获取token的时间
@@ -47,8 +49,7 @@ public class BotRequestUtl {
         requestParamMap.put("clientSecret", txBotProperty.getClientSecret());
         // 获取新的token
         try {
-            String result = RequestUtil.doPost(txBotProperty.getSignBaseUrl(),txBotProperty.getSignUrl(), requestParamMap, headerMap);
-            AccessTokenDto accessTokenDto = objectMapper.readValue(result, AccessTokenDto.class);
+            AccessTokenDto accessTokenDto = RequestUtil.doPost(txBotProperty.getSignBaseUrl(), txBotProperty.getSignUrl(), requestParamMap, headerMap, AccessTokenDto.class);
             needGetNewTokenTime = LocalDateTime.now().plusSeconds(accessTokenDto.getExpiresIn());
             accessToken = accessTokenDto.getAccessToken();
         } catch (Exception e) {
@@ -57,10 +58,33 @@ public class BotRequestUtl {
 
     }
 
-    public String doPost(String path, Map<String, Object> param) {
+    public <T> T doPost(String path, Map<String, Object> param, Class<T> clazz) {
         refreshToken();
         Map<String, String> header = new HashMap<>();
-        header.put("Authorization", "QQBot " +accessToken);
-        return RequestUtil.doPost(txBotProperty.getServer(),path, param, header);
+        header.put("Authorization", "QQBot " + accessToken);
+        // 暂时不关心返回值，先不管他
+        return RequestUtil.doPost(txBotProperty.getServer(), path, param, header, clazz);
+    }
+
+    /**
+     * 发送文件
+     *
+     * @param fileBaseUrl 原始地址
+     * @param fileType    媒体类型：1 图片，2 视频，3 语音，4 文件（暂不开放）
+     * @param requestUrl  请求地址
+     *                    资源格式要求
+     *                    图片：png/jpg，视频：mp4，语音：silk
+     * @return TxFileUploadResultDto
+     */
+    public TxFileUploadResultDto doPostForUploadFile(String fileBaseUrl, String requestUrl, int fileType) {
+        refreshToken();
+        Map<String, String> header = new HashMap<>();
+        header.put("Authorization", "QQBot " + accessToken);
+        Map<String, Object> uploadFileRequest = new HashMap<>();
+        uploadFileRequest.put("file_type", fileType);
+        uploadFileRequest.put("url", fileBaseUrl);
+        uploadFileRequest.put("srv_send_msg", false);
+        // 暂时不关心返回值，先不管他
+        return RequestUtil.doPost(txBotProperty.getServer(), requestUrl, uploadFileRequest, header, TxFileUploadResultDto.class);
     }
 }
