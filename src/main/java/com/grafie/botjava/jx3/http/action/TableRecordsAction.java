@@ -9,6 +9,7 @@ import com.grafie.botjava.jx3.http.BaseResult;
 import java.util.Map;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
 import com.grafie.botjava.jx3.http.util.REGEX;
+import com.grafie.botjava.mapper.GroupInfoMapper;
 
 @Jx3Action
 
@@ -19,8 +20,8 @@ import com.grafie.botjava.jx3.http.util.REGEX;
  * @since 2025/1/22  17:31
  */
 public class TableRecordsAction extends Jx3BaseAction {
-    public TableRecordsAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil) {
-        super(apiProperties, jx3RequestUtil);
+    public TableRecordsAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil, GroupInfoMapper groupInfoMapper) {
+        super(apiProperties, jx3RequestUtil, groupInfoMapper);
     }
 
     @Override

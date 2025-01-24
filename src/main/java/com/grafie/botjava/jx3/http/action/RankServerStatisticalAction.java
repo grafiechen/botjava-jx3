@@ -9,6 +9,7 @@ import com.grafie.botjava.jx3.http.action.base.Jx3BaseAction;
 import java.util.Map;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
 import com.grafie.botjava.jx3.http.util.REGEX;
+import com.grafie.botjava.mapper.GroupInfoMapper;
 
 
 /**
@@ -19,8 +20,8 @@ import com.grafie.botjava.jx3.http.util.REGEX;
  */
 @Jx3Action
 public class RankServerStatisticalAction extends Jx3BaseAction {
-    public RankServerStatisticalAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil) {
-        super(apiProperties, jx3RequestUtil);
+    public RankServerStatisticalAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil, GroupInfoMapper groupInfoMapper) {
+        super(apiProperties, jx3RequestUtil, groupInfoMapper);
     }
 
     @Override

@@ -10,7 +10,6 @@ import com.grafie.botjava.jx3.http.RequestResult;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
 import com.grafie.botjava.jx3.http.util.REGEX;
 import com.grafie.botjava.mapper.GroupInfoMapper;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.Map;
 
@@ -26,13 +25,14 @@ public abstract class Jx3BaseAction {
     protected ApiProperties apiProperties;
     protected Jx3RequestUtil jx3RequestUtil;
     protected GroupInfoMapper groupInfoMapper;
-    @Value("${my.default-server}")
-    private String defaultServer;
     protected GroupAtMessageCreateDto groupAtMessageCreateDto;
+    protected REGEX regex;
+    protected String requestRegex;
 
-    public Jx3BaseAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil) {
+    public Jx3BaseAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil, GroupInfoMapper groupInfoMapper) {
         this.apiProperties = apiProperties;
         this.jx3RequestUtil = jx3RequestUtil;
+        this.groupInfoMapper = groupInfoMapper;
     }
 
     /**
@@ -44,15 +44,15 @@ public abstract class Jx3BaseAction {
      */
     public TxMessageInfo doRequest(GroupAtMessageCreateDto atMessageCreateDto, String requestRegex, REGEX regex) {
         this.groupAtMessageCreateDto = atMessageCreateDto;
+        this.requestRegex = requestRegex;
+        this.regex = regex;
         return doAction(requestRegex, regex);
     }
 
     public TxMessageInfo doAction(String requestRegex, REGEX regex) {
         // 当method为空时，说明不需要调用外部接口。直接在具体实现类里面进行处理即可
         if (regex.getMethodEnum() == null) {
-            BaseResult baseResult = new BaseResult();
-            baseResult.setData(requestRegex);
-            return dealAfterJx3ApiRequest(baseResult);
+            return dealAfterJx3ApiRequest(null);
         }
         Map<String, Object> requestParam = getRequestParam(requestRegex, regex);
         RequestResult requestResult = jx3RequestUtil.doPostRequest(regex.getMethodEnum().getMethodPath(), requestParam);
@@ -78,21 +78,17 @@ public abstract class Jx3BaseAction {
     protected abstract TxMessageInfo dealAfterJx3ApiRequest(BaseResult baseResult);
 
     /**
-     * 设置服务
-     *
-     * @param requestParam 请求参数
+     * 设置区服
      */
 
-    public void getDefaultServer(Map<String, Object> requestParam) {
-        if (requestParam.get("server") == null) {
-            GroupInfo groupInfo = groupInfoMapper.findByOpenGroupId(groupAtMessageCreateDto.getGroupOpenid());
-            String requestSever = null;
-            if (groupInfo == null) {
-                requestSever = defaultServer;
-            } else {
-                requestSever = groupInfo.getServer();
-            }
-            requestParam.put("server", requestSever);
+    public String getDefaultServer() {
+        GroupInfo groupInfo = groupInfoMapper.findByOpenGroupId(groupAtMessageCreateDto.getGroupOpenid());
+        String requestSever = null;
+        if (groupInfo == null) {
+            requestSever = apiProperties.getDefaultServer();
+        } else {
+            requestSever = groupInfo.getServer();
         }
+        return requestSever;
     }
 }

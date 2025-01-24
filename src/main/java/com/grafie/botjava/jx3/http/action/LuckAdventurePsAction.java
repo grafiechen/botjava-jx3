@@ -9,6 +9,7 @@ import com.grafie.botjava.jx3.http.BaseResult;
 import java.util.Map;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
 import com.grafie.botjava.jx3.http.util.REGEX;
+import com.grafie.botjava.mapper.GroupInfoMapper;
 
 /**
  * 奇遇ps
@@ -17,8 +18,10 @@ import com.grafie.botjava.jx3.http.util.REGEX;
  */
 @Jx3Action
 public class LuckAdventurePsAction extends Jx3BaseAction {
-    public LuckAdventurePsAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil) {
-        super(apiProperties, jx3RequestUtil);
+
+
+    public LuckAdventurePsAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil, GroupInfoMapper groupInfoMapper) {
+        super(apiProperties, jx3RequestUtil, groupInfoMapper);
     }
 
     @Override

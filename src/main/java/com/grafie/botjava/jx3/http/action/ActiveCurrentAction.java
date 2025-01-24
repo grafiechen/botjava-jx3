@@ -8,6 +8,7 @@ import com.grafie.botjava.jx3.http.action.base.Jx3BaseAction;
 import com.grafie.botjava.jx3.http.data.active.ActiveCurrentData;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
 import com.grafie.botjava.jx3.http.util.REGEX;
+import com.grafie.botjava.mapper.GroupInfoMapper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -20,9 +21,8 @@ import java.util.Map;
 @Jx3Action
 public class ActiveCurrentAction extends Jx3BaseAction {
 
-
-    public ActiveCurrentAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil) {
-        super(apiProperties, jx3RequestUtil);
+    public ActiveCurrentAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil, GroupInfoMapper groupInfoMapper) {
+        super(apiProperties, jx3RequestUtil, groupInfoMapper);
     }
 
     @Override

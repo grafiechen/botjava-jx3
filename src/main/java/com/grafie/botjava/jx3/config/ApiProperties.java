@@ -24,4 +24,8 @@ public class ApiProperties {
      * api访问token，有些api接口，需要校验你的token
      */
     private String apiToken;
+    /**
+     * 配置的默认服务器
+     */
+    private String defaultServer;
 }

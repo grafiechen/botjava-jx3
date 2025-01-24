@@ -37,14 +37,16 @@ public class GroupAtMessageAction extends BaseAction {
     protected Object deal(Payload payload) throws Exception {
         // 根据正则表达式，提取出来指令和内容
         GroupAtMessageCreateDto atMessageDto = ObjectMapperUtil.readValue(payload.getD(), GroupAtMessageCreateDto.class);
-        REGEX regex = REGEX.matchEnum(atMessageDto.getContent());
+        String requestRegex = atMessageDto.getContent().replace("/","").trim();
+        REGEX regex = REGEX.matchEnum(requestRegex);
         Jx3BaseAction jx3BaseAction
                 = (Jx3BaseAction) SpringContextUtil.getBean(regex.getBaseAction());
-        TxMessageInfo baseResult = jx3BaseAction.doRequest(atMessageDto, atMessageDto.getContent(), regex);
+        TxMessageInfo baseResult = jx3BaseAction.doRequest(atMessageDto, requestRegex, regex);
         baseResult.setMsg_id(atMessageDto.getId());
         // group_at_message 没有需要返回的数据
         Map<String, Object> base = ObjectMapperUtil.getObjectMapper().convertValue(baseResult, Map.class);
         log.info("回复群消息，http调用结果=>{}", botRequestUtl.doPost(String.format(GROUP_MESSAGE, atMessageDto.getGroupOpenid()), base));
+        // 这里不需要回复任何消息
         return null;
     }
 }

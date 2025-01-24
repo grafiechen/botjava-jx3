@@ -9,6 +9,7 @@ import com.grafie.botjava.jx3.http.BaseResult;
 import java.util.Map;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
 import com.grafie.botjava.jx3.http.util.REGEX;
+import com.grafie.botjava.mapper.GroupInfoMapper;
 
 @Jx3Action
 
@@ -18,8 +19,8 @@ import com.grafie.botjava.jx3.http.util.REGEX;
  * @since 2025/1/22  17:30
  */
 public class SoundConverterAction extends Jx3BaseAction {
-    public SoundConverterAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil) {
-        super(apiProperties, jx3RequestUtil);
+    public SoundConverterAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil, GroupInfoMapper groupInfoMapper) {
+        super(apiProperties, jx3RequestUtil, groupInfoMapper);
     }
 
     @Override
