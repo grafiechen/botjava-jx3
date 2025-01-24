@@ -2,9 +2,14 @@ package com.grafie.botjava.jx3.http.action;
 
 import com.grafie.botjava.jx3.config.ApiProperties;
 import com.grafie.botjava.jx3.config.Jx3Action;
+import com.grafie.botjava.jx3.http.BaseResult;
+import com.grafie.botjava.entity.dto.common.TxMessageInfo;
 import com.grafie.botjava.jx3.http.action.base.Jx3BaseAction;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
+import com.grafie.botjava.jx3.http.util.REGEX;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -22,8 +27,20 @@ public class ActiveCalendarAction extends Jx3BaseAction {
     }
 
     @Override
-    protected Map<String, Object> getRequestParam(String requestRegex) {
-        System.out.println(requestRegex);
+    protected Map<String, Object> getRequestParam(String requestRegex, REGEX regex) {
+        Map<String, String> valueMap = regex.handleEncounter(requestRegex);
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("server", valueMap.get("server"));
+        String num = valueMap.get("value");
+        if (StringUtils.isBlank(num)) {
+            requestMap.put("num", Integer.parseInt(num));
+        }
+        return requestMap;
+    }
+
+    @Override
+    protected TxMessageInfo dealAfterJx3ApiRequest(BaseResult baseResult) {
+        System.out.println(baseResult);
         return null;
     }
 }

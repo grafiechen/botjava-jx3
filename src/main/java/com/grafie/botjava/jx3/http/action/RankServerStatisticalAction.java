@@ -2,9 +2,13 @@ package com.grafie.botjava.jx3.http.action;
 
 import com.grafie.botjava.jx3.config.ApiProperties;
 import com.grafie.botjava.jx3.config.Jx3Action;
-import com.grafie.botjava.jx3.http.MessageInfo;
+import com.grafie.botjava.jx3.http.BaseResult;
+import com.grafie.botjava.entity.dto.common.TxMessageInfo;
 import com.grafie.botjava.jx3.http.action.base.Jx3BaseAction;
+
+import java.util.Map;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
+import com.grafie.botjava.jx3.http.util.REGEX;
 
 
 /**
@@ -20,7 +24,13 @@ public class RankServerStatisticalAction extends Jx3BaseAction {
     }
 
     @Override
-    protected Map<String, Object> getRequestParam(String requestRegex) {
+    protected Map<String, Object> getRequestParam(String requestRegex, REGEX regex) {
         return null;
     }
+
+    @Override
+    protected TxMessageInfo dealAfterJx3ApiRequest(BaseResult baseResult) {
+        return null;
+    }
+
 }

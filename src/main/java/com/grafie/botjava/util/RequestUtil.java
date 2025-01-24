@@ -3,6 +3,7 @@ package com.grafie.botjava.util;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -25,11 +26,25 @@ public class RequestUtil {
      */
     public static String doPost(String baseUrl,String url, Map<String, Object> param, Map<String, String> headersMap) {
         WebClient webClient = WebClient.builder().baseUrl(baseUrl).build();
-        Mono<String> mono = webClient.method(HttpMethod.POST)
-                .uri(uriBuilder -> uriBuilder.path(url).build())
-                .headers(headers -> headersMap.forEach((key, value) -> headers.add(key, String.valueOf(value))))
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON).bodyValue(param).retrieve().bodyToMono(String.class);
-        return mono.block();
+        try {
+            return webClient.method(HttpMethod.POST)
+                    .uri(uriBuilder -> uriBuilder.path(url).build())
+                    .headers(headers -> headersMap.forEach(headers::add))
+                    .accept(MediaType.APPLICATION_JSON)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(param)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block(); // 同步等待响应
+        } catch (WebClientResponseException e) {
+            // 处理服务器返回的异常 (4xx 或 5xx 响应)
+            System.err.println("HTTP Status: " + e.getStatusCode());
+            System.err.println("Response Body: " + e.getResponseBodyAsString());
+            throw new RuntimeException("Request failed with status: " + e.getStatusCode(), e);
+        } catch (Exception e) {
+            // 处理其他异常
+            System.err.println("An error occurred: " + e.getMessage());
+            throw new RuntimeException("Request failed", e);
+        }
     }
 }

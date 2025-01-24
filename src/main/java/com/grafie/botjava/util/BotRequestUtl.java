@@ -60,7 +60,7 @@ public class BotRequestUtl {
     public String doPost(String path, Map<String, Object> param) {
         refreshToken();
         Map<String, String> header = new HashMap<>();
-        header.put("Authorization", accessToken);
+        header.put("Authorization", "QQBot " +accessToken);
         return RequestUtil.doPost(txBotProperty.getServer(),path, param, header);
     }
 }

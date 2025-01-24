@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -23,6 +24,7 @@ import java.util.Map;
  * @author jinpeng.chen
  * @since 2025/1/22  15:36
  */
+@Component
 @Slf4j
 public class Jx3RequestUtil {
     private final WebClient webClient;

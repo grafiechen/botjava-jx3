@@ -26,16 +26,16 @@ class BotTxTests {
                 "    \"op\": 0,\n" +
                 "    \"s\": null,\n" +
                 "    \"d\": {\n" +
-                "        \"id\": \"ROBOT1.0_MBHA3DliTc-RB9rsyzfE.B8WUhUTD7IhzqURgcyabCn9sXMigjwcRTJUAZphO7kC-vdqT4KaIdnOsiw4Cjp80VKTBl0bDXXBybve5OK.Tdk!\",\n" +
-                "        \"content\": \"日常 乾坤一掷\",\n" +
+                "        \"id\": \"ROBOT1.0_MBHA3DliTc-RB9rsyzfE.66.o!\",\n" +
+                "        \"content\": \"日常 乾坤一掷 0\",\n" +
                 "        \"timestamp\": \"2025-01-22T12:27:03+08:00\",\n" +
                 "        \"author\": {\n" +
-                "            \"id\": \"F15945732A513A592B472BA005FEFD52\",\n" +
-                "            \"member_openid\": \"F15945732A513A592B472BA005FEFD52\",\n" +
-                "            \"union_openid\": \"F15945732A513A592B472BA005FEFD52\"\n" +
+                "            \"id\": \"55\",\n" +
+                "            \"member_openid\": \"44\",\n" +
+                "            \"union_openid\": \"33\"\n" +
                 "        },\n" +
-                "        \"group_id\": \"E65A865C22D48B118DCD0EBF9D0E1179\",\n" +
-                "        \"group_openid\": \"E65A865C22D48B118DCD0EBF9D0E1179\",\n" +
+                "        \"group_id\": \"22,\n" +
+                "        \"group_openid\": \"11\",\n" +
                 "        \"message_scene\": {\n" +
                 "            \"source\": \"default\",\n" +
                 "            \"callback_data\": null\n" +

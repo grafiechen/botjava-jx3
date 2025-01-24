@@ -2,11 +2,10 @@ package com.grafie.botjava.jx3.http.action.base;
 
 
 import com.grafie.botjava.entity.GroupInfo;
+import com.grafie.botjava.entity.dto.common.TxMessageInfo;
 import com.grafie.botjava.entity.dto.group.at.GroupAtMessageCreateDto;
 import com.grafie.botjava.jx3.config.ApiProperties;
 import com.grafie.botjava.jx3.http.BaseResult;
-import com.grafie.botjava.jx3.http.MessageInfo;
-import com.grafie.botjava.jx3.http.MethodEnum;
 import com.grafie.botjava.jx3.http.RequestResult;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
 import com.grafie.botjava.jx3.http.util.REGEX;
@@ -43,31 +42,40 @@ public abstract class Jx3BaseAction {
      * @param regex        方法枚举
      * @return 返回结果
      */
-    public MessageInfo doRequest(GroupAtMessageCreateDto atMessageCreateDto, String requestRegex, REGEX regex) {
+    public TxMessageInfo doRequest(GroupAtMessageCreateDto atMessageCreateDto, String requestRegex, REGEX regex) {
         this.groupAtMessageCreateDto = atMessageCreateDto;
-        return doAction(requestRegex, regex.getMethodEnum());
+        return doAction(requestRegex, regex);
     }
 
-    public MessageInfo doAction(String requestRegex, MethodEnum methodEnum) {
-        Map<String, Object> requestParam = getRequestParam(requestRegex);
-        RequestResult requestResult = jx3RequestUtil.doPostRequest(methodEnum.getMethodPath(), requestParam);
-        BaseResult baseResult = jx3RequestUtil.getResultRealData(requestResult, methodEnum);
+    public TxMessageInfo doAction(String requestRegex, REGEX regex) {
+        // 当method为空时，说明不需要调用外部接口。直接在具体实现类里面进行处理即可
+        if (regex.getMethodEnum() == null) {
+            BaseResult baseResult = new BaseResult();
+            baseResult.setData(requestRegex);
+            return dealAfterJx3ApiRequest(baseResult);
+        }
+        Map<String, Object> requestParam = getRequestParam(requestRegex, regex);
+        RequestResult requestResult = jx3RequestUtil.doPostRequest(regex.getMethodEnum().getMethodPath(), requestParam);
+        BaseResult baseResult = jx3RequestUtil.getResultRealData(requestResult, regex.getMethodEnum());
         return dealAfterJx3ApiRequest(baseResult);
     }
 
     /**
      * 交给各个子类处理的生成请求参数的基类
+     *
      * @param requestRegex qq发过来的表达式
+     * @param regex        识别到的枚举
      * @return
      */
-    protected abstract Map<String, Object> getRequestParam(String requestRegex);
+    protected abstract Map<String, Object> getRequestParam(String requestRegex, REGEX regex);
 
     /**
      * 请求jx3Api之后，过来的
+     *
      * @param baseResult 需要拼装成真正返回值的内容
      * @return
      */
-    protected abstract MessageInfo dealAfterJx3ApiRequest(BaseResult baseResult);
+    protected abstract TxMessageInfo dealAfterJx3ApiRequest(BaseResult baseResult);
 
     /**
      * 设置服务
