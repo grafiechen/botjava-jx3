@@ -12,7 +12,8 @@ _✨ [JX3API-JAVA文档](https://github.com/JX3API/jx3api-java/)：基于JX3API�
 
 ## NOTE
 目前主要是填与jx3 api相关的坑。主要是群聊方面，故暂不实现频道相关内容
-调整接口，目前qqbot 已经修改为只通过webhook的方式推送，服务端通过api调用的方式发送消息。
+~~调整接口，目前qqbot 已经修改为只通过webhook的方式推送，服务端通过api调用的方式发送消息。~~
+喜报，新版本支持ws了开工开工
 目前已实现基础的消息收发功能。
 
 
