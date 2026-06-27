@@ -46,14 +46,14 @@ public class BotRequestUtl {
         headerMap.put("Content-Type", "application/json");
         Map<String, Object> requestParamMap = new HashMap<>();
         requestParamMap.put("appId", txBotProperty.getAppId());
-        requestParamMap.put("clientSecret", txBotProperty.getClientSecret());
+        requestParamMap.put("clientSecret", txBotProperty.getAppSecret());
         // 获取新的token
         try {
-            AccessTokenDto accessTokenDto = RequestUtil.doPost(txBotProperty.getSignBaseUrl(), txBotProperty.getSignUrl(), requestParamMap, headerMap, AccessTokenDto.class);
+            AccessTokenDto accessTokenDto = RequestUtil.doPost(txBotProperty.getAccessTokenUrl(), null, requestParamMap, headerMap, AccessTokenDto.class);
             needGetNewTokenTime = LocalDateTime.now().plusSeconds(accessTokenDto.getExpiresIn());
             accessToken = accessTokenDto.getAccessToken();
         } catch (Exception e) {
-            log.error("获取调用凭证接口出错，headerMap=>{}，requestParamMap=>{}", headerMap, requestParamMap, e);
+            log.error("获取调用凭证接口出错，url=>{}，headerMap=>{}，requestParamMap=>{}",txBotProperty.getAccessTokenUrl(), headerMap, requestParamMap, e);
         }
 
     }
@@ -63,7 +63,7 @@ public class BotRequestUtl {
         Map<String, String> header = new HashMap<>();
         header.put("Authorization", "QQBot " + accessToken);
         // 暂时不关心返回值，先不管他
-        return RequestUtil.doPost(txBotProperty.getServer(), path, param, header, clazz);
+        return RequestUtil.doPost(txBotProperty.getOpenapiUrl(), path, param, header, clazz);
     }
 
     /**
@@ -85,6 +85,6 @@ public class BotRequestUtl {
         uploadFileRequest.put("url", fileBaseUrl);
         uploadFileRequest.put("srv_send_msg", false);
         // 暂时不关心返回值，先不管他
-        return RequestUtil.doPost(txBotProperty.getServer(), requestUrl, uploadFileRequest, header, TxFileUploadResultDto.class);
+        return RequestUtil.doPost(txBotProperty.getOpenapiUrl(), requestUrl, uploadFileRequest, header, TxFileUploadResultDto.class);
     }
 }

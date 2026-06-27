@@ -29,7 +29,7 @@ public class BotPropertyUtil {
      * @return String
      */
     public static String getBotSecret() {
-        return txBotProperty.getClientSecret();
+        return txBotProperty.getAppSecret();
     }
 
     public static TxBotProperty getTxBotProperty() {

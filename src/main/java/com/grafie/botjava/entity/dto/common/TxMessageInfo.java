@@ -1,5 +1,7 @@
 package com.grafie.botjava.entity.dto.common;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
@@ -11,6 +13,7 @@ import lombok.Data;
  * @since 2025/1/23  15:54
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TxMessageInfo {
     /**
      * 文本内容
@@ -33,15 +36,20 @@ public class TxMessageInfo {
      */
     private ArkDto ark;
     /**
-     * 富媒体单聊的file_info
+     * Embed对象
+     */
+    private Object embed;
+    /**
+     * 富媒体群聊的file_info
      */
     private MediaDto media;
     /**
-     * 【暂未支持】消息引用
+     * 消息引用
      */
+    @JsonProperty(value = "message_reference")
     private MessageReferenceDto messageReference;
     /**
-     * 前置收到的事件 ID，用于发送被动消息，支持事件："INTERACTION_CREATE"、"C2C_MSG_RECEIVE"、"FRIEND_ADD"
+     * 前置收到的事件 ID，用于发送被动消息，支持事件："INTERACTION_CREATE"、"GROUP_ADD_ROBOT"、"GROUP_MSG_RECEIVE"
      */
     private String event_id;
     /**

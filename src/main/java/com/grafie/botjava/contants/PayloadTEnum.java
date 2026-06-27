@@ -13,7 +13,8 @@ public enum PayloadTEnum {
     /**
      * 群聊被at
      */
-    GROUP_AT_MESSAGE_CREATE("GROUP_AT_MESSAGE_CREATE", GroupAtMessageAction.class);
+    GROUP_AT_MESSAGE_CREATE("GROUP_AT_MESSAGE_CREATE", GroupAtMessageAction.class),
+    GROUP_MESSAGE_CREATE("GROUP_MESSAGE_CREATE", GroupAtMessageAction.class);
 
 
     @Getter
