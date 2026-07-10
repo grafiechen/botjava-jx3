@@ -1,12 +1,40 @@
 
 server:
-  port: 8080
-spring:
-  profiles:
-    active: local
+  port: 8081
+logging:
+  file:
+    name: ./logs/botjava.log
+  level:
+    root: INFO
 minio:
   endpoint: http://localhost:9000
   access-key: your-access-key
   secret-key: your-secret-key
+  bucket-name: qbot
 my:
   default-server: 乾坤一掷
+
+spring:
+  profiles:
+    active: dev
+  datasource:
+    # 驱动类名（Spring Boot 3.x+ 通常可省略，但写上更稳妥）
+    driver-class-name: org.postgresql.Driver
+    # 连接地址：localhost 改为你腾讯云服务器的内网 IP（如果在同台机器上则保持 localhost）
+    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=public&useSSL=false
+    # 数据库账号与密码
+    username: pgsql
+    password: 123456
+
+  jpa:
+    # 自动根据 Entity 实体类更新/创建数据库表结构（开发环境建议 update，生产环境建议 none）
+    hibernate:
+      ddl-auto: update
+    # 指定数据库方言，让 JPA 生成针对 PostgreSQL 优化的 SQL 语句
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    # 在控制台打印执行的 SQL 语句，方便开发调试
+    show-sql: true
+    properties:
+      hibernate:
+        # 格式化打印出来的 SQL，使其更易读
+        format_sql: true
