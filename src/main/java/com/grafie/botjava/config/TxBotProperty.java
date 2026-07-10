@@ -13,24 +13,28 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class TxBotProperty {
     /**
-     * 请求服务地址
+     * openapi 开放接口
      */
-    private String server;
+    private String openapiUrl;
     /**
-     * 基础api地址
+     * 获取token接口
      */
-    private String signBaseUrl;
+    private String accessTokenUrl;
     /**
-     * 请求url
-     */
-    private String signUrl;
-    /**
-     * appId
+     * appId/机器人ID
      */
     private String appId;
     /**
-     * 密钥
+     * 机器人密钥
      */
-    private String clientSecret;
+    private String appSecret;
+    /**
+     * 机器人令牌
+     */
+    private String token;
+    /**
+     * 机器人QQ号
+     */
+    private String number;
 
 }

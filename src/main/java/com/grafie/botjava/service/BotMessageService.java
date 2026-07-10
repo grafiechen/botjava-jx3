@@ -23,6 +23,7 @@ public class BotMessageService {
      * @return 具体返回值，根据官方文档要求来
      */
     public Object dealMessage(Payload payload) {
+        log.info("payload=>{}",payload);
         if (payload.getOp().equals(OpCode.CALLBACK_VALID.getCode())) {
             return CallbackValidAction.doSign(payload);
         } else if (payload.getOp().equals(OpCode.DISPATCH.getCode())) {
@@ -34,6 +35,7 @@ public class BotMessageService {
     }
 
     private Object dealDispatchMessage(Payload payload) {
+        log.info("收到消息=>{}",payload);
         PayloadTEnum payloadTEnum = PayloadTEnum.getByValue(payload.getT());
         if (payloadTEnum == null) {
             log.error("未能根据t值{}找到合适的枚举，payload=>{}", payload.getT(), payload);

@@ -1,6 +1,5 @@
 package com.grafie.botjava.jx3.http.action;
 
-import com.grafie.botjava.entity.dto.common.TxMessageInfo;
 import com.grafie.botjava.jx3.config.ApiProperties;
 import com.grafie.botjava.jx3.config.Jx3Action;
 import com.grafie.botjava.jx3.http.BaseResult;
@@ -9,6 +8,7 @@ import com.grafie.botjava.jx3.http.data.server.ServerCheckData;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
 import com.grafie.botjava.jx3.http.util.REGEX;
 import com.grafie.botjava.mapper.GroupInfoMapper;
+import com.grafie.botjava.entity.dto.common.TxMessageInfo;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -41,15 +41,16 @@ public class ServerCheckAction extends Jx3BaseAction {
 
     @Override
     protected TxMessageInfo dealAfterJx3ApiRequest(BaseResult baseResult) {
+        return buildMessageByTemplate(baseResult);
+    }
+
+    @Override
+    protected String buildTextContent(BaseResult baseResult) {
         ServerCheckData serverCheckData = (ServerCheckData) baseResult.getData();
-        String result = String.format(
+        return String.format(
                 "服务器[%s],%s",
                 serverCheckData.getServer(),
                 serverCheckData.getStatus() == 1 ? "已开服" : "维护中"
         );
-        TxMessageInfo txMessageInfo = new TxMessageInfo();
-        txMessageInfo.setMsg_type(0);
-        txMessageInfo.setContent(result);
-        return txMessageInfo;
     }
 }

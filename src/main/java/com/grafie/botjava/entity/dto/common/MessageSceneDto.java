@@ -10,6 +10,7 @@ import lombok.Data;
 @Data
 public class MessageSceneDto {
     private String source;
+    private Object ext;
     @JsonProperty(value = "callback_data")
     private String callbackData;
 }

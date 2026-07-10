@@ -28,4 +28,6 @@ public class GroupAtMessageCreateDto {
     private String groupOpenid;
     @JsonProperty(value = "message_scene")
     private MessageSceneDto messageSceneDto;
+    @JsonProperty(value = "message_type")
+    private Integer messageType;
 }
