@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>帮战记录</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body {
+            margin: 0;
+            min-width: 1080px;
+            background: #edf1f2;
+            color: #22282d;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            letter-spacing: 0;
+        }
+        #main { min-height: 720px; padding: 46px 60px; }
+        .board {
+            width: 100%;
+            max-width: 1160px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #cfd5d8;
+            border-radius: 8px;
+            box-shadow: 0 18px 42px rgba(31, 38, 43, 0.12);
+        }
+        .header {
+            min-height: 150px;
+            padding: 28px 36px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 28px;
+            border-top: 8px solid #9a5146;
+            border-bottom: 1px solid #dce1e4;
+        }
+        .eyebrow { margin: 0 0 8px; color: #68747c; font-size: 17px; }
+        h1 { margin: 0; color: #20262b; font-size: 38px; line-height: 1.2; }
+        .server {
+            max-width: 360px;
+            padding: 9px 15px;
+            color: #ffffff;
+            background: #287364;
+            border-radius: 4px;
+            font-size: 18px;
+            font-weight: 750;
+            overflow-wrap: anywhere;
+        }
+        .table-head,
+        .row {
+            display: grid;
+            grid-template-columns: 68px minmax(300px, 1.5fr) minmax(160px, .85fr) minmax(250px, 1.15fr) 120px;
+            gap: 18px;
+            align-items: center;
+        }
+        .table-head {
+            min-height: 54px;
+            padding: 0 36px;
+            color: #68747c;
+            background: #f4f6f7;
+            border-bottom: 1px solid #dce1e4;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .row { min-height: 92px; padding: 13px 36px; border-bottom: 1px solid #e3e7e9; }
+        .row:last-child { border-bottom: 0; }
+        .index { color: #9a5146; font-size: 24px; font-weight: 800; }
+        .battle { min-width: 0; }
+        .tong { color: #22282d; font-size: 18px; font-weight: 800; overflow-wrap: anywhere; }
+        .versus { margin: 4px 0; color: #9a5146; font-size: 13px; font-weight: 800; }
+        .location strong { display: block; color: #287364; font-size: 16px; overflow-wrap: anywhere; }
+        .location span { display: block; margin-top: 3px; color: #7a858c; font-size: 14px; overflow-wrap: anywhere; }
+        .time { min-width: 0; }
+        .time strong { display: block; color: #313a40; font-size: 15px; overflow-wrap: anywhere; }
+        .time span { display: block; margin-top: 5px; color: #7a858c; font-size: 14px; overflow-wrap: anywhere; }
+        .duration { color: #a66521; font-size: 17px; font-weight: 800; }
+        .empty {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #77838a;
+            font-size: 22px;
+        }
+        .footer {
+            padding: 19px 36px 21px;
+            display: flex;
+            justify-content: flex-start;
+            gap: 20px;
+            color: #7a858c;
+            background: #fafbfb;
+            border-top: 1px solid #dce1e4;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <main id="main" v-cloak>
+        <article class="board">
+            <header class="header">
+                <div>
+                    <p class="eyebrow">剑网 3 帮会对战</p>
+                    <h1>近期帮战记录</h1>
+                </div>
+                <div class="server">{{ server || '未知区服' }}</div>
+            </header>
+            <template v-if="data && data.length">
+                <div class="table-head">
+                    <span>序号</span>
+                    <span>对战帮会</span>
+                    <span>区服</span>
+                    <span>时间</span>
+                    <span>持续</span>
+                </div>
+                <section>
+                    <div class="row" v-for="(item, index) in data" :key="index">
+                        <span class="index">{{ index + 1 }}</span>
+                        <div class="battle">
+                            <div class="tong">{{ item.declaringTongName || '未知发起帮会' }}</div>
+                            <div class="versus">对 战</div>
+                            <div class="tong">{{ item.acceptingTongName || '未知应战帮会' }}</div>
+                        </div>
+                        <div class="location">
+                            <strong>{{ item.serverName || server || '未知服务器' }}</strong>
+                            <span>{{ item.zoneName || '未知大区' }}</span>
+                        </div>
+                        <div class="time">
+                            <strong>{{ item.startTime || '开始时间未知' }}</strong>
+                            <span>{{ item.endTime ? '结束：' + item.endTime : '结束时间未知' }}</span>
+                        </div>
+                        <span class="duration">{{ item.duration || '未知' }}</span>
+                    </div>
+                </section>
+            </template>
+            <div class="empty" v-else>暂无帮战记录</div>
+            <footer class="footer">
+                <span>共 {{ data && data.length ? data.length : 0 }} 场记录</span>
+            </footer>
+        </article>
+    </main>
+</body>
+</html>

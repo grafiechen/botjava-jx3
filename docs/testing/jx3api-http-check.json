@@ -1,0 +1,1902 @@
+{
+    "schemaVersion":  1,
+    "purpose":  "AI-readable test contract for JX3API HTTP integration. When code behavior changes, update this file and the tests together.",
+    "sourceDocs":  {
+                       "sidebar":  "https://www.jx3api.com/_sidebar.md",
+                       "localSnapshotDir":  "target/jx3api-docs",
+                       "ignored":  [
+                                       "doc/socket.*",
+                                       "ws event interfaces"
+                                   ]
+                   },
+    "testFiles":  [
+                      "src/test/java/com/grafie/botjava/jx3/http/Jx3ApiHttpContractTest.java",
+                      "src/test/java/com/grafie/botjava/service/GroupMessageSenderTest.java"
+                  ],
+    "metaTestFile":  "src/test/java/com/grafie/botjava/testing/Jx3ApiHttpCheckDocumentTest.java",
+    "cases":  [
+                  {
+                      "caseId":  "JX3API_METHOD_PATHS_MATCH_DOCS",
+                      "type":  "enum-path",
+                      "description":  "MethodEnum must use the latest HTTP paths from the official docs for high-use interfaces.",
+                      "expected":  {
+                                       "DATA_ACTIVE_CALENDAR":  "/data/active/calendar",
+                                       "DATA_SERVER_CHECK":  "/data/status/check",
+                                       "DATA_SERVER_STATUS":  "/data/status/check",
+                                       "DATA_SERVER_MASTER":  "/data/master/search",
+                                       "DATA_ROLE_DETAILED":  "/data/role/detail",
+                                       "DATA_MEMBER_RECRUIT":  "/data/recruit/search",
+                                       "DATA_MATCH_RECENT":  "/data/arena/recent",
+                                       "DATA_LUCK_ADVENTURE":  "/data/event/records",
+                                       "DATA_TRADE_RECORD":  "/data/trade/item/records"
+                                   }
+                  },
+                  {
+                      "caseId":  "JX3API_STATUS_CHECK_RESULT_JSON",
+                      "type":  "result-json",
+                      "description":  "status.check returns data.status as readable Chinese text, not numeric status.",
+                      "methodEnum":  "DATA_SERVER_CHECK",
+                      "input":  {
+                                    "code":  200,
+                                    "msg":  "success",
+                                    "data":  {
+                                                 "zone":  "电信区",
+                                                 "server":  "长安城",
+                                                 "status":  "爆满"
+                                             },
+                                    "time":  1723007064
+                                },
+                      "expected":  {
+                                       "dataClass":  "ServerCheckData",
+                                       "zone":  "电信区",
+                                       "server":  "长安城",
+                                       "status":  "爆满"
+                                   }
+                  },
+                  {
+                      "caseId":  "JX3API_TRADE_ITEM_RECORDS_RESULT_JSON",
+                      "type":  "result-json",
+                      "description":  "trade.item.records returns item records under data.list and sale field must map to SaleData.sales.",
+                      "methodEnum":  "DATA_TRADE_RECORD",
+                      "input":  {
+                                    "code":  200,
+                                    "msg":  "success",
+                                    "data":  {
+                                                 "class":  "外观礼盒",
+                                                 "subclass":  "同人盒子",
+                                                 "name":  "十五夜观灯·南涧·标准",
+                                                 "alias":  "标准蓝观灯",
+                                                 "value":  "280.00",
+                                                 "desc":  "测试描述",
+                                                 "date":  "2024-02-22",
+                                                 "view":  "https://example.com/item.png",
+                                                 "list":  [
+                                                              [
+                                                                  {
+                                                                      "id":  "4676245",
+                                                                      "index":  1063,
+                                                                      "zone":  "电信区",
+                                                                      "server":  "幽月轮",
+                                                                      "value":  3600,
+                                                                      "sale":  4,
+                                                                      "token":  "mock-token",
+                                                                      "date":  "2025-12-02",
+                                                                      "source":  1,
+                                                                      "status":  1
+                                                                  }
+                                                              ]
+                                                          ]
+                                             },
+                                    "time":  1764667088
+                                },
+                      "expected":  {
+                                       "dataClass":  "TradeRecordData",
+                                       "classType":  "外观礼盒",
+                                       "subclass":  "同人盒子",
+                                       "name":  "十五夜观灯·南涧·标准",
+                                       "firstRecordServer":  "幽月轮",
+                                       "firstRecordSale":  4
+                                   }
+                  },
+                  {
+                      "caseId":  "JX3API_ROLE_DETAIL_RESULT_JSON",
+                      "type":  "result-json",
+                      "description":  "role.detail returns globalId and it must map to RoleDetailedData.globalRoleId for existing code compatibility.",
+                      "methodEnum":  "DATA_ROLE_DETAILED",
+                      "input":  {
+                                    "code":  200,
+                                    "msg":  "success",
+                                    "data":  {
+                                                 "zoneName":  "电信区",
+                                                 "serverName":  "唯我独尊",
+                                                 "roleName":  "夜温言@长安城",
+                                                 "roleId":  "26468709",
+                                                 "globalId":  "288230376159033247",
+                                                 "forceName":  "万花",
+                                                 "forceId":  2,
+                                                 "bodyName":  "萝莉",
+                                                 "bodyId":  6,
+                                                 "tongName":  "满目星辰皆是你",
+                                                 "tongId":  40574,
+                                                 "campName":  "中立",
+                                                 "campId":  0
+                                             },
+                                    "time":  1764584983
+                                },
+                      "expected":  {
+                                       "dataClass":  "RoleDetailedData",
+                                       "roleName":  "夜温言@长安城",
+                                       "globalRoleId":  "288230376159033247",
+                                       "forceName":  "万花"
+                                   }
+                  },
+                  {
+                      "caseId":  "JX3API_COMMAND_NORMALIZE_SLASH",
+                      "type":  "regex",
+                      "description":  "External commands with or without slash must match the same REGEX entry.",
+                      "input":  [
+                                    "/开服 乾坤一掷",
+                                    "开服 乾坤一掷"
+                                ],
+                      "expected":  {
+                                       "regex":  "ServerCheck",
+                                       "normalized":  "开服 乾坤一掷",
+                                       "server":  "乾坤一掷"
+                                   }
+                  },
+                  {
+                      "caseId":  "JX3API_TRADE_RECORD_ACTION_IMAGE_RESPONSE",
+                      "type":  "action",
+                      "description":  "TradeRecordAction must call the mocked JX3API result and return an IMAGE BotResponse for 物品价格 template.",
+                      "input":  {
+                                    "command":  "物价 十五夜观灯·南涧·标准",
+                                    "groupOpenid":  "GROUP_OPENID",
+                                    "defaultServer":  "乾坤一掷"
+                                },
+                      "expected":  {
+                                       "responseType":  "IMAGE",
+                                       "templateName":  "物品价格",
+                                       "requestPath":  "/data/trade/item/records",
+                                       "requestServer":  "乾坤一掷",
+                                       "requestName":  "十五夜观灯·南涧·标准"
+                                   }
+                  },
+                  {
+                      "caseId":  "QQ_GROUP_MESSAGE_TEXT_RESPONSE",
+                      "type":  "qq-message",
+                      "description":  "GroupMessageSender must convert text BotResponse into QQ group message payload.",
+                      "input":  {
+                                    "messageId":  "MSG_ID",
+                                    "groupOpenid":  "GROUP_OPENID",
+                                    "content":  "乾坤一掷 当前状态：爆满"
+                                },
+                      "expected":  {
+                                       "requestPath":  "/v2/groups/GROUP_OPENID/messages",
+                                       "msg_type":  0,
+                                       "content":  "乾坤一掷 当前状态：爆满",
+                                       "msg_id":  "MSG_ID"
+                                   }
+                  },
+                  {
+                      "caseId":  "QQ_GROUP_MESSAGE_IMAGE_URL_RESPONSE",
+                      "type":  "qq-message",
+                      "description":  "GroupMessageSender must upload external image URL before sending media message.",
+                      "input":  {
+                                    "messageId":  "MSG_ID",
+                                    "groupOpenid":  "GROUP_OPENID",
+                                    "imageUrl":  "https://example.com/result.png"
+                                },
+                      "expected":  {
+                                       "uploadPath":  "/v2/groups/GROUP_OPENID/files",
+                                       "uploadFileType":  1,
+                                       "requestPath":  "/v2/groups/GROUP_OPENID/messages",
+                                       "msg_type":  7,
+                                       "content":  " ",
+                                       "fileInfo":  "MOCK_FILE_INFO",
+                                       "msg_id":  "MSG_ID"
+                                   }
+                  }
+              ],
+    "httpContracts":  [
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_ACTIVE_CALENDAR",
+                              "name":  "活动日历",
+                              "doc":  "doc/active.calendar.md",
+                              "methodEnum":  "DATA_ACTIVE_CALENDAR",
+                              "expectedPath":  "/data/active/calendar",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "date":  "2025-12-03",
+                                                          "week":  "三",
+                                                          "war":  "大战！英雄冰川宫宝库",
+                                                          "battle":  "浮香丘",
+                                                          "orecar":  "跨服·河西瀚漠",
+                                                          "school":  "明教·漫漫朝圣路",
+                                                          "rescue":  "七秀·乱世",
+                                                          "luck":  [
+                                                                       "丰丰",
+                                                                       "童心客",
+                                                                       "沅沅"
+                                                                   ],
+                                                          "card":  [
+                                                                       "英雄天子峰",
+                                                                       "英雄日轮山城",
+                                                                       "英雄风雨稻香村"
+                                                                   ],
+                                                          "draw":  "",
+                                                          "team":  [
+                                                                       "五台山·无遮大会;太原·寒光铁衣卫大唐",
+                                                                       "会战弓月城;冰火岛·荒血路;白帝江关"
+                                                                   ]
+                                                      },
+                                             "time":  1764564055
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_ACTIVE_LIST_CALENDAR",
+                              "name":  "活动月历",
+                              "doc":  "doc/active.list.calendar.md",
+                              "methodEnum":  "DATA_ACTIVE_LIST_CALENDAR",
+                              "expectedPath":  "/data/active/list/calendar",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "today":  {
+                                                                        "date":  "2025-12-01",
+                                                                        "week":  "一",
+                                                                        "year":  "2025",
+                                                                        "month":  "12",
+                                                                        "day":  "01"
+                                                                    },
+                                                          "data":  [
+                                                                       {
+                                                                           "date":  "2025-11-17",
+                                                                           "day":  "17",
+                                                                           "week":  "一",
+                                                                           "war":  "英雄不染窟",
+                                                                           "battle":  "雪域关城",
+                                                                           "orecar":  "跨服·河西瀚漠",
+                                                                           "school":  "唐门·兄弟之争",
+                                                                           "rescue":  "少林·乱世",
+                                                                           "luck":  [
+                                                                                        ""
+                                                                                    ],
+                                                                           "card":  [
+                                                                                        "英雄迷渊岛",
+                                                                                        "尘归海·饕餮洞"
+                                                                                    ]
+                                                                       }
+                                                                   ]
+                                                      },
+                                             "time":  1764565563
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_ACTIVE_CELEBS",
+                              "name":  "行侠事件",
+                              "doc":  "doc/active.celebs.md",
+                              "methodEnum":  "DATA_ACTIVE_CELEBS",
+                              "expectedPath":  "/data/active/celebs",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "map":  "晟江",
+                                                              "stage":  "恶霸出浴",
+                                                              "site":  "白菰里",
+                                                              "desc":  "公共任务：击退恶霸黄七。",
+                                                              "icon":  "7",
+                                                              "time":  "12:56"
+                                                          }
+                                                      ],
+                                             "time":  1764565159
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_EXAM_SEARCH",
+                              "name":  "科举答题",
+                              "doc":  "doc/exam.search.md",
+                              "methodEnum":  "DATA_EXAM_ANSWER",
+                              "expectedPath":  "/data/exam/search",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  885,
+                                                              "question":  "单选题：古琴有几根弦？",
+                                                              "answer":  "七根",
+                                                              "correctness":  1,
+                                                              "index":  2,
+                                                              "pinyin":  "DXTGQYJGX"
+                                                          }
+                                                      ],
+                                             "time":  1764570523
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_HOME_FLOWER",
+                              "name":  "家园鲜花",
+                              "doc":  "doc/home.flower.md",
+                              "methodEnum":  "DATA_HOME_FLOWER",
+                              "expectedPath":  "/data/home/flower",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "九寨沟·镜海":  [
+                                                                         {
+                                                                             "name":  "一级绣球花",
+                                                                             "color":  "红，白，紫",
+                                                                             "price":  1.5,
+                                                                             "line":  [
+                                                                                          "6",
+                                                                                          "25",
+                                                                                          "18"
+                                                                                      ]
+                                                                         }
+                                                                     ]
+                                                      },
+                                             "time":  1776228927
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_HOME_FURNITURE",
+                              "name":  "家园装饰",
+                              "doc":  "doc/home.furniture.md",
+                              "methodEnum":  "DATA_HOME_FURNITURE",
+                              "expectedPath":  "/data/home/furniture",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  5,
+                                                              "name":  "龙门香梦",
+                                                              "type":  1,
+                                                              "color":  4,
+                                                              "source":  "大水南方令",
+                                                              "architecture":  0,
+                                                              "limit":  10,
+                                                              "quality":  1000,
+                                                              "view":  7931,
+                                                              "practical":  3525,
+                                                              "hard":  3525,
+                                                              "geomantic":  3525,
+                                                              "interesting":  3525,
+                                                              "produce":  null,
+                                                              "image":  "https://dl.pvp.xoyo.com/prod/icons/ui/image/homeland/data/source/home/furniture/cloth/cloth5_4_1001.mesh.png",
+                                                              "tip":  "跳影如流泉，香梦过龙门。山中逍遥客，化为唤雨人。"
+                                                          }
+                                                      ],
+                                             "time":  1776228996
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_HOME_TRAVEL",
+                              "name":  "器物图谱",
+                              "doc":  "doc/home.travel.md",
+                              "methodEnum":  "DATA_HOME_TRAVEL",
+                              "expectedPath":  "/data/home/travel",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  591,
+                                                              "name":  "日晷",
+                                                              "type":  1,
+                                                              "color":  3,
+                                                              "source":  "宠物游历",
+                                                              "architecture":  0,
+                                                              "limit":  3,
+                                                              "quality":  615,
+                                                              "view":  484,
+                                                              "practical":  1743,
+                                                              "hard":  500,
+                                                              "geomantic":  500,
+                                                              "interesting":  0,
+                                                              "produce":  "万花",
+                                                              "image":  "https://dl.pvp.xoyo.com/prod/icons/ui/image/homeland/data/source/home/furniture/ornament/ornament1_1_1008_p.prefab.png",
+                                                              "tip":  "产出地图：万花"
+                                                          }
+                                                      ],
+                                             "time":  1776229056
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_NEWS_ALLNEWS",
+                              "name":  "新闻资讯",
+                              "doc":  "doc/news.allnews.md",
+                              "methodEnum":  "DATA_WEB_NEWS_ALLNEWS",
+                              "expectedPath":  "/data/news/allnews",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  22,
+                                                              "catid":  "24587036",
+                                                              "type":  "官方新闻",
+                                                              "title":  "全新特惠发型亮相 《剑网3》魔镜主题外装礼盒华丽亮相",
+                                                              "date":  "12/01",
+                                                              "url":  "https://jx3.xoyo.com/show-2458-7036-1.html"
+                                                          }
+                                                      ],
+                                             "time":  1764583085
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_NEWS_ANNOUNCE",
+                              "name":  "维护公告",
+                              "doc":  "doc/news.announce.md",
+                              "methodEnum":  "DATA_WEB_NEWS_ANNOUNCE",
+                              "expectedPath":  "/data/news/announce",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  15,
+                                                              "catid":  "1335093",
+                                                              "type":  "官方公告",
+                                                              "title":  "11月24日1.0.0.9486版本更新公告",
+                                                              "date":  "11/24",
+                                                              "url":  "https://jx3.xoyo.com/announce/gg.html?id=1335093"
+                                                          }
+                                                      ],
+                                             "time":  1764583309
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_MASTER_SEARCH",
+                              "name":  "搜索区服",
+                              "doc":  "doc/master.search.md",
+                              "methodEnum":  "DATA_SERVER_MASTER",
+                              "expectedPath":  "/data/master/search",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "id":  "0502",
+                                                          "zone":  "电信区",
+                                                          "name":  "梦江南",
+                                                          "column":  "c",
+                                                          "duowan":  {
+                                                                         "浩气盟":  [
+                                                                                     32968
+                                                                                 ],
+                                                                         "恶人谷":  [
+                                                                                     36911
+                                                                                 ]
+                                                                     },
+                                                          "abbreviation":  [
+                                                                               "双梦镇",
+                                                                               "双梦"
+                                                                           ],
+                                                          "subordinate":  [
+                                                                              "梦江南",
+                                                                              "枫泾古镇",
+                                                                              "如梦令"
+                                                                          ]
+                                                      },
+                                             "time":  1723006672
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_STATUS_CHECK",
+                              "name":  "开服状态",
+                              "doc":  "doc/status.check.md",
+                              "methodEnum":  "DATA_SERVER_CHECK",
+                              "expectedPath":  "/data/status/check",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "zone":  "电信区",
+                                                          "server":  "长安城",
+                                                          "status":  "爆满"
+                                                      },
+                                             "time":  1723007064
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SKILL_REWORK",
+                              "name":  "技改记录",
+                              "doc":  "doc/skill.rework.md",
+                              "methodEnum":  "DATA_SKILL_REWORK",
+                              "expectedPath":  "/data/skill/rework",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  "1335074",
+                                                              "title":  "11月17日“山海源流”资料片武学调整",
+                                                              "url":  "https://jx3.xoyo.com/announce/gg.html?id=1335074",
+                                                              "time":  "2025-11-17 08:52:08"
+                                                          }
+                                                      ],
+                                             "time":  1764663471
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SCHOOL_FOODS",
+                              "name":  "小药推荐",
+                              "doc":  "doc/school.foods.md",
+                              "methodEnum":  "DATA_SCHOOL_FOODS",
+                              "expectedPath":  "/data/school/foods",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  1,
+                                                              "school":  "万花",
+                                                              "kungfu":  "花间游",
+                                                              "color":  "紫",
+                                                              "class":  "增强食品",
+                                                              "name":  "风语·灌汤包",
+                                                              "boost":  "内功"
+                                                          }
+                                                      ],
+                                             "time":  1776664713
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_ACTIVE_MONSTER",
+                              "name":  "百战首领",
+                              "doc":  "doc/active.monster.md",
+                              "methodEnum":  "DATA_ACTIVE_MONSTER",
+                              "expectedPath":  "/data/active/monster",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "week":  "49",
+                                                          "start":  1764543600,
+                                                          "end":  1765148400,
+                                                          "boss":  "拓跋思南",
+                                                          "list":  [
+                                                                       {
+                                                                           "index":  1,
+                                                                           "name":  "秦雷",
+                                                                           "skill":  [
+                                                                                         "积气法门",
+                                                                                         "霞月长针",
+                                                                                         "暗狼袭爪",
+                                                                                         "黑煞落贪狼",
+                                                                                         "皓莲望月"
+                                                                                     ],
+                                                                           "data":  {
+                                                                                        "name":  "无",
+                                                                                        "list":  [
+
+                                                                                                 ],
+                                                                                        "desc":  "无"
+                                                                                    }
+                                                                       }
+                                                                   ]
+                                                      },
+                                             "time":  1764565754
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_ACTIVE_NEXT_EVENT",
+                              "name":  "扶摇预测",
+                              "doc":  "doc/active.next.event.md",
+                              "methodEnum":  "DATA_ACTIVE_NEXT_EVENT",
+                              "expectedPath":  "/data/active/next/event",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "zone":  "电信区",
+                                                              "server":  "长安城",
+                                                              "status":  2,
+                                                              "time":  1764414187
+                                                          }
+                                                      ],
+                                             "time":  1764566169
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_AUCTION_RECORDS",
+                              "name":  "阵营拍卖",
+                              "doc":  "doc/auction.records.md",
+                              "methodEnum":  "DATA_AUCTION_RECORDS",
+                              "expectedPath":  "/data/auction/records",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  1594,
+                                                              "zone":  "电信区",
+                                                              "server":  "唯我独尊",
+                                                              "map_name":  "25人普通会战弓月城",
+                                                              "role_name":  "醉卧青苔",
+                                                              "item_name":  "昆玉玄晶",
+                                                              "item_amount":  "0",
+                                                              "time":  1764385748
+                                                          }
+                                                      ],
+                                             "time":  1764567938
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_STEED_RECORDS",
+                              "name":  "的卢记录",
+                              "doc":  "doc/steed.records.md",
+                              "methodEnum":  "DATA_HORSE_RECORDS",
+                              "expectedPath":  "/data/steed/records",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  914,
+                                                              "zone":  "电信区",
+                                                              "server":  "长安城",
+                                                              "map_name":  "龙泉府",
+                                                              "refresh_time":  1733490900,
+                                                              "capture_role_name":  "慕深深",
+                                                              "capture_camp_name":  "恶人谷",
+                                                              "capture_time":  1733492702,
+                                                              "auction_role_name":  "郭千千",
+                                                              "auction_camp_name":  "恶人谷",
+                                                              "auction_time":  1733494600,
+                                                              "auction_amount":  "805万1514金",
+                                                              "start_time":  1733094000,
+                                                              "end_time":  1733612400
+                                                          }
+                                                      ],
+                                             "time":  1733661554
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SHOW_RECORDS",
+                              "name":  "烟花记录",
+                              "doc":  "doc/show.records.md",
+                              "methodEnum":  "DATA_WATCH_RECORD",
+                              "expectedPath":  "/data/show/records",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  2875395,
+                                                              "zone":  "电信区",
+                                                              "server":  "唯我独尊",
+                                                              "map_name":  "成都",
+                                                              "sender":  "夜温言@长安城",
+                                                              "receiver":  "紫苏苏@长安城",
+                                                              "firework":  "真橙之心",
+                                                              "matched":  1,
+                                                              "status":  1,
+                                                              "time":  1743204933
+                                                          },
+                                                          {
+                                                              "id":  2870956,
+                                                              "zone":  "电信区",
+                                                              "server":  "唯我独尊",
+                                                              "map_name":  "成都",
+                                                              "sender":  "紫苏苏@长安城",
+                                                              "receiver":  "夜温言@长安城",
+                                                              "firework":  "福倒了",
+                                                              "matched":  1,
+                                                              "status":  1,
+                                                              "time":  1742917369
+                                                          }
+                                                      ],
+                                             "time":  1764570795
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_FRAUD_DETAIL",
+                              "name":  "骗子查询",
+                              "doc":  "doc/fraud.detail.md",
+                              "methodEnum":  "DATA_FRAUD_DETAIL",
+                              "expectedPath":  "/data/fraud/detail",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "server":  "-",
+                                                              "tieba":  "剑网3",
+                                                              "data":  [
+                                                                           {
+                                                                               "title":  "避雷骗子代清！！",
+                                                                               "url":  "https://tieba.baidu.com/p/7874526865",
+                                                                               "tid":  7874526865,
+                                                                               "text":  "避雷QQ：570790267 贴吧 @剑网三呀呀呀呀...",
+                                                                               "time":  1654998032
+                                                                           }
+                                                                       ]
+                                                          }
+                                                      ],
+                                             "time":  1764573158
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_EVENT_RECORDS",
+                              "name":  "角色奇遇",
+                              "doc":  "doc/event.records.md",
+                              "methodEnum":  "DATA_LUCK_ADVENTURE",
+                              "expectedPath":  "/data/event/records",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "zone":  "电信五区",
+                                                              "server":  "梦江南",
+                                                              "name":  "狸嫁",
+                                                              "event":  "泛天河",
+                                                              "level":  1,
+                                                              "status":  1,
+                                                              "time":  1708092604
+                                                          }
+                                                      ],
+                                             "time":  1723011369
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_EVENT_UNFINISHED",
+                              "name":  "未做奇遇",
+                              "doc":  "doc/event.unfinished.md",
+                              "methodEnum":  "DATA_LUCK_UNFINISHED",
+                              "expectedPath":  "/data/event/unfinished",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "name":  "三山四海",
+                                                              "type":  "绝世奇遇",
+                                                              "level":  2
+                                                          }
+                                                      ],
+                                             "time":  1764575199
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_EVENT_RECENT",
+                              "name":  "近期奇遇",
+                              "doc":  "doc/event.recent.md",
+                              "methodEnum":  "DATA_LUCK_RECENT",
+                              "expectedPath":  "/data/event/recent",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  4940141,
+                                                              "zone":  "电信区",
+                                                              "server":  "梦江南",
+                                                              "name":  "往矣",
+                                                              "event":  "侠者成歌",
+                                                              "source":  1,
+                                                              "status":  1,
+                                                              "time":  1764574651
+                                                          }
+                                                      ],
+                                             "time":  1764574732
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_EVENT_STATISTICS",
+                              "name":  "奇遇统计",
+                              "doc":  "doc/event.statistics.md",
+                              "methodEnum":  "DATA_LUCK_STATISTICAL",
+                              "expectedPath":  "/data/event/statistics",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  1118694,
+                                                              "zone":  "电信区",
+                                                              "server":  "长安城",
+                                                              "name":  "啵啵鱼",
+                                                              "event":  "阴阳两界",
+                                                              "source":  1,
+                                                              "status":  1,
+                                                              "time":  1764521524
+                                                          }
+                                                      ],
+                                             "time":  1764574912
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_EVENT_COLLECT",
+                              "name":  "奇遇汇总",
+                              "doc":  "doc/event.collect.md",
+                              "methodEnum":  "DATA_LUCK_COLLECT",
+                              "expectedPath":  "/data/event/collect",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "zone":  "电信区",
+                                                              "server":  "长安城",
+                                                              "event":  "三山四海",
+                                                              "count":  9,
+                                                              "data":  {
+                                                                           "id":  1118478,
+                                                                           "name":  "雪落听风",
+                                                                           "time":  1764436201
+                                                                       }
+                                                          }
+                                                      ],
+                                             "time":  1764574499
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_ARENA_RECENT",
+                              "name":  "名剑战绩",
+                              "doc":  "doc/arena.recent.md",
+                              "methodEnum":  "DATA_MATCH_RECENT",
+                              "expectedPath":  "/data/arena/recent",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "zoneName":  "电信区",
+                                                          "serverName":  "梦江南",
+                                                          "roleName":  "世界第一路人",
+                                                          "roleId":  "34406470",
+                                                          "globalId":  "396316767234935023",
+                                                          "forceName":  "藏剑",
+                                                          "forceId":  8,
+                                                          "bodyName":  "成男",
+                                                          "bodyId":  1,
+                                                          "tongName":  "摧城",
+                                                          "tongId":  15406,
+                                                          "campName":  "恶人谷",
+                                                          "campId":  "2",
+                                                          "performance":  {
+                                                                              "5v5":  [
+
+                                                                                      ],
+                                                                              "3v3":  {
+                                                                                          "mmr":  2268,
+                                                                                          "grade":  12,
+                                                                                          "ranking":  "-",
+                                                                                          "winCount":  163,
+                                                                                          "totalCount":  322,
+                                                                                          "mvpCount":  104,
+                                                                                          "pvpType":  "",
+                                                                                          "winRate":  51
+                                                                                      },
+                                                                              "2v2":  {
+                                                                                          "mmr":  1863,
+                                                                                          "grade":  7,
+                                                                                          "ranking":  "-",
+                                                                                          "winCount":  41,
+                                                                                          "totalCount":  77,
+                                                                                          "mvpCount":  30,
+                                                                                          "pvpType":  "",
+                                                                                          "winRate":  53
+                                                                                      }
+                                                                          },
+                                                          "history":  [
+                                                                          {
+                                                                              "zone":  "电信区",
+                                                                              "server":  "梦江南",
+                                                                              "avgGrade":  12,
+                                                                              "totalMmr":  2268,
+                                                                              "mmr":  13,
+                                                                              "kungfu":  "山居剑意",
+                                                                              "pvpType":  3,
+                                                                              "won":  true,
+                                                                              "mvp":  true,
+                                                                              "startTime":  1764516456,
+                                                                              "endTime":  1764516539
+                                                                          }
+                                                                      ]
+                                                      },
+                                             "time":  1764567402
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_ARENA_AWESOME",
+                              "name":  "名剑排行",
+                              "doc":  "doc/arena.awesome.md",
+                              "methodEnum":  "DATA_MATCH_AWESOME",
+                              "expectedPath":  "/data/arena/awesome",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "zoneName":  "电信区",
+                                                              "serverName":  "梦江南",
+                                                              "roleName":  "长风清晏·梦江南",
+                                                              "forceName":  "纯阳",
+                                                              "avatarUrl":  "https://dl.pvp.xoyo.com/prod/icons/avatar/default.png",
+                                                              "rankNum":  "1",
+                                                              "score":  "2973",
+                                                              "upNum":  "4",
+                                                              "winRate":  "81%"
+                                                          }
+                                                      ],
+                                             "time":  1764566470
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_ARENA_SCHOOLS",
+                              "name":  "名剑统计",
+                              "doc":  "doc/arena.schools.md",
+                              "methodEnum":  "DATA_MATCH_SCHOOLS",
+                              "expectedPath":  "/data/arena/schools",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "name":  "万花",
+                                                              "this":  0,
+                                                              "last":  66
+                                                          }
+                                                      ],
+                                             "time":  1764567731
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_RECRUIT_SEARCH",
+                              "name":  "团队招募",
+                              "doc":  "doc/recruit.search.md",
+                              "methodEnum":  "DATA_MEMBER_RECRUIT",
+                              "expectedPath":  "/data/recruit/search",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "zone":  "电信区",
+                                                          "server":  "唯我独尊",
+                                                          "type":  1,
+                                                          "data":  [
+                                                                       {
+                                                                           "activity":  "25人英雄会战弓月城",
+                                                                           "leader":  "老实四",
+                                                                           "content":  "【老实】马上开打 无装分要求 可躺尸 装备需求/大小铁老板M",
+                                                                           "crossServer":  false,
+                                                                           "activityId":  308,
+                                                                           "level":  130,
+                                                                           "pushId":  0,
+                                                                           "roomID":  "22096059",
+                                                                           "roleId":  0,
+                                                                           "createTime":  1764580936,
+                                                                           "number":  1,
+                                                                           "maxNumber":  25,
+                                                                           "label":  [
+
+                                                                                     ]
+                                                                       }
+                                                                   ],
+                                                          "time":  1764580937
+                                                      },
+                                             "time":  1764581019
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_MENTOR_SEARCH",
+                              "name":  "师徒系统",
+                              "doc":  "doc/mentor.search.md",
+                              "methodEnum":  "DATA_MEMBER_TEACHER",
+                              "expectedPath":  "/data/mentor/search",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "zone":  "电信区",
+                                                          "server":  "长安城",
+                                                          "type":  2,
+                                                          "data":  [
+                                                                       {
+                                                                           "roleId":  26276059,
+                                                                           "roleName":  "不见风澜",
+                                                                           "roleLevel":  130,
+                                                                           "campName":  "恶人谷",
+                                                                           "tongName":  "夜寐",
+                                                                           "tongMasterName":  "有只鱼",
+                                                                           "bodyId":  1,
+                                                                           "bodyName":  "成男",
+                                                                           "forceId":  213,
+                                                                           "forceName":  "刀宗",
+                                                                           "comment":  "找个带我22的奶妈师傅"
+                                                                       }
+                                                                   ],
+                                                          "time":  1764582410
+                                                      },
+                                             "time":  1764582506
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_RANK_STATISTICAL",
+                              "name":  "本服榜单",
+                              "doc":  "doc/rank.statistical.md",
+                              "methodEnum":  "DATA_RANK_STATISTICAL",
+                              "expectedPath":  "/data/rank/statistics",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "id":  133,
+                                                          "zone":  "电信区",
+                                                          "server":  "长安城",
+                                                          "name":  "赛季浩气五十强",
+                                                          "data":  [
+                                                                       {
+                                                                           "max_count":  300,
+                                                                           "now_count":  290,
+                                                                           "tong_name":  "追梦烟雨",
+                                                                           "castle_name":  "金门关",
+                                                                           "master_name":  "追梦的道士@龙争虎斗",
+                                                                           "total_score":  46025876
+                                                                       }
+                                                                   ],
+                                                          "time":  1764583399
+                                                      },
+                                             "time":  1764583685
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_REWARD_STATISTICS",
+                              "name":  "掉落统计",
+                              "doc":  "doc/reward.statistics.md",
+                              "methodEnum":  "DATA_VALUABLES_STATISTICAL",
+                              "expectedPath":  "/data/reward/statistics",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  1510,
+                                                              "zone":  "电信区",
+                                                              "server":  "长安城",
+                                                              "map_name":  "25人普通会战弓月城",
+                                                              "role_name":  "包小夕的刀@龙争虎斗",
+                                                              "item_name":  "昆玉玄晶",
+                                                              "item_amount":  "0",
+                                                              "time":  1764324936
+                                                          }
+                                                      ],
+                                             "time":  1764584530
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_ROLE_DETAIL",
+                              "name":  "角色信息",
+                              "doc":  "doc/role.detail.md",
+                              "methodEnum":  "DATA_ROLE_DETAILED",
+                              "expectedPath":  "/data/role/detail",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "zoneName":  "电信区",
+                                                          "serverName":  "唯我独尊",
+                                                          "roleName":  "夜温言@长安城",
+                                                          "roleId":  "26468709",
+                                                          "globalId":  "288230376159033247",
+                                                          "forceName":  "万花",
+                                                          "forceId":  2,
+                                                          "bodyName":  "萝莉",
+                                                          "bodyId":  6,
+                                                          "tongName":  "满目星辰皆是你",
+                                                          "tongId":  40574,
+                                                          "campName":  "中立",
+                                                          "campId":  0
+                                                      },
+                                             "time":  1764584983
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_CARD_RECORD",
+                              "name":  "角色名片",
+                              "doc":  "doc/card.record.md",
+                              "methodEnum":  "DATA_ROLE_SHOW_CARD",
+                              "expectedPath":  "/data/card/record",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "zoneName":  "电信区",
+                                                          "serverName":  "唯我独尊",
+                                                          "roleName":  "夜温言@长安城",
+                                                          "showHash":  "aec3f27ff696dacf32ba7c1f42e34d46",
+                                                          "showIndex":  2,
+                                                          "showAvatar":  "https://www.jx3api.com/cache/831fc881d7416c9975c193ed322176c05f3920582400ba832b.png",
+                                                          "cacheTime":  1776228463
+                                                      },
+                                             "time":  1776228210
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_CARD_RECORDS",
+                              "name":  "所有名片",
+                              "doc":  "doc/card.records.md",
+                              "methodEnum":  "DATA_ROLE_SHOW_CARDS",
+                              "expectedPath":  "/data/card/records",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "zoneName":  "电信区",
+                                                              "serverName":  "唯我独尊",
+                                                              "roleName":  "夜温言@长安城",
+                                                              "showHash":  "aec3f27ff696dacf32ba7c1f42e34d46",
+                                                              "showIndex":  2,
+                                                              "showActive":  true,
+                                                              "showAvatar":  "https://www.jx3api.com/cache/831fc881d7416c9975c193ed322176c05f3920582400ba832b.png",
+                                                              "saveTime":  1776227863
+                                                          }
+                                                      ],
+                                             "time":  1776228316
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_CARD_RANDOM",
+                              "name":  "随机名片",
+                              "doc":  "doc/card.random.md",
+                              "methodEnum":  "DATA_ROLE_SHOW_RANDOM",
+                              "expectedPath":  "/data/card/random",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "zoneName":  "电信区",
+                                                          "serverName":  "唯我独尊",
+                                                          "roleName":  "山色暮相依",
+                                                          "showHash":  "e70caa68eab3afc3732a70554f7661a5",
+                                                          "showIndex":  1,
+                                                          "showAvatar":  "https://www.jx3api.com/cache/45b4232e7704775f8777d6d23e5971d36357510f206b459739.png"
+                                                      },
+                                             "time":  1776228497
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_CARD_CACHED",
+                              "name":  "缓存名片",
+                              "doc":  "doc/card.cached.md",
+                              "methodEnum":  "DATA_ROLE_SHOW_CACHED",
+                              "expectedPath":  "/data/card/cached",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "zoneName":  "电信区",
+                                                          "serverName":  "唯我独尊",
+                                                          "roleName":  "夜温言@长安城",
+                                                          "showHash":  "1fb30eff878e0d075dd6f2d1d653d7b8",
+                                                          "showAvatar":  "https://nico.nicemoe.cn/cache/8321528cd7a84d9d9dd1b3b9337776e059592f50240a27032d.png"
+                                                      },
+                                             "time":  1764659841
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_ROLE_MONSTER",
+                              "name":  "角色百战",
+                              "doc":  "doc/role.monster.md",
+                              "methodEnum":  "DATA_ROLE_MONSTER",
+                              "expectedPath":  "/data/role/monster",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "zone":  "电信区",
+                                                          "server":  "唯我独尊",
+                                                          "role_name":  "夜温言@长安城",
+                                                          "role_id":  "26468709",
+                                                          "global_id":  "288230376159033247",
+                                                          "skill_stamina":  236400,
+                                                          "skill_energy":  237600,
+                                                          "skill_count":  131,
+                                                          "skill_list":  [
+                                                                             {
+                                                                                 "skill_cost":  1,
+                                                                                 "skill_name":  "空穴来风",
+                                                                                 "leader_name":  "冯度",
+                                                                                 "skill_color":  6,
+                                                                                 "skill_level":  10,
+                                                                                 "is_deprecated":  false
+                                                                             }
+                                                                         ],
+                                                          "update_time":  1763064756
+                                                      },
+                                             "time":  1764586225
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SCHOOL_MATRIX",
+                              "name":  "心法阵眼",
+                              "doc":  "doc/school.matrix.md",
+                              "methodEnum":  "DATA_SCHOOL_MATRIX",
+                              "expectedPath":  "/data/school/matrix",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "name":  "花间游",
+                                                          "skillName":  "七绝逍遥阵",
+                                                          "data":  [
+                                                                       {
+                                                                           "desc":  "阅历提高5%，声望提高5%，内功基础攻击力提高5%。",
+                                                                           "level":  1,
+                                                                           "name":  "一重粗识"
+                                                                       }
+                                                                   ]
+                                                      },
+                                             "time":  1764611252
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SCHOOL_TALENT",
+                              "name":  "奇穴详情",
+                              "doc":  "doc/school.talent.md",
+                              "methodEnum":  "DATA_SCHOOL_FORCE",
+                              "expectedPath":  "/data/school/talent",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "level":  1,
+                                                              "data":  [
+                                                                           {
+                                                                               "name":  "芳姿畅音",
+                                                                               "class":  1,
+                                                                               "simpleDesc":  "辅助技，根据自身释放的“猿公剑法”招式附加额外伤害。",
+                                                                               "desc":  "将根据5秒内施展的下一个“猿公剑法”套路下招式产生不同的“留芳仙姿”...",
+                                                                               "specialDesc":  "碧霞留芳影，绰约畅仙音。",
+                                                                               "interval":  "调息18秒",
+                                                                               "consumption":  "",
+                                                                               "distance":  "无",
+                                                                               "icon":  "https://dl.pvp.xoyo.com/prod/icons/skill/QiXiu/skill_24_3_15_10.png?v=2",
+                                                                               "kind":  "技能",
+                                                                               "subKind":  "七秀",
+                                                                               "releaseType":  "瞬间释放",
+                                                                               "weapon":  "双兵"
+                                                                           }
+                                                                       ]
+                                                          }
+                                                      ],
+                                             "time":  1764609755
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SCHOOL_SKILLS",
+                              "name":  "技能详情",
+                              "doc":  "doc/school.skills.md",
+                              "methodEnum":  "DATA_SCHOOL_SKILL",
+                              "expectedPath":  "/data/school/skills",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "class":  "太素九针",
+                                                              "data":  [
+                                                                           {
+                                                                               "name":  "锋针",
+                                                                               "simpleDesc":  "辅助技，非战斗状态下救治重伤的友方目标。",
+                                                                               "desc":  "救治重伤的友方目标，使其起身后气血值为818点，内力值为982点。",
+                                                                               "specialDesc":  "第其身而锋其末。",
+                                                                               "interval":  "无调息时间",
+                                                                               "consumption":  "",
+                                                                               "distance":  "20尺",
+                                                                               "icon":  "https://dl.pvp.xoyo.com/prod/icons/skill/WanHua/skill_wanhua41.png?v=2",
+                                                                               "kind":  "技能",
+                                                                               "subKind":  "万花",
+                                                                               "releaseType":  "释放10秒",
+                                                                               "weapon":  "笔类"
+                                                                           }
+                                                                       ]
+                                                          }
+                                                      ],
+                                             "time":  1764653990
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SCHOOL_SENIORITY",
+                              "name":  "资历排行",
+                              "doc":  "doc/school.seniority.md",
+                              "methodEnum":  "DATA_SCHOOL_SENIORITY",
+                              "expectedPath":  "/data/school/seniority",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "zoneName":  "电信区",
+                                                              "serverName":  "长安城",
+                                                              "roleName":  "卿兮",
+                                                              "roleId":  9042486,
+                                                              "forceName":  "万花",
+                                                              "forceId":  2,
+                                                              "forceIcon":  "https://dl.pvp.xoyo.com/static/tuilan-app/images/jx3/forces/icons/2.png",
+                                                              "avatarUrl":  "https://qdla.pvp.xoyo.com/prod/avatar/tmp/c53a54899d2040a995d4f5eb20427e98/avatar.jpg/6b89759991714c8788cc12dcd84aa27f.jpg",
+                                                              "seniority":  184995
+                                                          }
+                                                      ],
+                                             "time":  1764653478
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SAND_RECORDS",
+                              "name":  "阵营沙盘",
+                              "doc":  "doc/sand.records.md",
+                              "methodEnum":  "DATA_SERVER_SAND",
+                              "expectedPath":  "/data/sand/records",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "zone":  "电信区",
+                                                          "server":  "长安城",
+                                                          "reset":  0,
+                                                          "update":  1764652005,
+                                                          "data":  [
+                                                                       {
+                                                                           "tongId":  71205,
+                                                                           "tongName":  "追梦烟雨",
+                                                                           "castleId":  131,
+                                                                           "castleName":  "金门关",
+                                                                           "masterId":  7312844,
+                                                                           "masterName":  "追梦的道士@龙争虎斗",
+                                                                           "campId":  1,
+                                                                           "campName":  "浩气盟"
+                                                                       }
+                                                                   ]
+                                                      },
+                                             "time":  1764654281
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_FENXIAN_RECORDS",
+                              "name":  "阵营事件",
+                              "doc":  "doc/fenxian.records.md",
+                              "methodEnum":  "DATA_SERVER_EVENT",
+                              "expectedPath":  "/data/fenxian/records",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  11005,
+                                                              "camp_name":  "恶人谷",
+                                                              "fenxian_name":  "梦江南",
+                                                              "friend_name":  "唯我独尊",
+                                                              "role_name":  "欧薏米·天鹅坪",
+                                                              "seize_time":  1776240427
+                                                          }
+                                                      ],
+                                             "time":  1776241373
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SMITE_RECORDS",
+                              "name":  "诛恶事件",
+                              "doc":  "doc/smite.records.md",
+                              "methodEnum":  "DATA_SERVER_ANTIVICE",
+                              "expectedPath":  "/data/smite/records",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  19897,
+                                                              "zone":  "电信区",
+                                                              "server":  "唯我独尊",
+                                                              "map_name":  "银霜口",
+                                                              "time":  1776227999
+                                                          }
+                                                      ],
+                                             "time":  1776229225
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_MINE_CART",
+                              "name":  "关隘首领",
+                              "doc":  "doc/mine.cart.md",
+                              "methodEnum":  "DATA_MINE_CART",
+                              "expectedPath":  "/data/mine/cart",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "server":  "剑胆琴心",
+                                                              "data":  [
+                                                                           {
+                                                                               "id":  2133,
+                                                                               "zone":  "电信区",
+                                                                               "server":  "剑胆琴心",
+                                                                               "leader":  "欧薏米·天鹅坪",
+                                                                               "camp_name":  "恶人谷",
+                                                                               "castle":  "赤焰关",
+                                                                               "status":  2,
+                                                                               "str_status":  "保护期"
+                                                                           }
+                                                                       ]
+                                                          }
+                                                      ]
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_CHITU_RECORDS",
+                              "name":  "本日赤兔",
+                              "doc":  "doc/chitu.records.md",
+                              "methodEnum":  "DATA_CHITU_RECORDS",
+                              "expectedPath":  "/data/chitu/records",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  21,
+                                                              "server":  "破阵子",
+                                                              "map_name":  "黑戈壁",
+                                                              "horse":  "赤兔",
+                                                              "send":  1,
+                                                              "date":  "2025-12-01"
+                                                          }
+                                                      ],
+                                             "time":  1764568355
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_CHITU_WEEK_RECORDS",
+                              "name":  "本周赤兔",
+                              "doc":  "doc/chitu.week.records.md",
+                              "methodEnum":  "DATA_CHITU_WEEK_RECORDS",
+                              "expectedPath":  "/data/chitu/week/records",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "server":  "破阵子",
+                                                              "map_name":  "黑戈壁",
+                                                              "horse":  "赤兔",
+                                                              "date":  "2025-12-01"
+                                                          }
+                                                      ],
+                                             "time":  1764568880
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_RANCH_RECORDS",
+                              "name":  "马场刷新",
+                              "doc":  "doc/ranch.records.md",
+                              "methodEnum":  "DATA_HORSE_EVENT",
+                              "expectedPath":  "/data/ranch/records",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "zone":  "电信区",
+                                                          "server":  "梦江南",
+                                                          "data":  {
+                                                                       "黑戈壁":  [
+                                                                                   "时间尚久，无法预知。"
+                                                                               ],
+                                                                       "阴山大草原":  [
+                                                                                     "时间尚久，无法预知。"
+                                                                                 ],
+                                                                       "鲲鹏岛":  [
+                                                                                   "时间尚久，无法预知。"
+                                                                               ],
+                                                                       "龙泉府 / 进图（21:10）":  [
+                                                                                               "的卢（12/05 21:15）"
+                                                                                           ]
+                                                                   },
+                                                          "note":  "本CD内赤兔暂未刷新，还请关注！\n\n数据仅供参考，请以游戏内为准。"
+                                                      },
+                                             "time":  1764573490
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_RANK_TRIALS",
+                              "name":  "试炼排行",
+                              "doc":  "doc/rank.trials.md",
+                              "methodEnum":  "DATA_RANK_TRIALS",
+                              "expectedPath":  "/data/rank/trials",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "id":  65,
+                                                          "zone":  "电信区",
+                                                          "server":  "长安城",
+                                                          "name":  "花间游",
+                                                          "data":  [
+                                                                       {
+                                                                           "max_level":  80,
+                                                                           "role_name":  "好小鹿",
+                                                                           "equip_score":  687028,
+                                                                           "total_score":  35100
+                                                                       }
+                                                                   ],
+                                                          "time":  1764578064
+                                                      },
+                                             "time":  1764583849
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_TIEBA_ITEM_RECORDS",
+                              "name":  "贴吧物价",
+                              "doc":  "doc/tieba.item.records.md",
+                              "methodEnum":  "DATA_TIEBA_ITEM_RECORDS",
+                              "expectedPath":  "/data/tieba/item/records",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  1168447,
+                                                              "zone":  "电信区",
+                                                              "server":  "长安城",
+                                                              "name":  "剑三电一长安城",
+                                                              "url":  9460941252,
+                                                              "context":  "1900出龙隐织梦豪华盒子 1350出龙隐落霜金发 430出登云峰金发 300出猴红 95出净语 40一个出双鱼肩饰",
+                                                              "reply":  151668454103,
+                                                              "token":  "b301ab98abd18e4a5",
+                                                              "floor":  1503,
+                                                              "time":  1739329002
+                                                          }
+                                                      ],
+                                             "time":  1764663653
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_TRADE_DEMON",
+                              "name":  "金币价格",
+                              "doc":  "doc/trade.demon.md",
+                              "methodEnum":  "DATA_TRADE_DEMON",
+                              "expectedPath":  "/data/trade/demon",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "zone":  "电信区",
+                                                              "server":  "长安城",
+                                                              "tieba":  "935.00",
+                                                              "wanbaolou":  "901.00",
+                                                              "dd373":  "956.18",
+                                                              "date":  "2025-12-02"
+                                                          }
+                                                      ],
+                                             "time":  1764665874
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_TRADE_RECORDS",
+                              "name":  "黑市物价",
+                              "doc":  "doc/trade.records.md",
+                              "methodEnum":  "DATA_TRADE_RECORDS",
+                              "expectedPath":  "/data/trade/records",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "class":  "发型",
+                                                          "subclass":  "金发",
+                                                          "name":  "金发·璨月蝶心",
+                                                          "alias":  "狐金",
+                                                          "value":  "280.00",
+                                                          "desc":  "2016/04/28上架发售，不绑定限时3周。售价280。",
+                                                          "date":  "2016-04-28",
+                                                          "view":  "https://show.nicemoe.cn/item/url/e7e58e651961f471a7d4d9616f98f1df9a6e0810d48b17e898620554942228d2.png",
+                                                          "list":  [
+                                                                       [
+                                                                           {
+                                                                               "id":  "4668991",
+                                                                               "index":  541,
+                                                                               "zone":  "电信区",
+                                                                               "server":  "绝代天骄",
+                                                                               "value":  23500,
+                                                                               "sale":  4,
+                                                                               "token":  "b294cc3cc6342f119a",
+                                                                               "date":  "2025-11-25",
+                                                                               "source":  1,
+                                                                               "status":  1
+                                                                           }
+                                                                       ]
+                                                                   ]
+                                                      },
+                                             "time":  1764666526
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_TRADE_ITEM_SEARCH",
+                              "name":  "搜索物品",
+                              "doc":  "doc/trade.item.search.md",
+                              "methodEnum":  "DATA_TRADE_ITEM_SEARCH",
+                              "expectedPath":  "/data/trade/item/search",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "class":  "外观礼盒",
+                                                              "subclass":  "同人盒子",
+                                                              "name":  "十五夜观灯·南涧·标准",
+                                                              "alias":  "标准蓝观灯",
+                                                              "wblalias":  "十五夜观灯·南涧·标准",
+                                                              "value":  "280.00",
+                                                              "desc":  "缛彩遥分地，繁光远缀天，同人外装“十五夜观灯”明红色罗衣宽松舒适，上绣瑞鹤振翅高飞，祥云缭绕其间，宛若置身梦幻仙境，尽显不凡气质。定制白发纯洁清新，四款偏色各具匠心，纤尘不染，令人心折！",
+                                                              "date":  "2024-02-22",
+                                                              "view":  "https://nico.nicemoe.cn/url/a33a18f20063584c5a759090fd6c7a9c03ef12fa9a2f3dc5f4c005087f47a938.png"
+                                                          }
+                                                      ],
+                                             "time":  1764666952
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_TRADE_ITEM_RECORDS",
+                              "name":  "物品价格",
+                              "doc":  "doc/trade.item.records.md",
+                              "methodEnum":  "DATA_TRADE_RECORD",
+                              "expectedPath":  "/data/trade/item/records",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "class":  "外观礼盒",
+                                                          "subclass":  "同人盒子",
+                                                          "name":  "十五夜观灯·南涧·标准",
+                                                          "alias":  "标准蓝观灯",
+                                                          "value":  "280.00",
+                                                          "desc":  "缛彩遥分地，繁光远缀天，同人外装“十五夜观灯”明红色罗衣宽松舒适，上绣瑞鹤振翅高飞，祥云缭绕其间，宛若置身梦幻仙境，尽显不凡气质。定制白发纯洁清新，四款偏色各具匠心，纤尘不染，令人心折！",
+                                                          "date":  "2024-02-22",
+                                                          "view":  "https://nico.nicemoe.cn/url/a33a18f20063584c5a759090fd6c7a9c03ef12fa9a2f3dc5f4c005087f47a938.png",
+                                                          "list":  [
+                                                                       [
+                                                                           {
+                                                                               "id":  "4676245",
+                                                                               "index":  1063,
+                                                                               "zone":  "电信区",
+                                                                               "server":  "幽月轮",
+                                                                               "value":  3600,
+                                                                               "sale":  4,
+                                                                               "token":  "b29c80a486dac1aae5",
+                                                                               "date":  "2025-12-02",
+                                                                               "source":  1,
+                                                                               "status":  1
+                                                                           }
+                                                                       ]
+                                                                   ]
+                                                      },
+                                             "time":  1764667088
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_BATTLE_RECORDS",
+                              "name":  "帮战记录",
+                              "doc":  "doc/battle.records.md",
+                              "methodEnum":  "DATA_BATTLE_RECORDS",
+                              "expectedPath":  "/data/battle/records",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "zoneName":  "电信区",
+                                                              "serverName":  "梦江南",
+                                                              "declaringTongName":  "醉星河",
+                                                              "acceptingTongName":  "云上澜歌",
+                                                              "startTime":  1776172688,
+                                                              "matchDuration":  3600,
+                                                              "endTime":  1776176288
+                                                          },
+                                                          {
+                                                              "zoneName":  "电信区",
+                                                              "serverName":  "梦江南",
+                                                              "declaringTongName":  "烽火九州",
+                                                              "acceptingTongName":  "江月照初人",
+                                                              "startTime":  1776170822,
+                                                              "matchDuration":  18000,
+                                                              "endTime":  1776188822
+                                                          }
+                                                      ],
+                                             "time":  1776247060
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_MECH_CALCULATOR",
+                              "name":  "副本解密",
+                              "doc":  "doc/mech.calculator.md",
+                              "methodEnum":  "DATA_MECH_CALCULATOR",
+                              "expectedPath":  "/data/mech/calculator",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "now_time":  "18:02:53",
+                                                          "now_node":  "18:00:00",
+                                                          "now_result":  "北 4，南 0，西 6，东 9",
+                                                          "next_node":  "18:15:00",
+                                                          "next_result":  "北 4，南 0，西 7，东 9",
+                                                          "interval_time":  "00:12:07"
+                                                      },
+                                             "time":  1776247373
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_DUOWAN_STATISTICS",
+                              "name":  "统战歪歪",
+                              "doc":  "doc/duowan.statistics.md",
+                              "methodEnum":  "DATA_DUOWAN_STATISTICS",
+                              "expectedPath":  "/data/duowan/statistics",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "server":  "梦江南",
+                                                              "data":  [
+                                                                           {
+                                                                               "sid":  73791194,
+                                                                               "logoUrl":  "http://downhdlogo.yy.com/applogo/session/60/60/79/0073791194/s73791194xcE5n3_nz.jpg",
+                                                                               "users":  0,
+                                                                               "snick":  "【双梦镇浩气联合统战】愿世间所有的等待都能如约而至",
+                                                                               "limit":  0,
+                                                                               "logo":  0,
+                                                                               "asid":  32968,
+                                                                               "esid":  "32968",
+                                                                               "campName":  "浩气盟"
+                                                                           }
+                                                                       ]
+                                                          }
+                                                      ],
+                                             "time":  1776247633
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_TIEBA_RANDOM",
+                              "name":  "八卦帖子",
+                              "doc":  "doc/tieba.random.md",
+                              "methodEnum":  "DATA_TIEBA_RANDOM",
+                              "expectedPath":  "/data/tieba/random",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "id":  82,
+                                                              "tags":  "818",
+                                                              "zone":  "-",
+                                                              "server":  "-",
+                                                              "name":  "剑网3",
+                                                              "title":  "【818】避雷团牌［初见］啥必奶药团长",
+                                                              "url":  10242120781,
+                                                              "date":  "2025-11-25"
+                                                          }
+                                                      ],
+                                             "time":  1764663795
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SAOHUA_RANDOM",
+                              "name":  "世界骚话",
+                              "doc":  "doc/saohua.random.md",
+                              "methodEnum":  "DATA_SAOHUA_RANDOM",
+                              "expectedPath":  "/data/saohua/random",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "id":  1796,
+                                                          "text":  "你说我菜又有什么用呢，我又不会把游戏删了，我只会把你删了"
+                                                      },
+                                             "time":  1776229144
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SAOHUA_CONTENT",
+                              "name":  "舔狗日记",
+                              "doc":  "doc/saohua.content.md",
+                              "methodEnum":  "DATA_SAOHUA_CONTENT",
+                              "expectedPath":  "/data/saohua/content",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "id":  144,
+                                                          "text":  "今天在试卷上写满了你的名字，最后考了零分，果然爱你没有结果。"
+                                                      },
+                                             "time":  1776229125
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SOUND_CONVERTER",
+                              "name":  "阿里语音",
+                              "doc":  "doc/sound.converter.md",
+                              "methodEnum":  "DATA_SOUND_CONVERTER",
+                              "expectedPath":  "/data/sound/converter",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "text":  "剑网三真好玩儿",
+                                                          "token":  "60573f1203ed4774a44ba47ea8273ef3",
+                                                          "url":  "https://nls-gateway.cn-shanghai.aliyuncs.com/stream/v1/tts?appkey=usTUQnlSuPRzMaw6\u0026token=60573f1203ed4774a44ba47ea8273ef3\u0026format=mp3\u0026voice=Aitong\u0026sample_rate=16000\u0026speech_rate=0\u0026volume=50\u0026pitch_rate=0\u0026text=%E5%89%91%E7%BD%91%E4%B8%89%E7%9C%9F%E5%A5%BD%E7%8E%A9%E5%84%BF"
+                                                      },
+                                             "time":  1713010443
+                                         }
+                          }
+                      ]
+}

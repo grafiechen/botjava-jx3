@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>贴吧物价</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #eaf0f1; color: #20292e; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 38px 54px; }
+        .board { width: 100%; max-width: 1172px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #cbd4d7; border-radius: 8px; box-shadow: 0 18px 42px rgba(28, 42, 47, .12); }
+        .header { min-height: 136px; padding: 25px 36px; display: flex; align-items: flex-end; justify-content: space-between; gap: 26px; border-top: 8px solid #526f78; border-bottom: 1px solid #d9e1e4; }
+        .eyebrow { margin: 0 0 8px; color: #6f7c82; font-size: 15px; }
+        h1 { margin: 0; font-size: 36px; line-height: 1.2; overflow-wrap: anywhere; }
+        .server { max-width: 360px; color: #89563e; font-size: 18px; font-weight: 800; text-align: right; overflow-wrap: anywhere; }
+        .head, .row { display: grid; grid-template-columns: 60px 150px minmax(330px, 1fr) 100px 80px 150px; gap: 16px; align-items: center; }
+        .head { min-height: 50px; padding: 0 34px; color: #6d7980; background: #f2f5f6; border-bottom: 1px solid #dce3e5; font-size: 13px; font-weight: 700; }
+        .row { min-height: 92px; padding: 14px 34px; border-bottom: 1px solid #e2e7e9; }
+        .row:last-child { border-bottom: 0; }
+        .index { color: #8d5a43; font-size: 22px; font-weight: 800; }
+        .place strong { display: block; color: #315f68; font-size: 15px; overflow-wrap: anywhere; }
+        .place span, .time { color: #758188; font-size: 13px; overflow-wrap: anywhere; }
+        .content strong { display: block; margin-bottom: 5px; font-size: 16px; overflow-wrap: anywhere; }
+        .content p { margin: 0; color: #59666c; font-size: 14px; line-height: 1.55; overflow-wrap: anywhere; }
+        .number { color: #8b593f; font-size: 17px; font-weight: 800; }
+        .empty { min-height: 350px; display: flex; align-items: center; justify-content: center; color: #78858b; font-size: 21px; }
+        .footer { padding: 16px 34px 19px; color: #7b878c; background: #fafbfb; border-top: 1px solid #dce3e5; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header"><div><p class="eyebrow">剑网 3 玩家市场记录</p><h1>{{ name || '贴吧物价' }}</h1></div><div class="server">{{ server || '全区服' }} · {{ data && data.length ? data.length : 0 }} 条</div></header>
+        <template v-if="data && data.length"><div class="head"><span>序号</span><span>区服</span><span>内容</span><span>回复</span><span>楼层</span><span>时间</span></div><section><div class="row" v-for="(item,index) in data" :key="index"><span class="index">{{ index + 1 }}</span><div class="place"><strong>{{ item.server || '未知服务器' }}</strong><span>{{ item.zone || '未知大区' }}</span></div><div class="content"><strong>{{ item.name || name || '物品记录' }}</strong><p>{{ item.context || '暂无文字说明' }}</p></div><span class="number">{{ item.reply == null ? '-' : item.reply }}</span><span class="number">{{ item.floor == null ? '-' : item.floor }}</span><span class="time">{{ item.time || '时间未知' }}</span></div></section></template>
+        <div class="empty" v-else>暂无贴吧物价记录</div>
+        <footer class="footer">仅展示可读内容、回复数、楼层和时间，不展示帖子编号、链接或内部 token</footer>
+    </article>
+</main>
+</body>
+</html>

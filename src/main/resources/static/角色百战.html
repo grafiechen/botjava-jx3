@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>角色百战</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body {
+            margin: 0;
+            min-width: 1080px;
+            background: #edf1f2;
+            color: #20272c;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            letter-spacing: 0;
+        }
+        #main { min-height: 720px; padding: 40px 60px; }
+        .board {
+            width: 100%;
+            max-width: 1160px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #cfd5d8;
+            border-radius: 8px;
+            box-shadow: 0 18px 42px rgba(31, 38, 43, 0.12);
+        }
+        .header {
+            min-height: 142px;
+            padding: 25px 36px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 30px;
+            border-top: 8px solid #275e65;
+            border-bottom: 1px solid #dce1e4;
+        }
+        .eyebrow { margin: 0 0 8px; color: #68747c; font-size: 17px; }
+        h1 { margin: 0; color: #20262b; font-size: 38px; line-height: 1.2; overflow-wrap: anywhere; }
+        .identity { margin-top: 7px; color: #68747c; font-size: 14px; }
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(108px, 1fr));
+            gap: 8px;
+            min-width: 390px;
+        }
+        .metric {
+            min-height: 70px;
+            padding: 11px 12px;
+            background: #f3f6f6;
+            border-left: 3px solid #7b9ca0;
+        }
+        .metric-label { color: #6b777e; font-size: 12px; }
+        .metric-value { margin-top: 5px; color: #275e65; font-size: 21px; font-weight: 800; overflow-wrap: anywhere; }
+        .content { padding: 28px 32px 18px; }
+        .section-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+        h2 { margin: 0; color: #293238; font-size: 21px; }
+        .count { color: #77838a; font-size: 13px; }
+        .skills {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .skill {
+            position: relative;
+            min-height: 86px;
+            padding: 13px 14px 12px 17px;
+            border: 1px solid #d9dfe1;
+            border-left: 5px solid #7a9096;
+            background: #fbfcfc;
+        }
+        .skill.color-1 { border-left-color: #737b83; }
+        .skill.color-2 { border-left-color: #427b55; }
+        .skill.color-3 { border-left-color: #326b96; }
+        .skill.color-4 { border-left-color: #75599a; }
+        .skill.color-5 { border-left-color: #9b6b37; }
+        .skill.color-6 { border-left-color: #a34f45; }
+        .skill.deprecated { opacity: 0.65; }
+        .skill-name { padding-right: 48px; color: #243036; font-size: 16px; font-weight: 800; overflow-wrap: anywhere; }
+        .leader { margin-top: 7px; color: #5e6b72; font-size: 13px; overflow-wrap: anywhere; }
+        .attributes { margin-top: 7px; color: #80564a; font-size: 12px; }
+        .state {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 3px 6px;
+            color: #ffffff;
+            background: #8b6157;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .empty {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #77838a;
+            font-size: 22px;
+        }
+        .footer {
+            padding: 16px 32px 19px;
+            color: #7a858c;
+            background: #fafbfb;
+            border-top: 1px solid #dce1e4;
+            font-size: 13px;
+        }
+        @media (max-width: 1150px) {
+            .skills { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+    <main id="main" v-cloak>
+        <article class="board">
+            <header class="header">
+                <div>
+                    <p class="eyebrow">剑网 3 百战异闻录</p>
+                    <h1>{{ roleName || '角色未知' }}</h1>
+                    <div class="identity">{{ zone || '大区未知' }} · {{ server || '服务器未知' }}</div>
+                </div>
+                <div class="summary">
+                    <div class="metric">
+                        <div class="metric-label">精力</div>
+                        <div class="metric-value">{{ skillEnergy ?? '-' }}</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">耐力</div>
+                        <div class="metric-value">{{ skillStamina ?? '-' }}</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">技能总数</div>
+                        <div class="metric-value">{{ skillCount ?? (skills ? skills.length : 0) }}</div>
+                    </div>
+                </div>
+            </header>
+            <section class="content" v-if="skills && skills.length">
+                <div class="section-head">
+                    <h2>已记录技能</h2>
+                    <span class="count">本次返回 {{ skills.length }} 项</span>
+                </div>
+                <div class="skills">
+                    <article class="skill" v-for="(skill, index) in skills" :key="index"
+                             :class="['color-' + (skill.color || 0), { deprecated: skill.deprecated }]">
+                        <div class="skill-name">{{ skill.name }}</div>
+                        <span class="state" v-if="skill.deprecated">已弃用</span>
+                        <div class="leader">来源首领：{{ skill.leaderName || '未知' }}</div>
+                        <div class="attributes">等级 {{ skill.level ?? '-' }} · 消耗 {{ skill.cost ?? '-' }}</div>
+                    </article>
+                </div>
+            </section>
+            <div class="empty" v-else>暂无角色百战技能数据</div>
+            <footer class="footer">更新时间：{{ updateTime || '未知' }} · 时间按北京时间展示</footer>
+        </article>
+    </main>
+</body>
+</html>

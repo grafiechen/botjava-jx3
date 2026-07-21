@@ -38,7 +38,7 @@ public class TxMessageInfo {
     /**
      * Embed对象
      */
-    private Object embed;
+    private EmbedDto embed;
     /**
      * 富媒体群聊的file_info
      */

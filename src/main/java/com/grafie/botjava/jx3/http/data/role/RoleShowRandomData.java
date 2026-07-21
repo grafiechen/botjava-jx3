@@ -1,5 +1,6 @@
 package com.grafie.botjava.jx3.http.data.role;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -9,11 +10,20 @@ import lombok.Data;
  */
 @Data
 public class RoleShowRandomData {
-    @JsonProperty("server")
+    @JsonProperty("zoneName")
+    private String zone;
+    @JsonProperty("serverName")
+    @JsonAlias("server")
     private String server;
-    @JsonProperty("name")
+    @JsonProperty("roleName")
+    @JsonAlias("name")
     private String name;
-    @JsonProperty("avatar")
+    @JsonProperty("showHash")
+    private String showHash;
+    @JsonProperty("showIndex")
+    private Integer showIndex;
+    @JsonProperty("showAvatar")
+    @JsonAlias("avatar")
     private String avatar;
     @JsonProperty("status")
     private Integer status;

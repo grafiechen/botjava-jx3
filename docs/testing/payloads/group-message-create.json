@@ -1,0 +1,25 @@
+{
+  "op": 0,
+  "s": null,
+  "d": {
+    "id": "LOCAL_REPLAY_MESSAGE_001",
+    "content": "/开服 乾坤一掷",
+    "timestamp": "2026-07-11T09:30:00+09:00",
+    "author": {
+      "id": "LOCAL_USER_001",
+      "username": "本地测试用户",
+      "bot": false,
+      "member_openid": "LOCAL_USER_001",
+      "member_role": "owner",
+      "union_openid": "LOCAL_USER_001"
+    },
+    "group_id": "LOCAL_GROUP_001",
+    "group_openid": "LOCAL_GROUP_001",
+    "message_scene": {
+      "source": "default",
+      "ext": []
+    },
+    "message_type": 0
+  },
+  "t": "GROUP_MESSAGE_CREATE"
+}

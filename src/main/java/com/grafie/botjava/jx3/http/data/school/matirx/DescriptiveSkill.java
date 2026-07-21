@@ -9,7 +9,7 @@ public class DescriptiveSkill {
     private String description;
 
     @JsonProperty("level")
-    private int level;
+    private Integer level;
 
     @JsonProperty("name")
     private String name;

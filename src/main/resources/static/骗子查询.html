@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>骗子查询</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #eceff0; color: #20282d; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 36px 54px; }
+        .board { width: 100%; max-width: 1172px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #cbd3d7; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 42, 48, .12); }
+        .header { min-height: 132px; padding: 24px 36px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; border-top: 8px solid #83594e; border-bottom: 1px solid #dae1e4; }
+        .eyebrow { margin: 0 0 7px; color: #717d82; font-size: 15px; }
+        h1 { margin: 0; font-size: 36px; line-height: 1.2; }
+        .uid { color: #83594e; font-size: 19px; font-weight: 800; }
+        .records { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .record { min-width: 0; min-height: 220px; padding: 24px 30px; border-right: 1px solid #dee3e5; border-bottom: 1px solid #dee3e5; }
+        .record:nth-child(2n) { border-right: 0; }
+        .record-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+        .title { color: #29343a; font-size: 19px; font-weight: 800; line-height: 1.45; overflow-wrap: anywhere; }
+        .time { flex: 0 0 auto; color: #7b858a; font-size: 12px; }
+        .source { margin-top: 10px; color: #526a72; font-size: 13px; font-weight: 700; }
+        .text { margin: 17px 0 0; color: #5d696f; font-size: 14px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .empty { min-height: 390px; display: flex; align-items: center; justify-content: center; color: #78848a; font-size: 22px; }
+        .footer { padding: 15px 36px 18px; color: #7b878d; background: #fafbfb; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header"><div><p class="eyebrow">剑网 3 公开避雷信息</p><h1>骗子查询</h1></div><div class="uid">QQ {{ uid || '未知' }}</div></header>
+        <section class="records" v-if="data && data.length"><article class="record" v-for="(item, index) in data" :key="index"><div class="record-head"><span class="title">{{ item.title || '记录标题未知' }}</span><span class="time">{{ item.time || '时间未知' }}</span></div><div class="source">{{ item.tieba || '来源未知' }} · {{ item.server || '区服未知' }}</div><p class="text">{{ item.text || '暂无详细说明' }}</p></article></section>
+        <div class="empty" v-else>未查询到公开避雷记录</div>
+        <footer class="footer">结果来自公开信息，仅供核实参考；不展示帖子链接及内部编号</footer>
+    </article>
+</main>
+</body>
+</html>

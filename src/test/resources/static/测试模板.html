@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>测试模板</title>
+    <style>
+        body {
+            margin: 0;
+            background: #f6f2ea;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        #main {
+            width: 720px;
+            padding: 32px;
+            color: #2b2f36;
+        }
+
+        h1 {
+            margin: 0 0 16px;
+            font-size: 32px;
+        }
+
+        .server {
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .item {
+            margin: 8px 0;
+            padding: 10px 14px;
+            background: #ffffff;
+            border: 1px solid #d8d0c4;
+            border-radius: 6px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+<div id="main">
+    <h1>{{ title }}</h1>
+    <div class="server">{{ server }}</div>
+    <div class="item" v-for="item in items">
+        {{ item }}
+    </div>
+</div>
+</body>
+</html>

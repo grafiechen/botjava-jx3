@@ -50,7 +50,8 @@ public class CallbackValidAction   {
             signResult.setPlainToken(serverCheckDto.getPlainToken());
             return signResult;
         }catch (Exception e){
-            log.error("回调验证器处理失败，请求参数=>{}",payload,e);
+            log.error("回调验证器处理失败，op=>{}，reason=>{}",
+                    payload.getOp(), com.grafie.botjava.util.SensitiveDataUtil.summarize(e));
             return null;
         }
 

@@ -1,0 +1,11 @@
+{
+  "op": 0,
+  "s": 101,
+  "t": "GROUP_ADD_ROBOT",
+  "d": {
+    "timestamp": "2026-07-13T18:00:00+09:00",
+    "group_openid": "group-1",
+    "op_member_openid": "account-1",
+    "future_field": "ignored"
+  }
+}

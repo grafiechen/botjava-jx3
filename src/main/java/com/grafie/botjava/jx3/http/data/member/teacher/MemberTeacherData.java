@@ -1,6 +1,7 @@
 package com.grafie.botjava.jx3.http.data.member.teacher;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.grafie.botjava.util.TimeUtils;
 import lombok.Data;
 
 import java.util.List;
@@ -18,7 +19,17 @@ public class MemberTeacherData {
     @JsonProperty("server")
     private String server;
 
+    @JsonProperty("type")
+    private Integer type;
+
     @JsonProperty("data")
     private List<TeacherInfo> data;
+
+    @JsonProperty("time")
+    private String time;
+
+    public void setTime(long time) {
+        this.time = TimeUtils.timeFormatting(time);
+    }
 }
 

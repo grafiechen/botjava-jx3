@@ -40,7 +40,7 @@
                             </tr>
                         </thead>
                         <tbody class="fs-6 text-center">
-                            {% for one in data %}
+                            <template v-for="one in data">
                             <tr>
                                 <td scope="col">{{ one.index }}</td>
                                 <td scope="col">{{ one.name }}</td>
@@ -48,7 +48,7 @@
                                 <td scope="col">{{ one.limit }}</td>
                                 <td scope="col">{{ one.score }}</td>
                             </tr>
-                            {% endfor %}
+                            </template>
                         </tbody>
                     </table>
                 </div>

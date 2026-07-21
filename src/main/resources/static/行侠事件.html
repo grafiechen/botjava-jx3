@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>行侠事件</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #e9eef0; color: #20282d; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 38px 56px; }
+        .board { width: 100%; max-width: 1168px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #ccd4d8; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 42, 48, .12); }
+        .header { min-height: 132px; padding: 24px 36px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; border-top: 8px solid #496b65; border-bottom: 1px solid #dbe1e4; }
+        .eyebrow { margin: 0 0 7px; color: #6f7b80; font-size: 15px; }
+        h1 { margin: 0; font-size: 36px; line-height: 1.2; }
+        .query { color: #496b65; font-size: 20px; font-weight: 800; }
+        .table-head, .row { display: grid; grid-template-columns: 135px 150px 140px 1fr 90px; gap: 18px; align-items: center; }
+        .table-head { min-height: 52px; padding: 0 34px; color: #6d797f; background: #f3f6f6; border-bottom: 1px solid #dbe1e4; font-size: 13px; font-weight: 700; }
+        .row { min-height: 96px; padding: 15px 34px; border-bottom: 1px solid #e1e6e8; }
+        .row:last-child { border-bottom: 0; }
+        .primary { color: #29343a; font-size: 16px; font-weight: 800; overflow-wrap: anywhere; }
+        .site { color: #7f5548; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+        .description { color: #5f6c72; font-size: 14px; line-height: 1.55; overflow-wrap: anywhere; }
+        .time { color: #496b65; font-size: 15px; font-weight: 800; }
+        .empty { min-height: 390px; display: flex; align-items: center; justify-content: center; color: #78848a; font-size: 22px; }
+        .footer { padding: 15px 34px 18px; color: #7b878d; background: #fafbfb; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header"><div><p class="eyebrow">剑网 3 行侠社群活动</p><h1>行侠事件</h1></div><div class="query">{{ name || '全部社群' }}</div></header>
+        <template v-if="data && data.length"><div class="table-head"><span>地图</span><span>阶段</span><span>地点</span><span>事件说明</span><span>时间</span></div><section><div class="row" v-for="(item, index) in data" :key="index"><span class="primary">{{ item.mapName || '地图未知' }}</span><span class="primary">{{ item.event || '阶段未知' }}</span><span class="site">{{ item.site || '地点未知' }}</span><span class="description">{{ item.description || '暂无说明' }}</span><span class="time">{{ item.time || '--:--' }}</span></div></section></template>
+        <div class="empty" v-else>暂无行侠事件</div>
+        <footer class="footer">共 {{ data && data.length ? data.length : 0 }} 条事件 · 不展示接口内部图标编号</footer>
+    </article>
+</main>
+</body>
+</html>

@@ -1,5 +1,6 @@
 package com.grafie.botjava.jx3.http.data.news;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -14,11 +15,13 @@ public class NewsAnnounceData {
     @JsonProperty("id")
     private Integer id;
 
-    @JsonProperty("token")
-    private Long token;
+    @JsonProperty("catid")
+    @JsonAlias("token")
+    private String categoryId;
 
-    @JsonProperty("class")
-    private String classType;
+    @JsonProperty("type")
+    @JsonAlias("class")
+    private String type;
 
     @JsonProperty("title")
     private String title;

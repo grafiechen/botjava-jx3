@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>家园鲜花</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #edf0f1; color: #20282d; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 36px 54px; }
+        .board { width: 100%; max-width: 1172px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #ccd4d8; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 42, 48, .12); }
+        .header { min-height: 130px; padding: 24px 36px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; border-top: 8px solid #7b5c67; border-bottom: 1px solid #dbe1e4; }
+        .eyebrow { margin: 0 0 7px; color: #717b80; font-size: 15px; }
+        h1 { margin: 0; font-size: 36px; line-height: 1.2; }
+        .query { text-align: right; color: #7b5c67; font-size: 18px; font-weight: 800; }
+        .query span { display: block; margin-top: 6px; color: #7b868b; font-size: 13px; font-weight: 400; }
+        .server-group { border-bottom: 1px solid #dbe1e4; }
+        .server-group:last-child { border-bottom: 0; }
+        .server-title { margin: 0; padding: 15px 34px; color: #42565d; background: #f2f5f5; border-bottom: 1px solid #dbe1e4; font-size: 17px; }
+        .table-head, .row { display: grid; grid-template-columns: 1.2fr 1fr 140px 1.4fr; gap: 22px; align-items: center; }
+        .table-head { min-height: 44px; padding: 0 34px; color: #748087; border-bottom: 1px solid #e1e6e8; font-size: 13px; font-weight: 700; }
+        .row { min-height: 74px; padding: 13px 34px; border-bottom: 1px solid #e5e9ea; }
+        .row:last-child { border-bottom: 0; }
+        .name { color: #29343a; font-size: 17px; font-weight: 800; overflow-wrap: anywhere; }
+        .color { color: #745964; font-size: 14px; overflow-wrap: anywhere; }
+        .price { color: #8b5544; font-size: 21px; font-weight: 800; }
+        .price small { margin-left: 4px; color: #7b868b; font-size: 12px; font-weight: 400; }
+        .lines { display: flex; flex-wrap: wrap; gap: 6px; }
+        .line { min-width: 28px; padding: 4px 7px; text-align: center; color: #40565d; background: #edf3f3; border: 1px solid #d3dfe1; font-size: 12px; }
+        .empty-lines { color: #90999e; font-size: 13px; }
+        .empty { min-height: 390px; display: flex; align-items: center; justify-content: center; color: #78848a; font-size: 22px; }
+        .footer { padding: 15px 34px 18px; color: #7b878d; background: #fafbfb; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header"><div><p class="eyebrow">剑网 3 家园鲜花行情</p><h1>家园鲜花</h1></div><div class="query">{{ name || '全部鲜花' }}<span>查询区服：{{ server || '默认区服' }}</span></div></header>
+        <section v-if="data && data.length"><article class="server-group" v-for="(group, groupIndex) in data" :key="groupIndex"><h2 class="server-title">{{ group.server || '服务器未知' }}</h2><div class="table-head"><span>鲜花</span><span>颜色</span><span>价格</span><span>线路</span></div><div class="row" v-for="(item, index) in group.flowers" :key="index"><span class="name">{{ item.name || '名称未知' }}</span><span class="color">{{ item.color || '颜色未知' }}</span><span class="price">{{ item.price == null ? '-' : item.price }}<small>金</small></span><div class="lines" v-if="item.lines && item.lines.length"><span class="line" v-for="(line, lineIndex) in item.lines" :key="lineIndex">{{ line }}</span></div><span class="empty-lines" v-else>线路未知</span></div></article></section>
+        <div class="empty" v-else>暂无鲜花行情</div>
+        <footer class="footer">线路字段按接口数组逐项展示 · 价格仅供查询时参考</footer>
+    </article>
+</main>
+</body>
+</html>

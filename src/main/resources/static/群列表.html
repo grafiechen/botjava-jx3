@@ -29,7 +29,7 @@
                         </tr>
                     </thead>
                     <tbody class="fs-5">
-                        {% for group in group_list %}
+                        <template v-for="group in group_list">
                         <tr>
                             <td>{{ group.group_id }}</td>
                             <td>{{ group.group_name }}</td>
@@ -37,16 +37,16 @@
                             <td>{{ group.sign_nums }}</td>
                             <td>{{ group.robot_active }}</td>
                             <td>
-                                {% if group.robot_status %}
+                                <template v-if="group.robot_status">
                                 <div class="form-check form-switch"><input class="form-check-input" type="checkbox"
                                         checked></div>
-                                {% else %}
+                                </template><template v-else>
                                 <div class="form-check form-switch"><input class="form-check-input" type="checkbox">
                                 </div>
-                                {% endif %}
+                                </template>
                             </td>
                         </tr>
-                        {% endfor %}
+                        </template>
                     </tbody>
                 </table>
             </div>

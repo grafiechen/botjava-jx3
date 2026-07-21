@@ -1,0 +1,10 @@
+{
+  "op": 0,
+  "s": 102,
+  "t": "GROUP_DEL_ROBOT",
+  "d": {
+    "timestamp": "2026-07-13T18:01:00+09:00",
+    "group_openid": "group-1",
+    "op_member_openid": "account-1"
+  }
+}

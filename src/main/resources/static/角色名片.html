@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>角色名片</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #e9edef; color: #20282d; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 34px 52px; }
+        .board { width: 100%; max-width: 1176px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #cbd3d7; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 42, 48, .13); }
+        .header { min-height: 128px; padding: 23px 34px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; border-top: 8px solid #5d6879; border-bottom: 1px solid #d9e0e3; }
+        .eyebrow { margin: 0 0 7px; color: #707c82; font-size: 15px; }
+        h1 { margin: 0; font-size: 36px; line-height: 1.2; }
+        .query { text-align: right; color: #5d6879; font-size: 18px; font-weight: 800; overflow-wrap: anywhere; }
+        .query span { display: block; margin-top: 6px; color: #7c878c; font-size: 13px; font-weight: 400; }
+        .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; }
+        .cards.single { grid-template-columns: minmax(0, 860px); justify-content: center; }
+        .card { min-width: 0; padding: 25px 28px 27px; border-right: 1px solid #dce2e4; border-bottom: 1px solid #dce2e4; }
+        .card:nth-child(2n) { border-right: 0; }
+        .single .card { border-right: 0; }
+        .image-shell { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #20272c; border: 1px solid #343e44; }
+        .image-shell img { display: block; width: 100%; height: 100%; object-fit: contain; }
+        .placeholder { color: #aeb8bd; font-size: 16px; }
+        .card-head { margin-top: 17px; display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+        .role { color: #263138; font-size: 21px; font-weight: 800; overflow-wrap: anywhere; }
+        .index { flex: 0 0 auto; color: #8c5747; font-size: 14px; font-weight: 800; }
+        .meta { margin-top: 9px; display: flex; flex-wrap: wrap; gap: 8px 18px; color: #68767c; font-size: 13px; }
+        .active { color: #37685e; font-weight: 800; }
+        .inactive { color: #8a6f65; font-weight: 800; }
+        .empty { min-height: 420px; display: flex; align-items: center; justify-content: center; color: #78848a; font-size: 22px; }
+        .footer { padding: 15px 34px 18px; color: #7b878d; background: #fafbfb; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header">
+            <div><p class="eyebrow">剑网 3 客户端名片墙</p><h1>{{ title || '角色名片' }}</h1></div>
+            <div class="query">{{ name || filter || '随机展示' }}<span>{{ server || '全服' }} · 共 {{ data && data.length ? data.length : 0 }} 张</span></div>
+        </header>
+        <section class="cards" :class="{single: data && data.length === 1}" v-if="data && data.length">
+            <article class="card" v-for="(item, index) in data" :key="index">
+                <div class="image-shell"><img v-if="item.imageDataUri" :src="item.imageDataUri" alt="角色名片"><span class="placeholder" v-else>名片图片暂时不可用</span></div>
+                <div class="card-head"><span class="role">{{ item.roleName || '角色名未知' }}</span><span class="index">名片 {{ item.showIndex == null ? index + 1 : item.showIndex }}</span></div>
+                <div class="meta"><span>{{ item.zone || '区域未知' }} · {{ item.server || '服务器未知' }}</span><span v-if="item.active != null" :class="item.active ? 'active' : 'inactive'">{{ item.active ? '当前启用' : '历史名片' }}</span><span v-if="item.cacheTime">缓存时间：{{ item.cacheTime }}</span></div>
+            </article>
+        </section>
+        <div class="empty" v-else>暂无角色名片数据</div>
+        <footer class="footer">名片图片由服务端校验后内嵌，页面不会直接请求第三方地址</footer>
+    </article>
+</main>
+</body>
+</html>

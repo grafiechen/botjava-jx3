@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>活动日历</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #e9eef0; color: #20282d; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 34px 52px; }
+        .board { width: 100%; max-width: 1176px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #ccd4d8; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 42, 48, .12); }
+        .header { min-height: 126px; padding: 23px 34px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; border-top: 8px solid #496c72; border-bottom: 1px solid #dbe1e4; }
+        .eyebrow { margin: 0 0 7px; color: #6d7a80; font-size: 15px; }
+        h1 { margin: 0; font-size: 36px; line-height: 1.2; }
+        .date { text-align: right; color: #496c72; font-size: 18px; font-weight: 800; }
+        .server { display: block; margin-top: 6px; color: #7a858b; font-size: 13px; font-weight: 400; }
+        .tasks { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid #dbe1e4; }
+        .task { min-height: 100px; padding: 18px 24px; border-right: 1px solid #e1e6e8; border-bottom: 1px solid #e1e6e8; }
+        .task:nth-child(3n) { border-right: 0; }
+        .task:nth-last-child(-n+3) { border-bottom: 0; }
+        .task span { display: block; color: #78848a; font-size: 13px; }
+        .task strong { display: block; margin-top: 8px; color: #273137; font-size: 17px; line-height: 1.45; overflow-wrap: anywhere; }
+        .collections { display: grid; grid-template-columns: repeat(2, 1fr); }
+        .collection { min-height: 112px; padding: 19px 25px; border-right: 1px solid #e1e6e8; border-bottom: 1px solid #e1e6e8; }
+        .collection:nth-child(2n) { border-right: 0; }
+        .collection h2 { margin: 0 0 10px; color: #8b5947; font-size: 15px; }
+        .values { display: flex; flex-wrap: wrap; gap: 7px; }
+        .value { padding: 5px 8px; color: #405158; background: #f0f4f4; border-left: 3px solid #6d8a91; font-size: 13px; line-height: 1.35; overflow-wrap: anywhere; }
+        .empty-value { color: #929ca1; font-size: 13px; }
+        .empty { min-height: 390px; display: flex; align-items: center; justify-content: center; color: #78848a; font-size: 22px; }
+        .footer { padding: 15px 34px 18px; color: #7b878d; background: #fafbfb; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header">
+            <div><p class="eyebrow">剑网 3 每日活动</p><h1>活动日历</h1></div>
+            <div class="date">{{ data && data.date ? data.date : '日期未知' }} · 星期{{ data && data.week ? data.week : '-' }}<span class="server">{{ server || '默认区服' }}</span></div>
+        </header>
+        <template v-if="data">
+            <section class="tasks">
+                <div class="task"><span>秘境大战</span><strong>{{ data.war || '今日暂无' }}</strong></div>
+                <div class="task"><span>战场任务</span><strong>{{ data.battle || '今日暂无' }}</strong></div>
+                <div class="task"><span>阵营任务</span><strong>{{ data.orecar || '今日暂无' }}</strong></div>
+                <div class="task"><span>宗门任务</span><strong>{{ data.school || '今日暂无' }}</strong></div>
+                <div class="task"><span>乱世任务</span><strong>{{ data.rescue || '今日暂无' }}</strong></div>
+                <div class="task"><span>美人画图</span><strong>{{ data.draw || '今日暂无' }}</strong></div>
+            </section>
+            <section class="collections">
+                <div class="collection" v-for="group in [{title:'世界首领', values:data.leaders}, {title:'宠物奇缘', values:data.luck}, {title:'武林通鉴', values:data.cards}, {title:'团队与公共任务', values:data.teams}]" :key="group.title">
+                    <h2>{{ group.title }}</h2><div class="values" v-if="group.values && group.values.length"><span class="value" v-for="(value, index) in group.values" :key="index">{{ value }}</span></div><span class="empty-value" v-else>今日暂无相关活动</span>
+                </div>
+            </section>
+        </template>
+        <div class="empty" v-else>暂无活动日历数据</div>
+        <footer class="footer">活动安排以游戏内实际开放情况为准</footer>
+    </article>
+</main>
+</body>
+</html>

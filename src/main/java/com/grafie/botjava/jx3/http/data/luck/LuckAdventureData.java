@@ -12,6 +12,9 @@ import lombok.Data;
  */
 @Data
 public class LuckAdventureData {
+    @JsonProperty("id")
+    private Long id;
+
     @JsonProperty("zone")
     private String zone;
 
@@ -29,6 +32,9 @@ public class LuckAdventureData {
 
     @JsonProperty("status")
     private Integer status;
+
+    @JsonProperty("source")
+    private Integer source;
 
     @JsonProperty("time")
     private String time;

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>搜索物品</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #e9edef; color: #20282d; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 34px 52px; }
+        .board { width: 100%; max-width: 1176px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #cbd3d7; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 42, 48, .12); }
+        .header { min-height: 130px; padding: 24px 36px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; border-top: 8px solid #526d68; border-bottom: 1px solid #dae1e4; }
+        .eyebrow { margin: 0 0 7px; color: #717d82; font-size: 15px; }
+        h1 { margin: 0; font-size: 36px; line-height: 1.2; }
+        .query { color: #526d68; font-size: 19px; font-weight: 800; overflow-wrap: anywhere; }
+        .items { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .item { min-width: 0; display: grid; grid-template-columns: 150px 1fr; gap: 22px; min-height: 238px; padding: 25px 28px; border-right: 1px solid #dee3e5; border-bottom: 1px solid #dee3e5; }
+        .item:nth-child(2n) { border-right: 0; }
+        .image-shell { width: 150px; height: 190px; display: flex; align-items: center; justify-content: center; overflow: hidden; color: #9aa4a9; background: #f0f3f4; border: 1px solid #d6dee1; font-size: 13px; }
+        .image-shell img { display: block; width: 100%; height: 100%; object-fit: contain; }
+        .name { margin: 0; color: #28343a; font-size: 20px; line-height: 1.4; overflow-wrap: anywhere; }
+        .alias { margin-top: 6px; color: #85594b; font-size: 13px; font-weight: 700; }
+        .meta { margin-top: 11px; display: flex; flex-wrap: wrap; gap: 7px 15px; color: #617078; font-size: 12px; }
+        .value { color: #8b5948; font-size: 18px; font-weight: 800; }
+        .description { margin: 13px 0 0; color: #68747a; font-size: 13px; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+        .empty { min-height: 390px; display: flex; align-items: center; justify-content: center; color: #78848a; font-size: 22px; }
+        .footer { padding: 15px 36px 18px; color: #7b878d; background: #fafbfb; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header"><div><p class="eyebrow">剑网 3 物品资料</p><h1>搜索物品</h1></div><div class="query">{{ name || '全部结果' }}</div></header>
+        <section class="items" v-if="data && data.length"><article class="item" v-for="(item, index) in data" :key="index"><div class="image-shell"><img v-if="item.imageDataUri" :src="item.imageDataUri" alt="物品图片"><span v-else>暂无图片</span></div><div><h2 class="name">{{ item.name || '物品名称未知' }}</h2><div class="alias">{{ item.alias || '暂无常用别名' }}</div><div class="meta"><span>{{ item.category || '分类未知' }}</span><span>{{ item.subclass || '子类未知' }}</span><span>{{ item.date || '日期未知' }}</span></div><div class="value">{{ item.value || '-' }} <small>参考值</small></div><p class="description">{{ item.description || '暂无物品说明' }}</p></div></article></section>
+        <div class="empty" v-else>没有找到相关物品</div>
+        <footer class="footer">最多展示 8 条结果 · 物品图片由服务端校验后内嵌</footer>
+    </article>
+</main>
+</body>
+</html>

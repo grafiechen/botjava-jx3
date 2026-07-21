@@ -1,5 +1,6 @@
 package com.grafie.botjava.jx3.http.data.acution;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.grafie.botjava.util.TimeUtils;
 import lombok.Data;
@@ -22,10 +23,14 @@ public class AcutionRecordsData {
     private String roleName;
     @JsonProperty("camp_name")
     private String campName;
-    @JsonProperty("name")
-    private String name;
-    @JsonProperty("amount")
-    private String amount;
+    @JsonProperty("map_name")
+    private String mapName;
+    @JsonProperty("item_name")
+    @JsonAlias("name")
+    private String itemName;
+    @JsonProperty("item_amount")
+    @JsonAlias("amount")
+    private String itemAmount;
     @JsonProperty("time")
     private String time;
 

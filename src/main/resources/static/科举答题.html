@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>科举答题</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #edf1ee; color: #202824; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 36px 52px; }
+        .sheet { width: 100%; max-width: 1176px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #cdd6d0; border-radius: 8px; box-shadow: 0 18px 42px rgba(32, 48, 39, .12); }
+        .header { min-height: 132px; padding: 25px 36px; display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; border-top: 8px solid #386a55; border-bottom: 1px solid #d9e1dc; }
+        .eyebrow { margin: 0 0 8px; color: #6d7a73; font-size: 15px; }
+        h1 { margin: 0; font-size: 36px; line-height: 1.2; }
+        .query { max-width: 520px; color: #85553f; font-size: 18px; font-weight: 800; text-align: right; overflow-wrap: anywhere; }
+        .list { padding: 8px 32px 12px; }
+        .item { min-height: 84px; display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: 18px; align-items: start; padding: 17px 4px; border-bottom: 1px solid #e2e7e3; }
+        .item:last-child { border-bottom: 0; }
+        .index { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: #fff; background: #557866; border-radius: 6px; font-size: 17px; font-weight: 800; }
+        .question { margin: 0 0 8px; font-size: 17px; line-height: 1.45; font-weight: 800; overflow-wrap: anywhere; }
+        .answer { margin: 0; color: #85553f; font-size: 16px; line-height: 1.5; overflow-wrap: anywhere; }
+        .answer strong { margin-right: 10px; color: #386a55; }
+        .empty { min-height: 350px; display: flex; align-items: center; justify-content: center; color: #79847e; font-size: 21px; }
+        .footer { padding: 16px 36px 19px; color: #78827d; background: #fafbfa; border-top: 1px solid #dce3df; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="sheet">
+        <header class="header"><div><p class="eyebrow">剑网 3 科举题库</p><h1>科举答题</h1></div><div class="query">{{ subject || '全部题目' }} · {{ data && data.length ? data.length : 0 }} 条</div></header>
+        <section class="list" v-if="data && data.length"><article class="item" v-for="(item,index) in data" :key="index"><span class="index">{{ index + 1 }}</span><div><p class="question">{{ item.question || '题目内容缺失' }}</p><p class="answer"><strong>答案</strong>{{ item.answer || '暂无答案' }}</p></div></article></section>
+        <div class="empty" v-else>没有找到相关科举题目</div>
+        <footer class="footer">展示最接近关键词的题目与答案</footer>
+    </article>
+</main>
+</body>
+</html>

@@ -40,19 +40,19 @@
                             </tr>
                         </thead>
                         <tbody class="fs-6 text-center">
-                            {% for one in data %}
+                            <template v-for="one in data">
                             <tr>
                                 <td scope="col">{{ one.index }}</td>
                                 <td scope="col">
-                                    <img src="sect/{{ one.school }}.png" width="42" height="27">{{ one.name }}
+                                    <img :src="'sect/' + one.school + '.png'" width="42" height="27">{{ one.name }}
                                 </td>
                                 <td scope="col">
-                                    <img src="img/{{ one.camp }}.png" width="40" height="35">{{ one.camp }}
+                                    <img :src="'img/' + one.camp + '.png'" width="40" height="35">{{ one.camp }}
                                 </td>
                                 <td scope="col">{{ one.gang }}</td>
                                 <td scope="col">{{ one.score }}</td>
                             </tr>
-                            {% endfor %}
+                            </template>
                         </tbody>
                     </table>
                 </div>

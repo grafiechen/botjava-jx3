@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>马场刷新</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body {
+            margin: 0;
+            min-width: 1080px;
+            background: #edf1f2;
+            color: #20272c;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            letter-spacing: 0;
+        }
+        #main { min-height: 720px; padding: 40px 60px; }
+        .board {
+            width: 100%;
+            max-width: 1160px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #cfd5d8;
+            border-radius: 8px;
+            box-shadow: 0 18px 42px rgba(31, 38, 43, 0.12);
+        }
+        .header {
+            min-height: 136px;
+            padding: 25px 36px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 28px;
+            border-top: 8px solid #426b70;
+            border-bottom: 1px solid #dce1e4;
+        }
+        .eyebrow { margin: 0 0 8px; color: #68747c; font-size: 17px; }
+        h1 { margin: 0; color: #20262b; font-size: 38px; line-height: 1.2; }
+        .scope {
+            max-width: 360px;
+            text-align: right;
+            color: #47545b;
+            font-size: 17px;
+            font-weight: 700;
+        }
+        .zone { margin-top: 5px; color: #7a858c; font-size: 14px; }
+        .table-head, .row {
+            display: grid;
+            grid-template-columns: 70px 1.1fr 2.4fr;
+            column-gap: 24px;
+            align-items: center;
+        }
+        .table-head {
+            min-height: 50px;
+            padding: 0 36px;
+            color: #65727a;
+            background: #f4f6f7;
+            border-bottom: 1px solid #dce1e4;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .row {
+            min-height: 76px;
+            padding: 12px 36px;
+            border-bottom: 1px solid #e0e4e6;
+        }
+        .row:last-child { border-bottom: 0; }
+        .index { color: #945649; font-size: 24px; font-weight: 800; }
+        .map { color: #275e65; font-size: 18px; font-weight: 750; overflow-wrap: anywhere; }
+        .predictions { display: flex; flex-wrap: wrap; gap: 7px; min-width: 0; }
+        .prediction {
+            padding: 6px 10px;
+            color: #724b42;
+            background: #f4ebe8;
+            border-radius: 4px;
+            font-size: 15px;
+            font-weight: 650;
+            overflow-wrap: anywhere;
+        }
+        .unknown { color: #7a858c; font-size: 15px; }
+        .empty {
+            min-height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #77838a;
+            font-size: 22px;
+        }
+        .note {
+            padding: 16px 36px;
+            color: #66737a;
+            background: #fafbfb;
+            border-top: 1px solid #dce1e4;
+            font-size: 14px;
+            line-height: 1.65;
+            white-space: pre-line;
+        }
+        .footer {
+            padding: 15px 36px 18px;
+            color: #7a858c;
+            background: #fafbfb;
+            border-top: 1px solid #e3e6e8;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <main id="main" v-cloak>
+        <article class="board">
+            <header class="header">
+                <div>
+                    <p class="eyebrow">剑网 3 马驹刷新预测</p>
+                    <h1>马场刷新</h1>
+                </div>
+                <div class="scope">
+                    <div>{{ server || '服务器未知' }}</div>
+                    <div class="zone">{{ zone || '大区未知' }}</div>
+                </div>
+            </header>
+            <template v-if="data && data.length">
+                <div class="table-head">
+                    <span>序号</span>
+                    <span>地图</span>
+                    <span>预测结果</span>
+                </div>
+                <section>
+                    <div class="row" v-for="(item, index) in data" :key="index">
+                        <span class="index">{{ index + 1 }}</span>
+                        <span class="map">{{ item.mapName || '地图未知' }}</span>
+                        <div class="predictions" v-if="item.predictions && item.predictions.length">
+                            <span class="prediction" v-for="(prediction, predictionIndex) in item.predictions"
+                                  :key="predictionIndex">{{ prediction }}</span>
+                        </div>
+                        <span class="unknown" v-else>暂无预测</span>
+                    </div>
+                </section>
+            </template>
+            <div class="empty" v-else>暂无马场刷新预测</div>
+            <div class="note" v-if="note">{{ note }}</div>
+            <footer class="footer">共 {{ data && data.length ? data.length : 0 }} 个地图</footer>
+        </article>
+    </main>
+</body>
+</html>

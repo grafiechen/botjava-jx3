@@ -1,0 +1,23 @@
+{
+  "op": 0,
+  "s": 1002,
+  "t": "INTERACTION_CREATE",
+  "d": {
+    "id": "LOCAL_INTERACTION_001",
+    "application_id": "LOCAL_APP_001",
+    "type": 2,
+    "data": {
+      "name": "帮助",
+      "type": 11,
+      "resolved": {
+        "button_data": "jx3:help:BASIC"
+      }
+    },
+    "version": 1,
+    "group_openid": "LOCAL_GROUP_001",
+    "chat_type": 1,
+    "scene": "group",
+    "group_member_openid": "LOCAL_ACCOUNT_001",
+    "timestamp": "2026-07-13T16:30:00+09:00"
+  }
+}

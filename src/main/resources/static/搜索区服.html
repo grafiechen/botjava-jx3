@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>搜索区服</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #eef0f3; color: #21272d; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 40px 54px; }
+        .panel { width: 100%; max-width: 1172px; min-height: 620px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #ccd3d9; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 40, 48, .12); }
+        .header { min-height: 150px; padding: 28px 38px; display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; border-top: 8px solid #41677a; border-bottom: 1px solid #d9dfe3; }
+        .eyebrow { margin: 0 0 8px; color: #6d7880; font-size: 15px; }
+        h1 { margin: 0; font-size: 38px; line-height: 1.2; overflow-wrap: anywhere; }
+        .query { max-width: 420px; color: #8a573d; font-size: 18px; font-weight: 800; text-align: right; overflow-wrap: anywhere; }
+        .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-bottom: 1px solid #dde3e7; }
+        .summary div { min-height: 112px; padding: 24px 34px; border-right: 1px solid #e0e5e8; }
+        .summary div:last-child { border-right: 0; }
+        .label { display: block; margin-bottom: 9px; color: #758087; font-size: 13px; }
+        .value { display: block; color: #2f596a; font-size: 22px; font-weight: 800; overflow-wrap: anywhere; }
+        .groups { display: grid; grid-template-columns: 1fr 1.35fr; min-height: 280px; }
+        .group { padding: 30px 36px; }
+        .group + .group { border-left: 1px solid #e0e5e8; }
+        h2 { margin: 0 0 18px; font-size: 18px; }
+        .tags { display: flex; flex-wrap: wrap; gap: 10px; }
+        .tag { max-width: 100%; padding: 9px 13px; color: #315f70; background: #edf3f5; border: 1px solid #cbdce2; border-radius: 6px; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+        .group.slaves .tag { color: #80543e; background: #f7f1ed; border-color: #e5d4c9; }
+        .none { color: #7d878d; font-size: 15px; }
+        .empty { min-height: 450px; display: flex; align-items: center; justify-content: center; color: #7b858b; font-size: 21px; }
+        .footer { padding: 17px 36px 20px; color: #78838a; background: #fafbfb; border-top: 1px solid #dde3e7; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="panel">
+        <header class="header"><div><p class="eyebrow">剑网 3 服务器关系</p><h1>{{ data && data.name ? data.name : '搜索区服' }}</h1></div><div class="query">查询：{{ query || '未指定' }}</div></header>
+        <template v-if="data"><section class="summary"><div><span class="label">所属大区</span><span class="value">{{ data.zone || '未知' }}</span></div><div><span class="label">主服务器</span><span class="value">{{ data.name || '未知' }}</span></div><div><span class="label">中心服</span><span class="value">{{ data.center || '未提供' }}</span></div></section><section class="groups"><div class="group"><h2>常用别名</h2><div class="tags" v-if="data.aliases && data.aliases.length"><span class="tag" v-for="(item,index) in data.aliases" :key="index">{{ item }}</span></div><p class="none" v-else>暂无别名</p></div><div class="group slaves"><h2>附属服务器</h2><div class="tags" v-if="data.slaves && data.slaves.length"><span class="tag" v-for="(item,index) in data.slaves" :key="index">{{ item }}</span></div><p class="none" v-else>暂无附属服务器</p></div></section></template>
+        <div class="empty" v-else>没有找到对应区服</div>
+        <footer class="footer">区服合并关系以接口当前数据为准</footer>
+    </article>
+</main>
+</body>
+</html>

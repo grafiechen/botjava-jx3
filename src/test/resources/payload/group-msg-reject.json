@@ -1,0 +1,10 @@
+{
+  "op": 0,
+  "s": 104,
+  "t": "GROUP_MSG_REJECT",
+  "d": {
+    "timestamp": 1783933380,
+    "group_openid": "group-1",
+    "op_member_openid": "account-1"
+  }
+}

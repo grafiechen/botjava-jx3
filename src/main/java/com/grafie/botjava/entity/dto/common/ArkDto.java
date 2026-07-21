@@ -1,11 +1,46 @@
 package com.grafie.botjava.entity.dto.common;
 
-/**
- * Ark对象
- * <a href="https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/type/ark.html#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E5%8D%8F%E8%AE%AE">Ark对象</a>
- * @author grafie.chen
- * @since 2025/1/23  15:57
- */
-public class ArkDto {
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.util.List;
+
+/**
+ * QQ Ark 模板消息结构。
+ */
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ArkDto {
+    @JsonProperty("template_id")
+    private Integer templateId;
+    private List<KeyValue> kv;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class KeyValue {
+        private String key;
+        private String value;
+        private List<Obj> obj;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Obj {
+        @JsonProperty("obj_kv")
+        private List<ObjKeyValue> objKv;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ObjKeyValue {
+        private String key;
+        private String value;
+    }
 }

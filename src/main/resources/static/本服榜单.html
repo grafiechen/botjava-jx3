@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>本服榜单</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body {
+            margin: 0;
+            min-width: 1080px;
+            background: #edf1f3;
+            color: #20262d;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            letter-spacing: 0;
+        }
+        #main { min-height: 720px; padding: 48px 62px; }
+        .board {
+            width: 100%;
+            max-width: 1160px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #cbd3da;
+            border-radius: 8px;
+            box-shadow: 0 18px 42px rgba(27, 35, 43, 0.12);
+        }
+        .header {
+            padding: 30px 36px 26px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 28px;
+            align-items: end;
+            border-top: 8px solid #31566b;
+            border-bottom: 1px solid #d9e0e5;
+        }
+        .eyebrow { margin: 0 0 8px; color: #63717d; font-size: 17px; }
+        h1 {
+            margin: 0;
+            color: #182028;
+            font-size: 38px;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+        }
+        .server {
+            max-width: 360px;
+            padding: 9px 16px;
+            color: #ffffff;
+            background: #167d65;
+            border-radius: 4px;
+            font-size: 19px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+        .table-head,
+        .row {
+            display: grid;
+            grid-template-columns: 74px minmax(190px, 1.35fr) minmax(160px, 1fr) minmax(145px, .9fr) 130px 140px;
+            gap: 16px;
+            align-items: center;
+        }
+        .table-head {
+            min-height: 54px;
+            padding: 0 36px;
+            color: #63717d;
+            background: #f3f6f8;
+            border-bottom: 1px solid #d9e0e5;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .row {
+            min-height: 78px;
+            padding: 13px 36px;
+            border-bottom: 1px solid #e2e7eb;
+        }
+        .row:last-child { border-bottom: 0; }
+        .rank { color: #a34f42; font-size: 24px; font-weight: 800; }
+        .primary { min-width: 0; }
+        .title {
+            display: block;
+            color: #20262d;
+            font-size: 19px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+        .text { color: #27313a; font-size: 17px; font-weight: 600; overflow-wrap: anywhere; }
+        .score { color: #167d65; font-size: 18px; font-weight: 750; }
+        .empty {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #74818c;
+            font-size: 22px;
+        }
+        .footer {
+            padding: 20px 36px 22px;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            color: #788590;
+            background: #f8fafb;
+            border-top: 1px solid #d9e0e5;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <main id="main" v-cloak>
+        <article class="board">
+            <header class="header">
+                <div>
+                    <p class="eyebrow">剑网 3 风云榜</p>
+                    <h1>{{ (data && data.name) || name || '本服榜单' }}</h1>
+                </div>
+                <div class="server">{{ (data && data.server) || server || '未知区服' }}</div>
+            </header>
+            <template v-if="data && data.data && data.data.length">
+                <div class="table-head">
+                    <span>名次</span>
+                    <span>帮会</span>
+                    <span>领地</span>
+                    <span>帮主</span>
+                    <span>人数</span>
+                    <span>总分</span>
+                </div>
+                <section>
+                    <div class="row" v-for="(item, index) in data.data" :key="index">
+                        <span class="rank">{{ index + 1 }}</span>
+                        <div class="primary">
+                            <strong class="title">{{ item['tong_name'] || item['master_name'] || '暂无' }}</strong>
+                        </div>
+                        <span class="text">{{ item['castle_name'] || '暂无' }}</span>
+                        <span class="text">{{ item['master_name'] || '暂无' }}</span>
+                        <span class="text">{{ item['now_count'] == null ? '暂无' : item['now_count'] }}{{ item['max_count'] == null ? '' : ' / ' + item['max_count'] }}</span>
+                        <span class="score">{{ item['total_score'] == null ? '暂无' : item['total_score'] }}</span>
+                    </div>
+                </section>
+            </template>
+            <div class="empty" v-else>暂无榜单数据</div>
+            <footer class="footer">
+                <span>{{ time ? '更新时间：' + time : '本服榜单' }}</span>
+                <span>数据来源：www.jx3api.com</span>
+            </footer>
+        </article>
+    </main>
+</body>
+</html>

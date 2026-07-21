@@ -1,15 +1,13 @@
 package com.grafie.botjava.jx3.http.action;
 
-import com.grafie.botjava.entity.dto.common.TxMessageInfo;
+import com.grafie.botjava.entity.dto.common.BotResponse;
 import com.grafie.botjava.jx3.config.ApiProperties;
 import com.grafie.botjava.jx3.config.Jx3Action;
 import com.grafie.botjava.jx3.http.BaseResult;
 import com.grafie.botjava.jx3.http.action.base.Jx3BaseAction;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
 import com.grafie.botjava.jx3.http.util.REGEX;
-import com.grafie.botjava.mapper.GroupInfoMapper;
-import org.apache.commons.lang3.StringUtils;
-
+import com.grafie.botjava.service.GroupConfigurationService;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,26 +20,36 @@ import java.util.Map;
  */
 @Jx3Action
 public class RoleAttributeAction extends Jx3BaseAction {
-    public RoleAttributeAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil, GroupInfoMapper groupInfoMapper) {
-        super(apiProperties, jx3RequestUtil, groupInfoMapper);
+    public RoleAttributeAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil, GroupConfigurationService groupConfigurationService) {
+        super(apiProperties, jx3RequestUtil, groupConfigurationService);
     }
 
     @Override
     protected Map<String, Object> getRequestParam(String requestRegex, REGEX regex) {
-        Map<String, String> valueMap = regex.handleEncounter(requestRegex);
         Map<String, Object> requestMap = new HashMap<>();
-        requestMap.put("server", valueMap.get("server"));
-        String name = valueMap.get("value");
-        if (StringUtils.isBlank(name)) {
-            name = valueMap.get("value1");
-        }
-        requestMap.put("name", name);
+        requestMap.put("server", currentArguments().server(getDefaultServer()));
+        requestMap.put("name", currentArguments().roleName());
         requestMap.put("ticket", apiProperties.getTicket());
         return requestMap;
     }
 
     @Override
-    protected TxMessageInfo dealAfterJx3ApiRequest(BaseResult baseResult) {
-        return null;
+    protected BotResponse dealAfterJx3ApiRequest(BaseResult baseResult) {
+        return buildMessageByTemplate(baseResult);
+    }
+
+    @Override
+    protected BotResponse.ResponseType getResponseType() {
+        return BotResponse.ResponseType.IMAGE;
+    }
+
+    @Override
+    protected String getTemplatePath() {
+        return "角色装备";
+    }
+
+    @Override
+    protected Object buildTemplateData(BaseResult baseResult) {
+        return buildStandardTemplateData(baseResult);
     }
 }

@@ -14,7 +14,7 @@ import java.util.List;
 @Data
 public class SchoolSkillsData {
     @JsonProperty("class")
-    private String className;
+    private String category;
 
     @JsonProperty("data")
     private List<Skill> skills;

@@ -1,11 +1,74 @@
 package com.grafie.botjava.entity.dto.common;
 
-/**
- * Keyboard对象
- * <a href="https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/trans/msg-btn.html#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E5%8D%8F%E8%AE%AE">Keyboard对象</a>
- * @author grafie.chen
- * @since 2025/1/23  15:56
- */
-public class KeyboardDto {
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.util.List;
+
+/**
+ * QQ Markdown 消息按钮结构。
+ */
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class KeyboardDto {
+    private String id;
+    private Content content;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Content {
+        private List<Row> rows;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Row {
+        private List<Button> buttons;
+    }
+
+    @Data
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class Button {
+        private String id;
+        @JsonProperty("render_data")
+        private RenderData renderData;
+        private Action action;
+    }
+
+    @Data
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class RenderData {
+        private String label;
+        @JsonProperty("visited_label")
+        private String visitedLabel;
+        private Integer style;
+    }
+
+    @Data
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class Action {
+        private Integer type;
+        private Permission permission;
+        private String data;
+        private Boolean reply;
+        private Boolean enter;
+        private Integer anchor;
+        @JsonProperty("unsupport_tips")
+        private String unsupportTips;
+    }
+
+    @Data
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class Permission {
+        private Integer type;
+        @JsonProperty("specify_user_ids")
+        private List<String> specifyUserIds;
+        @JsonProperty("specify_role_ids")
+        private List<String> specifyRoleIds;
+    }
 }

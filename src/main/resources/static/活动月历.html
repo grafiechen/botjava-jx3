@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>活动月历</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #edf0f1; color: #20282d; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 34px 52px; }
+        .board { width: 100%; max-width: 1176px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #ccd4d8; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 42, 48, .12); }
+        .header { min-height: 126px; padding: 23px 34px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; border-top: 8px solid #6a6550; border-bottom: 1px solid #dbe1e4; }
+        .eyebrow { margin: 0 0 7px; color: #727b80; font-size: 15px; }
+        h1 { margin: 0; font-size: 36px; line-height: 1.2; }
+        .today { color: #6a6550; font-size: 18px; font-weight: 800; }
+        .days { display: grid; grid-template-columns: repeat(2, 1fr); }
+        .day { display: grid; grid-template-columns: 90px 1fr; min-height: 176px; border-right: 1px solid #e0e5e7; border-bottom: 1px solid #e0e5e7; }
+        .day:nth-child(2n) { border-right: 0; }
+        .day-date { padding: 21px 14px; text-align: center; color: #fff; background: #64767b; }
+        .day-date strong { display: block; font-size: 21px; line-height: 1.25; overflow-wrap: anywhere; }
+        .day-date span { display: block; margin-top: 8px; font-size: 13px; }
+        .day-body { padding: 18px 21px; }
+        .main-tasks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 16px; }
+        .task { min-width: 0; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+        .task b { color: #8b5947; }
+        .lists { margin-top: 12px; padding-top: 10px; border-top: 1px solid #e3e7e9; color: #68767c; font-size: 12px; line-height: 1.55; overflow-wrap: anywhere; }
+        .empty { min-height: 390px; display: flex; align-items: center; justify-content: center; color: #78848a; font-size: 22px; }
+        .footer { padding: 15px 34px 18px; color: #7b878d; background: #fafbfb; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header"><div><p class="eyebrow">剑网 3 近期活动安排</p><h1>活动月历</h1></div><div class="today">今天 {{ today && today.date ? today.date : '日期未知' }} · 星期{{ today && today.week ? today.week : '-' }}</div></header>
+        <section class="days" v-if="data && data.length">
+            <article class="day" v-for="(item, index) in data" :key="index">
+                <div class="day-date"><strong>{{ item.date || '-' }}</strong><span>星期{{ item.week || '-' }}</span></div>
+                <div class="day-body">
+                    <div class="main-tasks"><span class="task"><b>大战：</b>{{ item.war || '无' }}</span><span class="task"><b>战场：</b>{{ item.battle || '无' }}</span><span class="task"><b>阵营：</b>{{ item.orecar || '无' }}</span><span class="task"><b>宗门：</b>{{ item.school || '无' }}</span><span class="task"><b>乱世：</b>{{ item.rescue || '无' }}</span></div>
+                    <div class="lists"><div v-if="item.luck && item.luck.length">宠物奇缘：{{ item.luck.join('、') }}</div><div v-if="item.cards && item.cards.length">武林通鉴：{{ item.cards.join('、') }}</div></div>
+                </div>
+            </article>
+        </section>
+        <div class="empty" v-else>暂无活动月历数据</div>
+        <footer class="footer">共 {{ data && data.length ? data.length : 0 }} 天 · 活动安排以游戏内为准</footer>
+    </article>
+</main>
+</body>
+</html>

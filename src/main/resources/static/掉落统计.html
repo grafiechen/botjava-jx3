@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>掉落统计</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body {
+            margin: 0;
+            min-width: 1080px;
+            background: #edf1f3;
+            color: #20262d;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            letter-spacing: 0;
+        }
+        #main { min-height: 720px; padding: 48px 62px; }
+        .report {
+            width: 100%;
+            max-width: 1160px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #cbd3da;
+            border-radius: 8px;
+            box-shadow: 0 18px 42px rgba(27, 35, 43, 0.12);
+        }
+        .header {
+            padding: 30px 36px 26px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 28px;
+            align-items: end;
+            border-top: 8px solid #a34f42;
+            border-bottom: 1px solid #d9e0e5;
+        }
+        .eyebrow { margin: 0 0 8px; color: #63717d; font-size: 17px; }
+        h1 { margin: 0; color: #182028; font-size: 38px; line-height: 1.2; overflow-wrap: anywhere; }
+        .server {
+            max-width: 360px;
+            padding: 9px 16px;
+            color: #ffffff;
+            background: #31566b;
+            border-radius: 4px;
+            font-size: 19px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+        .grid {
+            padding: 28px 36px 32px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+        .drop {
+            min-width: 0;
+            padding: 18px 20px;
+            border: 1px solid #d9e0e5;
+            border-left: 5px solid #a34f42;
+            border-radius: 6px;
+            background: #fbfcfd;
+        }
+        .drop-head {
+            margin-bottom: 13px;
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .item-name {
+            min-width: 0;
+            color: #27313a;
+            font-size: 20px;
+            font-weight: 750;
+            overflow-wrap: anywhere;
+        }
+        .index { flex: 0 0 auto; color: #a34f42; font-size: 15px; font-weight: 800; }
+        .details {
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px 18px;
+        }
+        .detail { min-width: 0; margin: 0; }
+        dt { margin-bottom: 3px; color: #74818c; font-size: 13px; }
+        dd { margin: 0; color: #27313a; font-size: 16px; font-weight: 600; overflow-wrap: anywhere; }
+        .time { grid-column: 1 / -1; }
+        .empty {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #74818c;
+            font-size: 22px;
+        }
+        .footer {
+            padding: 20px 36px 22px;
+            display: flex;
+            justify-content: space-between;
+            color: #788590;
+            background: #f8fafb;
+            border-top: 1px solid #d9e0e5;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <main id="main" v-cloak>
+        <article class="report">
+            <header class="header">
+                <div>
+                    <p class="eyebrow">剑网 3 稀有掉落</p>
+                    <h1>{{ name || '掉落统计' }}</h1>
+                </div>
+                <div class="server">{{ server || '未知区服' }}</div>
+            </header>
+            <section class="grid" v-if="data && data.length">
+                <article class="drop" v-for="(item, index) in data" :key="index">
+                    <div class="drop-head">
+                        <strong class="item-name">{{ item.name || name || '未知物品' }}</strong>
+                        <span class="index">#{{ index + 1 }}</span>
+                    </div>
+                    <dl class="details">
+                        <div class="detail">
+                            <dt>获得角色</dt>
+                            <dd>{{ item['role_name'] || '暂无' }}</dd>
+                        </div>
+                        <div class="detail">
+                            <dt>地图</dt>
+                            <dd>{{ item['map_name'] || '暂无' }}</dd>
+                        </div>
+                        <div class="detail time">
+                            <dt>获得时间</dt>
+                            <dd>{{ item.time || '暂无' }}</dd>
+                        </div>
+                    </dl>
+                </article>
+            </section>
+            <div class="empty" v-else>暂无掉落记录</div>
+            <footer class="footer">
+                <span>共 {{ data && data.length ? data.length : 0 }} 条记录</span>
+                <span>数据来源：www.jx3api.com</span>
+            </footer>
+        </article>
+    </main>
+</body>
+</html>

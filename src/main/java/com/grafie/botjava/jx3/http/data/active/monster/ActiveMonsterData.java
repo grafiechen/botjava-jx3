@@ -1,5 +1,6 @@
 package com.grafie.botjava.jx3.http.data.active.monster;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.grafie.botjava.util.TimeUtils;
@@ -15,12 +16,17 @@ import java.util.List;
  */
 @Data
 public class ActiveMonsterData {
+    @JsonProperty("week")
+    private String week;
+    @JsonProperty("boss")
+    private String boss;
     @JsonProperty("start")
     private String start;
     @JsonProperty("end")
     private String end;
-    @JsonProperty("data")
-    private List<MonsterInfo> data;
+    @JsonProperty("list")
+    @JsonAlias("data")
+    private List<MonsterInfo> list;
 
     public void setStart(Long start) {
         this.start = TimeUtils.timeFormatting(start);

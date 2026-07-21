@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>名剑排行</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        [v-cloak] {
+            display: none;
+        }
+
+        body {
+            margin: 0;
+            min-width: 1080px;
+            background: #eef1f4;
+            color: #20262d;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            letter-spacing: 0;
+        }
+
+        #main {
+            min-height: 720px;
+            padding: 48px 62px;
+        }
+
+        .ranking {
+            width: 100%;
+            max-width: 1160px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #cbd3da;
+            border-radius: 8px;
+            box-shadow: 0 18px 42px rgba(27, 35, 43, 0.12);
+        }
+
+        .header {
+            padding: 30px 36px 26px;
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 28px;
+            border-top: 8px solid #a34f42;
+            border-bottom: 1px solid #d9e0e5;
+        }
+
+        .eyebrow {
+            margin: 0 0 8px;
+            color: #63717d;
+            font-size: 17px;
+        }
+
+        h1 {
+            margin: 0;
+            color: #182028;
+            font-size: 38px;
+            line-height: 1.2;
+        }
+
+        .mode {
+            flex: 0 0 auto;
+            padding: 9px 16px;
+            color: #ffffff;
+            background: #31566b;
+            border-radius: 4px;
+            font-size: 19px;
+            font-weight: 700;
+        }
+
+        .table-head,
+        .row {
+            display: grid;
+            grid-template-columns: 84px minmax(180px, 1.45fr) minmax(145px, 1fr) 110px 120px 110px;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .table-head {
+            min-height: 54px;
+            padding: 0 36px;
+            color: #63717d;
+            background: #f3f6f8;
+            border-bottom: 1px solid #d9e0e5;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .row {
+            min-height: 76px;
+            padding: 12px 36px;
+            border-bottom: 1px solid #e2e7eb;
+        }
+
+        .row:last-child {
+            border-bottom: 0;
+        }
+
+        .rank {
+            color: #a34f42;
+            font-size: 25px;
+            font-weight: 800;
+        }
+
+        .identity,
+        .server {
+            min-width: 0;
+        }
+
+        .role {
+            display: block;
+            color: #20262d;
+            font-size: 20px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+
+        .force,
+        .zone {
+            display: block;
+            margin-top: 4px;
+            color: #74818c;
+            font-size: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        .server-name {
+            color: #27313a;
+            font-size: 18px;
+            font-weight: 650;
+            overflow-wrap: anywhere;
+        }
+
+        .metric {
+            color: #27313a;
+            font-size: 18px;
+            font-weight: 650;
+        }
+
+        .rise {
+            color: #167d65;
+        }
+
+        .empty {
+            min-height: 260px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #74818c;
+            font-size: 22px;
+        }
+
+        .footer {
+            padding: 20px 36px 22px;
+            display: flex;
+            justify-content: space-between;
+            color: #788590;
+            background: #f8fafb;
+            border-top: 1px solid #d9e0e5;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <main id="main" v-cloak>
+        <article class="ranking">
+            <header class="header">
+                <div>
+                    <p class="eyebrow">剑网 3 名剑大会</p>
+                    <h1>名剑排行榜</h1>
+                </div>
+                <div class="mode">{{ mode == 22 ? '2 对 2' : (mode == 55 ? '5 对 5' : '3 对 3') }}</div>
+            </header>
+
+            <template v-if="data && data.length">
+                <div class="table-head">
+                    <span>名次</span>
+                    <span>角色 / 门派</span>
+                    <span>区服</span>
+                    <span>评分</span>
+                    <span>胜率</span>
+                    <span>上升</span>
+                </div>
+                <section>
+                    <div class="row" v-for="(item, index) in data" :key="index">
+                        <span class="rank">{{ item.rankNum || index + 1 }}</span>
+                        <div class="identity">
+                            <strong class="role">{{ item.roleName || '未知角色' }}</strong>
+                            <span class="force">{{ item.forceName || '未知门派' }}</span>
+                        </div>
+                        <div class="server">
+                            <strong class="server-name">{{ item.serverName || '未知区服' }}</strong>
+                            <span class="zone">{{ item.zoneName || '暂无大区' }}</span>
+                        </div>
+                        <span class="metric">{{ item.score || '暂无' }}</span>
+                        <span class="metric">{{ item.winRate || '暂无' }}{{ item.winRate && String(item.winRate).indexOf('%') < 0 ? '%' : '' }}</span>
+                        <span class="metric rise">{{ item.upNum && Number(item.upNum) !== 0 ? '↑ ' + item.upNum : '持平' }}</span>
+                    </div>
+                </section>
+            </template>
+            <div class="empty" v-else>暂无排行数据</div>
+
+            <footer class="footer">
+                <span>共 {{ data && data.length ? data.length : 0 }} 条排行</span>
+                <span>数据来源：www.jx3api.com</span>
+            </footer>
+        </article>
+    </main>
+</body>
+
+</html>

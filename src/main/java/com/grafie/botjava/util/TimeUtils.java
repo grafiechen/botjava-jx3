@@ -13,6 +13,8 @@ import java.time.format.DateTimeFormatter;
  */
 public class TimeUtils {
 
+    private static final ZoneId JX3_ZONE_ID = ZoneId.of("Asia/Shanghai");
+
     /**
      * 时间格式化参数
      */
@@ -28,7 +30,7 @@ public class TimeUtils {
         if (timestamp <= 0) {
             return "";
         }
-        LocalDateTime time = LocalDateTime.ofInstant(Instant.ofEpochSecond(timestamp), ZoneId.systemDefault());
+        LocalDateTime time = LocalDateTime.ofInstant(Instant.ofEpochSecond(timestamp), JX3_ZONE_ID);
         return time.format(DATETIME_FORMATTER);
     }
 

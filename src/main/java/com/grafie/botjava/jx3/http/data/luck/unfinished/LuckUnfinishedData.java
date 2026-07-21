@@ -12,6 +12,8 @@ import lombok.Data;
 public class LuckUnfinishedData {
     @JsonProperty("name")
     private String name;
+    @JsonProperty("type")
+    private String type;
     @JsonProperty("level")
     private Integer level;
     @JsonProperty("last")

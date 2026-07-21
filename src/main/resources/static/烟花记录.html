@@ -46,7 +46,7 @@
                             </tr>
                         </thead>
                         <tbody class="fs-6 text-center">
-                            {% for one in data %}
+                            <template v-for="one in data">
                             <tr>
                                 <td scope="col">{{ one.time }}</td>
                                 <td scope="col">{{ one.map }}</td>
@@ -55,7 +55,7 @@
                                 <td scope="col">{{ one.recipient }}</td>
                                 <td scope="col">{{ one.times }}</td>
                             </tr>
-                            {% endfor %}
+                            </template>
                         </tbody>
                     </table>
                 </div>

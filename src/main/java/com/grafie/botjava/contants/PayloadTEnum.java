@@ -1,6 +1,9 @@
 package com.grafie.botjava.contants;
 
+import com.grafie.botjava.action.BaseAction;
 import com.grafie.botjava.action.GroupAtMessageAction;
+import com.grafie.botjava.action.GroupLifecycleAction;
+import com.grafie.botjava.action.InteractionCreateAction;
 import lombok.Getter;
 
 /**
@@ -14,15 +17,20 @@ public enum PayloadTEnum {
      * 群聊被at
      */
     GROUP_AT_MESSAGE_CREATE("GROUP_AT_MESSAGE_CREATE", GroupAtMessageAction.class),
-    GROUP_MESSAGE_CREATE("GROUP_MESSAGE_CREATE", GroupAtMessageAction.class);
+    GROUP_MESSAGE_CREATE("GROUP_MESSAGE_CREATE", GroupAtMessageAction.class),
+    GROUP_ADD_ROBOT("GROUP_ADD_ROBOT", GroupLifecycleAction.class),
+    GROUP_DEL_ROBOT("GROUP_DEL_ROBOT", GroupLifecycleAction.class),
+    GROUP_MSG_RECEIVE("GROUP_MSG_RECEIVE", GroupLifecycleAction.class),
+    GROUP_MSG_REJECT("GROUP_MSG_REJECT", GroupLifecycleAction.class),
+    INTERACTION_CREATE("INTERACTION_CREATE", InteractionCreateAction.class);
 
 
     @Getter
     private final String value;
     @Getter
-    private final Class clasz;
+    private final Class<? extends BaseAction> clasz;
 
-    PayloadTEnum(String value, Class clasz) {
+    PayloadTEnum(String value, Class<? extends BaseAction> clasz) {
         this.value = value;
         this.clasz = clasz;
     }

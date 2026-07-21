@@ -1,72 +1,139 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
-
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>资历排行</title>
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/table.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body {
+            margin: 0;
+            min-width: 1080px;
+            background: #eef1f2;
+            color: #24282d;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            letter-spacing: 0;
+        }
+        #main { min-height: 720px; padding: 46px 60px; }
+        .board {
+            width: 100%;
+            max-width: 1160px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #cfd5d9;
+            border-radius: 8px;
+            box-shadow: 0 18px 42px rgba(31, 37, 42, 0.12);
+        }
+        .header {
+            min-height: 150px;
+            padding: 28px 36px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 28px;
+            border-top: 8px solid #9b4f45;
+            border-bottom: 1px solid #dce1e4;
+        }
+        .eyebrow { margin: 0 0 8px; color: #66717a; font-size: 17px; }
+        h1 { margin: 0; color: #20262b; font-size: 38px; line-height: 1.2; }
+        .filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+        .filter {
+            padding: 9px 15px;
+            color: #ffffff;
+            background: #287364;
+            border-radius: 4px;
+            font-size: 18px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+        .filter.school { background: #9b4f45; }
+        .table-head,
+        .row {
+            display: grid;
+            grid-template-columns: 72px minmax(220px, 1.35fr) minmax(170px, .9fr) minmax(230px, 1.1fr) 170px;
+            gap: 18px;
+            align-items: center;
+        }
+        .table-head {
+            min-height: 54px;
+            padding: 0 36px;
+            color: #68737b;
+            background: #f4f6f7;
+            border-bottom: 1px solid #dce1e4;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .row { min-height: 78px; padding: 13px 36px; border-bottom: 1px solid #e3e7e9; }
+        .row:last-child { border-bottom: 0; }
+        .rank { color: #9b4f45; font-size: 24px; font-weight: 800; }
+        .role { color: #20262b; font-size: 19px; font-weight: 750; overflow-wrap: anywhere; }
+        .school-name { color: #287364; font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
+        .server { min-width: 0; }
+        .server strong { display: block; color: #2d353b; font-size: 17px; overflow-wrap: anywhere; }
+        .server span { display: block; margin-top: 3px; color: #7a858d; font-size: 14px; overflow-wrap: anywhere; }
+        .seniority { color: #ad6d22; font-size: 20px; font-weight: 800; text-align: right; }
+        .empty {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #77828a;
+            font-size: 22px;
+        }
+        .footer {
+            padding: 19px 36px 21px;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            color: #7a858d;
+            background: #fafbfb;
+            border-top: 1px solid #dce1e4;
+            font-size: 14px;
+        }
+    </style>
 </head>
-
 <body>
-    <div class="container" id="main">
-        <div class="card" style="background-image: url('img/bg.png');">
-            <div class="card-header">
-                <div class="row">
-                    <div class="col">
-                        <div class="text-center fs-4">
-                            <p><img src="img/location.png" height="30" width="30">{{ server }}</p>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="text-center fs-4">
-                            <p><img src="img/cube.png" height="30" width="30">资历排名</p>
-                        </div>
-                    </div>
+    <main id="main" v-cloak>
+        <article class="board">
+            <header class="header">
+                <div>
+                    <p class="eyebrow">剑网 3 江湖资历</p>
+                    <h1>资历排行榜</h1>
                 </div>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <table class="table table-striped table-hover">
-                        <thead class="fs-4 text-center">
-                            <tr>
-                                <th scope="col" class="text-start">推栏名称</th>
-                                <th scope="col">角色名称</th>
-                                <th scope="col">所属区服</th>
-                                <th scope="col">所属门派</th>
-                                <th scope="col">资历分数</th>
-                            </tr>
-                        </thead>
-                        <tbody class="fs-6 text-center">
-                            {% for one in data %}
-                            <tr>
-                                <td scope="col-1" class="text-start">
-                                    <img src="{{ one.avatar }}" height="40" width="40">{{ one.name }}
-                                </td>
-                                <td scope="col">{{ one.role }}</td>
-                                <td scope="col">
-                                    <button type="button" class="btn btn-secondary">{{ one.server }}</button>
-                                </td>
-                                <td scope="col">
-                                    <img src="sect/{{ one.school }}.png" height="27" width="42">
-                                    <button type="button" class="btn btn-warning">{{ one.school }}</button>
-                                </td>
-                                <td scope="col">
-                                    <button type="button" class="btn btn-success">{{ one.value }}</button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="filters">
+                    <span class="filter">{{ server || '全区服' }}</span>
+                    <span class="filter school">{{ school || '全门派' }}</span>
                 </div>
-            </div>
-            <div class="card-footer">
-                <h6 class="text-center fs-5">数据来源：www.jx3api.com</h6>
-            </div>
-        </div>
-    </div>
+            </header>
+            <template v-if="data && data.length">
+                <div class="table-head">
+                    <span>名次</span>
+                    <span>角色</span>
+                    <span>门派</span>
+                    <span>区服</span>
+                    <span style="text-align: right">资历</span>
+                </div>
+                <section>
+                    <div class="row" v-for="(item, index) in data" :key="index">
+                        <span class="rank">{{ index + 1 }}</span>
+                        <strong class="role">{{ item.roleName || item['role_name'] || '未知角色' }}</strong>
+                        <span class="school-name">{{ item.forceName || item['force_name'] || '未知门派' }}</span>
+                        <div class="server">
+                            <strong>{{ item.serverName || item['server_name'] || '未知服务器' }}</strong>
+                            <span>{{ item.zoneName || item['zone_name'] || '未知大区' }}</span>
+                        </div>
+                        <span class="seniority">{{ item.seniority == null ? '暂无' : Number(item.seniority).toLocaleString('zh-CN') }}</span>
+                    </div>
+                </section>
+            </template>
+            <div class="empty" v-else>暂无资历排行数据</div>
+            <footer class="footer">
+                <span>仅展示可读的角色排行信息</span>
+                <span>数据来源：www.jx3api.com</span>
+            </footer>
+        </article>
+    </main>
 </body>
-
 </html>

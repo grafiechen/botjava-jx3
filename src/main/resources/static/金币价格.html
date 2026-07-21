@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>金币价格</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #edf0f0; color: #222a2e; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 42px 56px; }
+        .board { width: 100%; max-width: 1168px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #ced5d7; border-radius: 8px; box-shadow: 0 18px 42px rgba(39, 42, 41, .12); }
+        .header { min-height: 142px; padding: 27px 36px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; border-top: 8px solid #8a6a38; border-bottom: 1px solid #dde2e3; }
+        .eyebrow { margin: 0 0 8px; color: #727c80; font-size: 15px; }
+        h1 { margin: 0; font-size: 37px; line-height: 1.2; }
+        .query { color: #3d716a; font-size: 18px; font-weight: 800; overflow-wrap: anywhere; }
+        .head, .row { display: grid; grid-template-columns: 64px minmax(210px, 1fr) 170px 170px 170px 150px; gap: 18px; align-items: center; }
+        .head { min-height: 52px; padding: 0 36px; color: #707b80; background: #f3f5f5; border-bottom: 1px solid #dce2e3; font-size: 13px; font-weight: 700; }
+        .row { min-height: 86px; padding: 14px 36px; border-bottom: 1px solid #e2e6e7; }
+        .row:last-child { border-bottom: 0; }
+        .index { color: #8b6a38; font-size: 23px; font-weight: 800; }
+        .place strong { display: block; font-size: 17px; overflow-wrap: anywhere; }
+        .place span { color: #758086; font-size: 13px; }
+        .price { color: #8b592d; font-size: 19px; font-weight: 850; overflow-wrap: anywhere; }
+        .date { color: #6f7b80; font-size: 14px; overflow-wrap: anywhere; }
+        .empty { min-height: 350px; display: flex; align-items: center; justify-content: center; color: #78848a; font-size: 21px; }
+        .footer { padding: 17px 36px 20px; color: #79858a; background: #fafbfb; border-top: 1px solid #dce2e3; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header"><div><p class="eyebrow">剑网 3 金币市场参考</p><h1>金币价格</h1></div><div class="query">{{ server || '全区服' }}</div></header>
+        <template v-if="data && data.length"><div class="head"><span>序号</span><span>区服</span><span>贴吧</span><span>万宝楼</span><span>DD373</span><span>日期</span></div><section><div class="row" v-for="(item,index) in data" :key="index"><span class="index">{{ index + 1 }}</span><div class="place"><strong>{{ item.server || '未知服务器' }}</strong><span>{{ item.zone || '未知大区' }}</span></div><span class="price">{{ item.tieba || '-' }}</span><span class="price">{{ item.wanbaolou || '-' }}</span><span class="price">{{ item.dd373 || '-' }}</span><span class="date">{{ item.date || '日期未知' }}</span></div></section></template>
+        <div class="empty" v-else>暂无金币价格记录</div>
+        <footer class="footer">价格仅供参考，请以实际交易页面为准</footer>
+    </article>
+</main>
+</body>
+</html>

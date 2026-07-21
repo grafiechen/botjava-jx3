@@ -7,10 +7,8 @@ import com.grafie.botjava.jx3.http.action.base.Jx3BaseAction;
 import com.grafie.botjava.jx3.http.data.server.ServerCheckData;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
 import com.grafie.botjava.jx3.http.util.REGEX;
-import com.grafie.botjava.mapper.GroupInfoMapper;
-import com.grafie.botjava.entity.dto.common.TxMessageInfo;
-import org.apache.commons.lang3.StringUtils;
-
+import com.grafie.botjava.service.GroupConfigurationService;
+import com.grafie.botjava.entity.dto.common.BotResponse;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,24 +21,20 @@ import java.util.Map;
  * @since 2025/1/22  17:18
  */
 public class ServerCheckAction extends Jx3BaseAction {
-    public ServerCheckAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil, GroupInfoMapper groupInfoMapper) {
-        super(apiProperties, jx3RequestUtil, groupInfoMapper);
+    public ServerCheckAction(ApiProperties apiProperties, Jx3RequestUtil jx3RequestUtil, GroupConfigurationService groupConfigurationService) {
+        super(apiProperties, jx3RequestUtil, groupConfigurationService);
     }
 
     @Override
     protected Map<String, Object> getRequestParam(String requestRegex, REGEX regex) {
-        Map<String, String> valueMap = regex.handleEncounter(requestRegex);
         Map<String, Object> requestMap = new HashMap<>();
-        String server = valueMap.get("server");
-        if (StringUtils.isBlank(server)){
-            server = getDefaultServer();
-        }
-        requestMap.put("server", server);
+        requestMap.put("server", currentArguments().server(getDefaultServer()));
+        requestMap.put("type", 1);
         return requestMap;
     }
 
     @Override
-    protected TxMessageInfo dealAfterJx3ApiRequest(BaseResult baseResult) {
+    protected BotResponse dealAfterJx3ApiRequest(BaseResult baseResult) {
         return buildMessageByTemplate(baseResult);
     }
 
@@ -50,7 +44,7 @@ public class ServerCheckAction extends Jx3BaseAction {
         return String.format(
                 "服务器[%s],%s",
                 serverCheckData.getServer(),
-                serverCheckData.getStatus() == 1 ? "已开服" : "维护中"
+                serverCheckData.getStatus()
         );
     }
 }

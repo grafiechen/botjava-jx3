@@ -1,5 +1,6 @@
 package com.grafie.botjava.jx3.http.data.active;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -13,9 +14,11 @@ import lombok.Data;
 public class ActiveCelebritiesData {
 
     @JsonProperty("map_name")
+    @JsonAlias("map")
     private String mapName;
 
     @JsonProperty("event")
+    @JsonAlias("stage")
     private String event;
 
     @JsonProperty("site")

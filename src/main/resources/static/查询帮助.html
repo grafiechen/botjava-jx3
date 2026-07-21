@@ -80,7 +80,7 @@
                             <td>骚话</td>
                             <td>召唤一条骚话</td>
                         </tr>
-                        {% if flag %}
+                        <template v-if="flag">
                         <tr>
                             <td>查询 [<span class="text-success">服务器</span>] <span class="text-danger">角色名</span></td>
                             <td>查询该角色的奇遇，服务器可省略</td>
@@ -153,7 +153,7 @@
                             <td>试炼榜 <span class="text-danger">门派</span></td>
                             <td>查询试炼之地排名</td>
                         </tr>
-                        {% endif %}
+                        </template>
                     </tbody>
                 </table>
             </div>

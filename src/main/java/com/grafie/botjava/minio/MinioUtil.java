@@ -13,6 +13,8 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+import java.util.UUID;
 
 /**
  * @author grafie.chen
@@ -25,18 +27,14 @@ public class MinioUtil {
 
     private final String bucketName;
 
-    private final String endpoint;
+    private final String publicUrl;
 
-    public MinioUtil(@Value("${minio.endpoint}") String endpoint,
-                     @Value("${minio.access-key}") String accessKey,
-                     @Value("${minio.secret-key}") String secretKey,
-                     @Value("${minio.bucket-name}") String bucketName) {
+    public MinioUtil(MinioClient minioClient,
+                     @Value("${minio.bucket-name}") String bucketName,
+                     @Value("${minio.public-url}") String publicUrl) {
+        this.minioClient = minioClient;
         this.bucketName = bucketName;
-        this.minioClient = MinioClient.builder()
-                .endpoint(endpoint)
-                .credentials(accessKey, secretKey)
-                .build();
-        this.endpoint = endpoint;
+        this.publicUrl = stripTrailingSlash(publicUrl);
     }
 
     /**
@@ -48,10 +46,10 @@ public class MinioUtil {
      * @throws Exception 如果操作失败
      */
     public String uploadFile(File file, String fileName) throws Exception {
-        // 格式化名称，避免重复
-        fileName = FilenameUtils.getBaseName(fileName)
-                + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"))
-                + FilenameUtils.getExtension(fileName);
+        if (file == null || !file.isFile() || file.length() == 0) {
+            throw new IllegalArgumentException("待上传文件必须存在且非空");
+        }
+        String objectName = buildObjectName(fileName);
         // 检查桶是否存在，不存在则创建
         boolean bucketExists = minioClient.bucketExists(
                 BucketExistsArgs.builder().bucket(bucketName).build()
@@ -65,7 +63,7 @@ public class MinioUtil {
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucketName)
-                            .object(fileName)
+                            .object(objectName)
                             .stream(inputStream, file.length(), -1)
                             .contentType("image/png") // 设置文件类型
                             .build()
@@ -73,6 +71,27 @@ public class MinioUtil {
         }
 
         // 返回文件访问 URL
-        return endpoint + "/" + bucketName + "/" + fileName;
+        return publicUrl + "/" + bucketName + "/" + objectName;
+    }
+
+    private String buildObjectName(String fileName) {
+        String baseName = FilenameUtils.getBaseName(fileName == null ? "" : fileName)
+                .replaceAll("[^A-Za-z0-9._-]", "-");
+        if (baseName.isBlank()) {
+            baseName = "image";
+        }
+        String extension = FilenameUtils.getExtension(fileName == null ? "" : fileName)
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]", "");
+        String suffix = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"))
+                + "-" + UUID.randomUUID();
+        return baseName + "-" + suffix + (extension.isBlank() ? "" : "." + extension);
+    }
+
+    private String stripTrailingSlash(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("minio.public-url 不能为空");
+        }
+        return value.replaceAll("/+$", "");
     }
 }

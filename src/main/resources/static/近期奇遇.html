@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>近期奇遇</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body {
+            margin: 0;
+            min-width: 1080px;
+            background: #edf1f2;
+            color: #20272c;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            letter-spacing: 0;
+        }
+        #main { min-height: 720px; padding: 40px 60px; }
+        .board {
+            width: 100%;
+            max-width: 1160px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #cfd5d8;
+            border-radius: 8px;
+            box-shadow: 0 18px 42px rgba(31, 38, 43, 0.12);
+        }
+        .header {
+            min-height: 132px;
+            padding: 24px 36px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 28px;
+            border-top: 8px solid #275e65;
+            border-bottom: 1px solid #dce1e4;
+        }
+        .eyebrow { margin: 0 0 8px; color: #68747c; font-size: 17px; }
+        h1 { margin: 0; color: #20262b; font-size: 38px; line-height: 1.2; }
+        .server { color: #275e65; font-size: 18px; font-weight: 800; overflow-wrap: anywhere; }
+        .table-head, .row {
+            display: grid;
+            grid-template-columns: 66px 1.05fr 1.2fr 1fr 1.35fr;
+            gap: 18px;
+            align-items: center;
+        }
+        .table-head {
+            min-height: 50px;
+            padding: 0 32px;
+            color: #68747c;
+            background: #f4f6f7;
+            border-bottom: 1px solid #dce1e4;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .row { min-height: 75px; padding: 12px 32px; border-bottom: 1px solid #e2e6e8; }
+        .row:last-child { border-bottom: 0; }
+        .index { color: #8d4d65; font-size: 22px; font-weight: 800; }
+        .event { color: #20272c; font-size: 17px; font-weight: 800; overflow-wrap: anywhere; }
+        .role { color: #4c5b62; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+        .location strong { display: block; color: #275e65; font-size: 14px; overflow-wrap: anywhere; }
+        .location span { display: block; margin-top: 3px; color: #7a858c; font-size: 12px; overflow-wrap: anywhere; }
+        .time { color: #80564a; font-size: 13px; overflow-wrap: anywhere; }
+        .empty {
+            min-height: 330px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #77838a;
+            font-size: 22px;
+        }
+        .footer {
+            padding: 16px 32px 19px;
+            color: #7a858c;
+            background: #fafbfb;
+            border-top: 1px solid #dce1e4;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <main id="main" v-cloak>
+        <article class="board">
+            <header class="header">
+                <div>
+                    <p class="eyebrow">剑网 3 江湖际遇</p>
+                    <h1>近期奇遇</h1>
+                </div>
+                <div class="server">{{ server || '服务器未知' }}</div>
+            </header>
+            <template v-if="data && data.length">
+                <div class="table-head">
+                    <span>序号</span>
+                    <span>奇遇</span>
+                    <span>角色</span>
+                    <span>区服</span>
+                    <span>发生时间</span>
+                </div>
+                <section>
+                    <div class="row" v-for="(item, index) in data" :key="index">
+                        <span class="index">{{ index + 1 }}</span>
+                        <span class="event">{{ item.event || '奇遇未知' }}</span>
+                        <span class="role">{{ item.name || '角色未知' }}</span>
+                        <div class="location">
+                            <strong>{{ item.server || server || '服务器未知' }}</strong>
+                            <span>{{ item.zone || '大区未知' }}</span>
+                        </div>
+                        <span class="time">{{ item.time || '时间未知' }}</span>
+                    </div>
+                </section>
+            </template>
+            <div class="empty" v-else>暂无近期奇遇数据</div>
+            <footer class="footer">共 {{ data && data.length ? data.length : 0 }} 条记录 · 时间按北京时间展示</footer>
+        </article>
+    </main>
+</body>
+</html>

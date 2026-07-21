@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>阵营沙盘</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #edf1f2; color: #20272c; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 42px 60px; }
+        .board { width: 100%; max-width: 1160px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #cfd5d8; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 38, 43, .12); }
+        .header { min-height: 144px; padding: 27px 36px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; border-top: 8px solid #596c46; border-bottom: 1px solid #dce1e4; }
+        .eyebrow { margin: 0 0 8px; color: #68747c; font-size: 17px; }
+        h1 { margin: 0; font-size: 38px; line-height: 1.2; }
+        .location { text-align: right; }
+        .location strong { display: block; color: #596c46; font-size: 19px; overflow-wrap: anywhere; }
+        .location span { display: block; margin-top: 5px; color: #748087; font-size: 13px; }
+        .table-head, .row { display: grid; grid-template-columns: 70px 1.2fr 1.45fr 1.45fr 1fr; gap: 20px; align-items: center; }
+        .table-head { min-height: 54px; padding: 0 36px; color: #68747c; background: #f4f6f7; border-bottom: 1px solid #dce1e4; font-size: 14px; font-weight: 700; }
+        .row { min-height: 82px; padding: 13px 36px; border-bottom: 1px solid #e2e6e8; }
+        .row:last-child { border-bottom: 0; }
+        .index { color: #975b48; font-size: 24px; font-weight: 800; }
+        .castle { color: #20272c; font-size: 19px; font-weight: 800; overflow-wrap: anywhere; }
+        .guild { color: #4f5c62; font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+        .master { color: #786054; font-size: 15px; overflow-wrap: anywhere; }
+        .camp { justify-self: start; padding: 7px 11px; color: #355f66; background: #e8eff0; border-radius: 4px; font-size: 14px; font-weight: 750; }
+        .empty { min-height: 320px; display: flex; align-items: center; justify-content: center; color: #77838a; font-size: 22px; }
+        .footer { padding: 18px 36px 21px; color: #7a858c; background: #fafbfb; border-top: 1px solid #dce1e4; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header">
+            <div><p class="eyebrow">剑网 3 帮会领地分布</p><h1>阵营沙盘</h1></div>
+            <div class="location"><strong>{{ server || '服务器未知' }}</strong><span>{{ zone || '大区未知' }}</span></div>
+        </header>
+        <template v-if="data && data.length">
+            <div class="table-head"><span>序号</span><span>领地</span><span>占领帮会</span><span>帮会首领</span><span>阵营</span></div>
+            <section>
+                <div class="row" v-for="(item, index) in data" :key="index">
+                    <span class="index">{{ index + 1 }}</span><span class="castle">{{ item.castleName || '领地未知' }}</span>
+                    <span class="guild">{{ item.tongName || '帮会未知' }}</span><span class="master">{{ item.masterName || '首领未知' }}</span>
+                    <span class="camp">{{ item.campName || '阵营未知' }}</span>
+                </div>
+            </section>
+        </template>
+        <div class="empty" v-else>暂无阵营沙盘数据</div>
+        <footer class="footer">共 {{ data && data.length ? data.length : 0 }} 处领地<span v-if="update"> · 更新时间 {{ update }}</span></footer>
+    </article>
+</main>
+</body>
+</html>

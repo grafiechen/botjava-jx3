@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>器物图谱</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #edf1f2; color: #20272c; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 34px 52px; }
+        .board { width: 100%; max-width: 1176px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #cfd5d8; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 38, 43, .12); }
+        .header { min-height: 132px; padding: 23px 34px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; border-top: 8px solid #486b62; border-bottom: 1px solid #dce1e4; }
+        .eyebrow { margin: 0 0 8px; color: #68747c; font-size: 16px; }
+        h1 { margin: 0; font-size: 36px; line-height: 1.2; }
+        .query { color: #486b62; font-size: 18px; font-weight: 800; overflow-wrap: anywhere; }
+        .item { padding: 25px 34px 28px; border-bottom: 1px solid #dce1e4; }
+        .item:last-child { border-bottom: 0; }
+        .item-head { display: grid; grid-template-columns: 1.1fr 1fr 130px 130px; gap: 22px; align-items: start; }
+        .item-name { color: #20272c; font-size: 24px; font-weight: 800; overflow-wrap: anywhere; }
+        .meta strong { display: block; color: #486b62; font-size: 14px; }
+        .meta span { display: block; margin-top: 5px; color: #6f7b81; font-size: 13px; overflow-wrap: anywhere; }
+        .number { text-align: right; }
+        .number strong { display: block; color: #945847; font-size: 22px; }
+        .number span { color: #7a858c; font-size: 12px; }
+        .tip { margin: 18px 0 20px; color: #5c514c; font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; }
+        .metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+        .metric { padding: 11px 13px; background: #f3f6f6; border-left: 4px solid #486b62; }
+        .metric span { display: block; color: #718087; font-size: 12px; }
+        .metric strong { display: block; margin-top: 5px; color: #283239; font-size: 18px; }
+        .empty { min-height: 350px; display: flex; align-items: center; justify-content: center; color: #77838a; font-size: 22px; }
+        .footer { padding: 16px 34px 19px; color: #7a858c; background: #fafbfb; border-top: 1px solid #dce1e4; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header"><div><p class="eyebrow">剑网 3 游历器物资料</p><h1>器物图谱</h1></div><div class="query">{{ name || '全部结果' }}</div></header>
+        <section v-if="data && data.length">
+            <div class="item" v-for="(item, index) in data" :key="index">
+                <div class="item-head"><div class="item-name">{{ item.name || '器物名称未知' }}</div><div class="meta"><strong>来源与产出</strong><span>{{ item.source || '来源未知' }}<template v-if="item.produce"> · {{ item.produce }}</template></span></div><div class="number"><strong>{{ item.limit }}</strong><span>摆放上限</span></div><div class="number"><strong>{{ item.quality }}</strong><span>品质</span></div></div>
+                <p class="tip">{{ item.tip || '暂无器物说明' }}</p>
+                <div class="metrics"><div class="metric"><span>观赏</span><strong>{{ item.view }}</strong></div><div class="metric"><span>实用</span><strong>{{ item.practical }}</strong></div><div class="metric"><span>坚固</span><strong>{{ item.hard }}</strong></div><div class="metric"><span>风水</span><strong>{{ item.geomantic }}</strong></div><div class="metric"><span>趣味</span><strong>{{ item.interesting }}</strong></div></div>
+            </div>
+        </section>
+        <div class="empty" v-else>暂无器物图谱数据</div>
+        <footer class="footer">共 {{ data && data.length ? data.length : 0 }} 条结果 · 不加载接口外部图片</footer>
+    </article>
+</main>
+</body>
+</html>

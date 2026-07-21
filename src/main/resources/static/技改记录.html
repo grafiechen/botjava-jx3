@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>技改记录</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #edf1f2; color: #20272c; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 42px 60px; }
+        .board { width: 100%; max-width: 1160px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #cfd5d8; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 38, 43, .12); }
+        .header { min-height: 144px; padding: 27px 36px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; border-top: 8px solid #4f6771; border-bottom: 1px solid #dce1e4; }
+        .eyebrow { margin: 0 0 8px; color: #68747c; font-size: 17px; }
+        h1 { margin: 0; font-size: 38px; line-height: 1.2; }
+        .count { color: #8a5548; font-size: 18px; font-weight: 800; }
+        .table-head, .row { display: grid; grid-template-columns: 76px 1fr 190px; gap: 24px; align-items: center; }
+        .table-head { min-height: 54px; padding: 0 38px; color: #68747c; background: #f4f6f7; border-bottom: 1px solid #dce1e4; font-size: 14px; font-weight: 700; }
+        .row { min-height: 88px; padding: 15px 38px; border-bottom: 1px solid #e2e6e8; }
+        .row:last-child { border-bottom: 0; }
+        .index { color: #8a5548; font-size: 25px; font-weight: 800; }
+        .title { color: #20272c; font-size: 18px; font-weight: 800; line-height: 1.45; overflow-wrap: anywhere; }
+        .time { color: #6f5a52; font-size: 14px; overflow-wrap: anywhere; }
+        .empty { min-height: 320px; display: flex; align-items: center; justify-content: center; color: #77838a; font-size: 22px; }
+        .footer { padding: 18px 38px 21px; color: #7a858c; background: #fafbfb; border-top: 1px solid #dce1e4; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header"><div><p class="eyebrow">剑网 3 武学调整公告</p><h1>技改记录</h1></div><div class="count">近期 {{ data && data.length ? data.length : 0 }} 条</div></header>
+        <template v-if="data && data.length">
+            <div class="table-head"><span>序号</span><span>调整公告</span><span>发布时间</span></div>
+            <section><div class="row" v-for="(item, index) in data" :key="index"><span class="index">{{ index + 1 }}</span><span class="title">{{ item.title || '公告标题未知' }}</span><span class="time">{{ item.time || '时间未知' }}</span></div></section>
+        </template>
+        <div class="empty" v-else>暂无技改记录</div>
+        <footer class="footer">仅展示公告标题与可读时间，不加载外部公告链接</footer>
+    </article>
+</main>
+</body>
+</html>

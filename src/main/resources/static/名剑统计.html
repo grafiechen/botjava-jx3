@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>名剑统计</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body {
+            margin: 0;
+            min-width: 1080px;
+            background: #edf1f3;
+            color: #20262d;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            letter-spacing: 0;
+        }
+        #main { min-height: 720px; padding: 48px 62px; }
+        .report {
+            width: 100%;
+            max-width: 1160px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #cbd3da;
+            border-radius: 8px;
+            box-shadow: 0 18px 42px rgba(27, 35, 43, 0.12);
+        }
+        .header {
+            padding: 30px 36px 26px;
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 28px;
+            border-top: 8px solid #167d65;
+            border-bottom: 1px solid #d9e0e5;
+        }
+        .eyebrow { margin: 0 0 8px; color: #63717d; font-size: 17px; }
+        h1 { margin: 0; color: #182028; font-size: 38px; line-height: 1.2; }
+        .mode {
+            flex: 0 0 auto;
+            padding: 9px 16px;
+            color: #ffffff;
+            background: #31566b;
+            border-radius: 4px;
+            font-size: 19px;
+            font-weight: 700;
+        }
+        .legend {
+            padding: 15px 36px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 22px;
+            color: #63717d;
+            background: #f3f6f8;
+            border-bottom: 1px solid #d9e0e5;
+            font-size: 14px;
+        }
+        .legend span::before {
+            width: 12px;
+            height: 12px;
+            margin-right: 7px;
+            display: inline-block;
+            border-radius: 2px;
+            content: "";
+            vertical-align: -1px;
+        }
+        .legend .previous::before { background: #9aa6af; }
+        .legend .current::before { background: #167d65; }
+        .grid {
+            padding: 26px 36px 32px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+        .school {
+            min-width: 0;
+            padding: 18px 20px;
+            border: 1px solid #d9e0e5;
+            border-radius: 6px;
+            background: #fbfcfd;
+        }
+        .school-head {
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .school-name {
+            min-width: 0;
+            color: #27313a;
+            font-size: 20px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+        .delta { flex: 0 0 auto; color: #63717d; font-size: 16px; font-weight: 700; }
+        .delta.positive { color: #167d65; }
+        .delta.negative { color: #a34f42; }
+        .bar-row {
+            margin-top: 9px;
+            display: grid;
+            grid-template-columns: 42px minmax(0, 1fr) 54px;
+            gap: 10px;
+            align-items: center;
+            color: #74818c;
+            font-size: 13px;
+        }
+        .track { height: 10px; overflow: hidden; background: #e7ecef; border-radius: 3px; }
+        .bar { height: 100%; min-width: 2px; border-radius: 3px; }
+        .bar.previous { background: #9aa6af; }
+        .bar.current { background: #167d65; }
+        .value { color: #27313a; font-size: 14px; font-weight: 700; text-align: right; }
+        .empty {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #74818c;
+            font-size: 22px;
+        }
+        .footer {
+            padding: 20px 36px 22px;
+            display: flex;
+            justify-content: space-between;
+            color: #788590;
+            background: #f8fafb;
+            border-top: 1px solid #d9e0e5;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <main id="main" v-cloak>
+        <article class="report">
+            <header class="header">
+                <div>
+                    <p class="eyebrow">剑网 3 名剑大会</p>
+                    <h1>门派统计对比</h1>
+                </div>
+                <div class="mode">{{ mode == 22 ? '2 对 2' : (mode == 55 ? '5 对 5' : '3 对 3') }}</div>
+            </header>
+            <template v-if="data && data.length">
+                <div class="legend">
+                    <span class="previous">上期</span>
+                    <span class="current">本期</span>
+                </div>
+                <section class="grid">
+                    <article class="school" v-for="(item, index) in data" :key="index">
+                        <div class="school-head">
+                            <strong class="school-name">{{ item.name || '未知门派' }}</strong>
+                            <span class="delta"
+                                  :class="{'positive': Number(item['this'] || 0) > Number(item.last || 0), 'negative': Number(item['this'] || 0) < Number(item.last || 0)}">
+                                {{ Number(item['this'] || 0) - Number(item.last || 0) > 0 ? '+' : '' }}{{ Number(item['this'] || 0) - Number(item.last || 0) }}
+                            </span>
+                        </div>
+                        <div class="bar-row">
+                            <span>上期</span>
+                            <div class="track"><div class="bar previous" :style="{width: Math.max(2, Math.abs(Number(item.last || 0)) / Math.max(1, Number(maxValue || 1)) * 100) + '%'}"></div></div>
+                            <span class="value">{{ item.last == null ? '暂无' : item.last }}</span>
+                        </div>
+                        <div class="bar-row">
+                            <span>本期</span>
+                            <div class="track"><div class="bar current" :style="{width: Math.max(2, Math.abs(Number(item['this'] || 0)) / Math.max(1, Number(maxValue || 1)) * 100) + '%'}"></div></div>
+                            <span class="value">{{ item['this'] == null ? '暂无' : item['this'] }}</span>
+                        </div>
+                    </article>
+                </section>
+            </template>
+            <div class="empty" v-else>暂无门派统计数据</div>
+            <footer class="footer">
+                <span>共 {{ data && data.length ? data.length : 0 }} 个门派</span>
+                <span>数据来源：www.jx3api.com</span>
+            </footer>
+        </article>
+    </main>
+</body>
+</html>

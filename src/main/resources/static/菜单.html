@@ -18,56 +18,56 @@
             <div class="card-body">
                 <div class="row align-items-center">
                     <div class="col-3">
-                        <img src="http://q1.qlogo.cn/g?b=qq&nk={{ bot_id }}&s=640"
+                        <img :src="'http://q1.qlogo.cn/g?b=qq&nk=' + bot_id + '&s=640'"
                             class="rounded float-start img-thumbnail">
                     </div>
                     <div class="col-3 text-center">
-                        {% if data.group.robot_status %}
+                        <template v-if="data.group.robot_status">
                         <div class="alert alert-success rounded-pill">
                             机器人：开
                         </div>
-                        {% else %}
+                        </template><template v-else>
                         <div class="alert alert-secondary rounded-pill">
                             机器人：关
                         </div>
-                        {% endif %}
-                        {% if data.group.welcome_status %}
+                        </template>
+                        <template v-if="data.group.welcome_status">
                         <div class="alert alert-success rounded-pill">
                             进群通知：开
                         </div>
-                        {% else %}
+                        </template><template v-else>
                         <div class="alert alert-secondary rounded-pill">
                             进群通知：关
                         </div>
-                        {% endif %}
+                        </template>
                     </div>
                     <div class="col-3 text-center">
                         <div class="alert alert-primary rounded-pill">
                             昵称：{{ nickname }}
                         </div>
-                        {% if data.group.someoneleft_status %}
+                        <template v-if="data.group.someoneleft_status">
                         <div class="alert alert-success rounded-pill">
                             离群通知：开
                         </div>
-                        {% else %}
+                        </template><template v-else>
                         <div class="alert alert-secondary rounded-pill">
                             离群通知：关
                         </div>
-                        {% endif %}
+                        </template>
                     </div>
                     <div class="col-3 text-center">
                         <div class="alert alert-primary rounded-pill">
                             服务器：{{ data.group.server }}
                         </div>
-                        {% if data.group.goodnight_status %}
+                        <template v-if="data.group.goodnight_status">
                         <div class="alert alert-success rounded-pill">
                             晚安通知：开
                         </div>
-                        {% else %}
+                        </template><template v-else>
                         <div class="alert alert-secondary rounded-pill">
                             晚安通知：关
                         </div>
-                        {% endif %}
+                        </template>
                     </div>
                 </div>
                 <div class="row">
@@ -84,60 +84,60 @@
                     </div>
                     <div class="border bordered-5 col-9 rounded">
                         <div class="row">
-                            {% if data.group.ws_server %}
+                            <template v-if="data.group.ws_server">
                             <div class="col text-center" style="margin-bottom:10px;margin-top:10px">
                                 <div class="btn btn-primary">开服推送</div>
                             </div>
-                            {% else %}
+                            </template><template v-else>
                             <div class="col text-center" style="margin-bottom:10px;margin-top:10px">
                                 <div class="btn btn-secondary">开服推送</div>
                             </div>
-                            {% endif %}
-                            {% if data.group.ws_news %}
+                            </template>
+                            <template v-if="data.group.ws_news">
                             <div class="col text-center" style="margin-bottom:10px;margin-top:10px">
                                 <div class="btn btn-primary">新闻推送</div>
                             </div>
-                            {% else %}
+                            </template><template v-else>
                             <div class="col text-center" style="margin-bottom:10px;margin-top:10px">
                                 <div class="btn btn-secondary">新闻推送</div>
                             </div>
-                            {% endif %}
-                            {% if data.group.ws_serendipity %}
+                            </template>
+                            <template v-if="data.group.ws_serendipity">
                             <div class="col text-center" style="margin-bottom:10px;margin-top:10px">
                                 <div class="btn btn-primary">奇遇推送</div>
                             </div>
-                            {% else %}
+                            </template><template v-else>
                             <div class="col text-center" style="margin-bottom:10px;margin-top:10px">
                                 <div class="btn btn-secondary">奇遇推送</div>
                             </div>
-                            {% endif %}
-                            {% if data.group.ws_horse %}
+                            </template>
+                            <template v-if="data.group.ws_horse">
                             <div class="col text-center" style="margin-bottom:10px;margin-top:10px">
                                 <div class="btn btn-primary">抓马监控</div>
                             </div>
-                            {% else %}
+                            </template><template v-else>
                             <div class="col text-center" style="margin-bottom:10px;margin-top:10px">
                                 <div class="btn btn-secondary">抓马监控</div>
                             </div>
-                            {% endif %}
-                            {% if data.group.ws_fuyao %}
+                            </template>
+                            <template v-if="data.group.ws_fuyao">
                             <div class="col text-center" style="margin-bottom:10px;margin-top:10px">
                                 <div class="btn btn-primary">扶摇监控</div>
                             </div>
-                            {% else %}
+                            </template><template v-else>
                             <div class="col text-center" style="margin-bottom:10px;margin-top:10px">
                                 <div class="btn btn-secondary">扶摇监控</div>
                             </div>
-                            {% endif %}
-                            {% if data.group.ws_zhueshijian %}
+                            </template>
+                            <template v-if="data.group.ws_zhueshijian">
                             <div class="col text-center" style="margin-bottom:10px;margin-top:10px">
                                 <div class="btn btn-primary">诛恶事件</div>
                             </div>
-                            {% else %}
+                            </template><template v-else>
                             <div class="col text-center" style="margin-bottom:10px;margin-top:10px">
                                 <div class="btn btn-secondary">诛恶事件</div>
                             </div>
-                            {% endif %}
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -157,23 +157,23 @@
                             </tr>
                         </thead>
                         <tbody class="fs-6 align-middle">
-                            {% for one in data.plugin %}
+                            <template v-for="one in data.plugin">
                             <tr>
                                 <td scope="col">{{ one.plugin_name }}</td>
                                 <td scope="col">{{ one.usage }}</td>
                                 <td scope="col">{{ one.description }}</td>
                                 <td class="text-center" scope="col">{{ one.cost_gold }}</td>
                                 <td scope="col">
-                                    {% if one.status %}
+                                    <template v-if="one.status">
                                     <div class="form-check form-switch"><input class="form-check-input" type="checkbox"
                                             checked></div>
-                                    {% else %}
+                                    </template><template v-else>
                                     <div class="form-check form-switch"><input class="form-check-input" type="checkbox">
                                     </div>
-                                    {% endif %}
+                                    </template>
                                 </td>
                             </tr>
-                            {% endfor %}
+                            </template>
                         </tbody>
                     </table>
                 </div>

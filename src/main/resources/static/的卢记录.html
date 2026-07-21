@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>的卢记录</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body {
+            margin: 0;
+            min-width: 1080px;
+            background: #edf1f2;
+            color: #20272c;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            letter-spacing: 0;
+        }
+        #main { min-height: 720px; padding: 40px 60px; }
+        .board {
+            width: 100%;
+            max-width: 1160px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #cfd5d8;
+            border-radius: 8px;
+            box-shadow: 0 18px 42px rgba(31, 38, 43, 0.12);
+        }
+        .header {
+            min-height: 136px;
+            padding: 25px 36px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 28px;
+            border-top: 8px solid #765248;
+            border-bottom: 1px solid #dce1e4;
+        }
+        .eyebrow { margin: 0 0 8px; color: #68747c; font-size: 17px; }
+        h1 { margin: 0; color: #20262b; font-size: 38px; line-height: 1.2; }
+        .scope {
+            padding: 9px 15px;
+            color: #ffffff;
+            background: #426b70;
+            border-radius: 4px;
+            font-size: 18px;
+            font-weight: 750;
+        }
+        .table-head, .row {
+            display: grid;
+            grid-template-columns: 58px 1.1fr 1.25fr 1.45fr 1.55fr;
+            column-gap: 18px;
+            align-items: center;
+        }
+        .table-head {
+            min-height: 50px;
+            padding: 0 30px;
+            color: #65727a;
+            background: #f4f6f7;
+            border-bottom: 1px solid #dce1e4;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .row {
+            min-height: 118px;
+            padding: 15px 30px;
+            border-bottom: 1px solid #e0e4e6;
+        }
+        .row:last-child { border-bottom: 0; }
+        .index { color: #945649; font-size: 24px; font-weight: 800; }
+        .primary { color: #20272c; font-size: 17px; font-weight: 750; overflow-wrap: anywhere; }
+        .map { color: #275e65; font-size: 18px; font-weight: 800; overflow-wrap: anywhere; }
+        .secondary { margin-top: 6px; color: #748087; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+        .person { color: #20272c; font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+        .camp { margin-left: 5px; color: #8b5648; font-size: 13px; font-weight: 700; }
+        .amount {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 5px 8px;
+            color: #775026;
+            background: #f4eadb;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 750;
+        }
+        .empty {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #77838a;
+            font-size: 22px;
+        }
+        .footer {
+            padding: 17px 30px 20px;
+            color: #7a858c;
+            background: #fafbfb;
+            border-top: 1px solid #dce1e4;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <main id="main" v-cloak>
+        <article class="board">
+            <header class="header">
+                <div>
+                    <p class="eyebrow">剑网 3 稀有马驹记录</p>
+                    <h1>的卢记录</h1>
+                </div>
+                <div class="scope">{{ server || '服务器未知' }}</div>
+            </header>
+            <template v-if="data && data.length">
+                <div class="table-head">
+                    <span>序号</span>
+                    <span>地点</span>
+                    <span>刷新时间</span>
+                    <span>捕获信息</span>
+                    <span>拍卖信息</span>
+                </div>
+                <section>
+                    <div class="row" v-for="(item, index) in data" :key="index">
+                        <span class="index">{{ index + 1 }}</span>
+                        <div>
+                            <div class="map">{{ item.mapName || '地图未知' }}</div>
+                            <div class="secondary">{{ item.server || '服务器未知' }} · {{ item.zone || '大区未知' }}</div>
+                            <div class="secondary" v-if="item.startTime || item.endTime">
+                                {{ item.startTime || '未知' }} 至 {{ item.endTime || '未知' }}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="primary">{{ item.refreshTime || '时间未知' }}</div>
+                        </div>
+                        <div>
+                            <div class="person">{{ item.captureRoleName || '捕获者未知' }}<span class="camp" v-if="item.captureCampName">{{ item.captureCampName }}</span></div>
+                            <div class="secondary">{{ item.captureTime || '捕获时间未知' }}</div>
+                        </div>
+                        <div>
+                            <div class="person">{{ item.auctionRoleName || '拍卖者未知' }}<span class="camp" v-if="item.auctionCampName">{{ item.auctionCampName }}</span></div>
+                            <div class="secondary">{{ item.auctionTime || '拍卖时间未知' }}</div>
+                            <div class="amount" v-if="item.auctionAmount">{{ item.auctionAmount }}</div>
+                        </div>
+                    </div>
+                </section>
+            </template>
+            <div class="empty" v-else>暂无的卢记录</div>
+            <footer class="footer">共 {{ data && data.length ? data.length : 0 }} 条记录 · 时间按北京时间展示</footer>
+        </article>
+    </main>
+</body>
+</html>

@@ -1,71 +1,136 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
-
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>角色奇遇</title>
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/table.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body {
+            margin: 0;
+            min-width: 1080px;
+            background: #eef1f2;
+            color: #22282d;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            letter-spacing: 0;
+        }
+        #main { min-height: 720px; padding: 46px 60px; }
+        .board {
+            width: 100%;
+            max-width: 1160px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #ffffff;
+            border: 1px solid #cfd5d8;
+            border-radius: 8px;
+            box-shadow: 0 18px 42px rgba(31, 38, 43, 0.12);
+        }
+        .header {
+            min-height: 150px;
+            padding: 28px 36px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 28px;
+            border-top: 8px solid #8d4d65;
+            border-bottom: 1px solid #dce1e4;
+        }
+        .eyebrow { margin: 0 0 8px; color: #68747c; font-size: 17px; }
+        h1 { margin: 0; color: #20262b; font-size: 38px; line-height: 1.2; }
+        .identity { text-align: right; }
+        .role { color: #8d4d65; font-size: 22px; font-weight: 800; overflow-wrap: anywhere; }
+        .server { margin-top: 6px; color: #287364; font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
+        .table-head,
+        .row {
+            display: grid;
+            grid-template-columns: 76px minmax(280px, 1.45fr) minmax(210px, 1fr) minmax(250px, 1.1fr);
+            gap: 20px;
+            align-items: center;
+        }
+        .table-head {
+            min-height: 54px;
+            padding: 0 36px;
+            color: #68747c;
+            background: #f4f6f7;
+            border-bottom: 1px solid #dce1e4;
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .row { min-height: 78px; padding: 13px 36px; border-bottom: 1px solid #e3e7e9; }
+        .row:last-child { border-bottom: 0; }
+        .index { color: #8d4d65; font-size: 24px; font-weight: 800; }
+        .event { color: #20262b; font-size: 20px; font-weight: 800; overflow-wrap: anywhere; }
+        .location { min-width: 0; }
+        .location strong { display: block; color: #2d353a; font-size: 17px; overflow-wrap: anywhere; }
+        .location span { display: block; margin-top: 3px; color: #7a858c; font-size: 14px; overflow-wrap: anywhere; }
+        .time { color: #a66521; font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
+        .empty {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #77838a;
+            font-size: 22px;
+        }
+        .footer {
+            padding: 19px 36px 21px;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            color: #7a858c;
+            background: #fafbfb;
+            border-top: 1px solid #dce1e4;
+            font-size: 14px;
+        }
+    </style>
 </head>
-
 <body>
-    <div class="container" id="main">
-        <div class="card" style="background-image: url('img/bg.png');">
-            <div class="card-header">
-                <div class="row">
-                    <div class="col">
-                        <div class="text-center fs-4">
-                            <p><img src="img/location.png" height="30" width="30">{{ server }}</p>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="text-center fs-4">
-                            <p><img src="img/header.png" height="30" width="30">{{ name }}</p>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="text-center fs-4">
-                            <p><img src="img/cube.png" height="30" width="30">奇遇统计</p>
-                        </div>
-                    </div>
+    <main id="main" v-cloak>
+        <article class="board">
+            <header class="header">
+                <div>
+                    <p class="eyebrow">剑网 3 江湖际遇</p>
+                    <h1>角色奇遇记录</h1>
                 </div>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    {% for one in data.world_serendipity %}
-                    <div class="col-4">
-                        <div class="card border-0" style="background-color: transparent;width: 18rem;">
-                            <img src="serendipity/{{ one.serendipity }}.png">
-                            <div class="card-body text-center fs-5">
-                                <p><img src="img/calendar.png" height="30" width="30">{{ one.time }}</p>
-                                <p>{{ one.day }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    <div class="text-with-hr fs-5">
-                        <span>奇遇 {{ data.num_world }} 番 | 珍宠 {{ data.num_pet }} 番</span>
-                    </div>
-                    {% for one in data.pet_serendipity %}
-                    <div class="col-4">
-                        <div class="card border-0" style="background-color: transparent;width: 18rem;">
-                            <img src="serendipity/{{ one.serendipity }}.png">
-                            <div class="card-body text-center fs-5">
-                                <p><img src="img/calendar.png" height="30" width="30">{{ one.time }}</p>
-                                <p>{{ one.day }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
+                <div class="identity">
+                    <div class="role">{{ name || firstValue('name') || '未知角色' }}</div>
+                    <div class="server">{{ server || firstValue('server') || '未知区服' }}</div>
                 </div>
-            </div>
-            <div class="card-footer">
-                <h6 class="text-center fs-5">数据来源：www.jx3api.com</h6>
-            </div>
-        </div>
-    </div>
+            </header>
+            <template v-if="data && data.length">
+                <div class="table-head">
+                    <span>序号</span>
+                    <span>奇遇</span>
+                    <span>区服</span>
+                    <span>发生时间</span>
+                </div>
+                <section>
+                    <div class="row" v-for="(item, index) in data" :key="index">
+                        <span class="index">{{ index + 1 }}</span>
+                        <strong class="event">{{ item.event || '未知奇遇' }}</strong>
+                        <div class="location">
+                            <strong>{{ item.server || server || '未知服务器' }}</strong>
+                            <span>{{ item.zone || '未知大区' }}</span>
+                        </div>
+                        <span class="time">{{ item.time || '时间未知' }}</span>
+                    </div>
+                </section>
+            </template>
+            <div class="empty" v-else>暂无角色奇遇记录</div>
+            <footer class="footer">
+                <span>共 {{ data && data.length ? data.length : 0 }} 条记录</span>
+                <span>数据来源：www.jx3api.com</span>
+            </footer>
+        </article>
+    </main>
+    <script>
+        window.__BOT_DATA__ = Object.assign({
+            firstValue: function (key) {
+                var rows = window.__BOT_DATA__ && window.__BOT_DATA__.data;
+                return rows && rows.length ? rows[0][key] : null;
+            }
+        }, window.__BOT_DATA__ || {});
+    </script>
 </body>
-
 </html>

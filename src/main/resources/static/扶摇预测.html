@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>扶摇预测</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #edf1f2; color: #20282c; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 38px 54px; }
+        .board { width: 100%; max-width: 1172px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #cbd5d8; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 44, 49, .12); }
+        .header { min-height: 136px; padding: 25px 36px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; border-top: 8px solid #397078; border-bottom: 1px solid #d8e0e2; }
+        .eyebrow { margin: 0 0 8px; color: #6f7b80; font-size: 15px; }
+        h1 { margin: 0; font-size: 36px; line-height: 1.2; }
+        .server { max-width: 420px; color: #89563d; font-size: 19px; font-weight: 800; text-align: right; overflow-wrap: anywhere; }
+        .head, .row { display: grid; grid-template-columns: 80px minmax(180px, .8fr) minmax(220px, 1fr) minmax(260px, 1.25fr); gap: 20px; align-items: center; }
+        .head { min-height: 52px; padding: 0 38px; color: #6e7a80; background: #f2f5f6; border-bottom: 1px solid #dce3e5; font-size: 13px; font-weight: 700; }
+        .row { min-height: 88px; padding: 15px 38px; border-bottom: 1px solid #e1e7e9; }
+        .row:last-child { border-bottom: 0; }
+        .index { color: #8b573e; font-size: 23px; font-weight: 800; }
+        .zone { color: #65737a; font-size: 15px; overflow-wrap: anywhere; }
+        .place { color: #315f68; font-size: 17px; font-weight: 800; overflow-wrap: anywhere; }
+        .time { color: #252d31; font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
+        .empty { min-height: 350px; display: flex; align-items: center; justify-content: center; color: #78858a; font-size: 21px; }
+        .footer { padding: 16px 38px 19px; color: #7a858a; background: #fafbfb; border-top: 1px solid #dce3e5; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header"><div><p class="eyebrow">剑网 3 扶摇事件时间</p><h1>扶摇预测</h1></div><div class="server">{{ server || '全部服务器' }} · {{ data && data.length ? data.length : 0 }} 条</div></header>
+        <template v-if="data && data.length"><div class="head"><span>序号</span><span>大区</span><span>服务器</span><span>预计时间</span></div><section><div class="row" v-for="(item,index) in data" :key="index"><span class="index">{{ index + 1 }}</span><span class="zone">{{ item.zone || '未知大区' }}</span><span class="place">{{ item.server || '未知服务器' }}</span><span class="time">{{ item.time || '时间未知' }}</span></div></section></template>
+        <div class="empty" v-else>暂无扶摇预测记录</div>
+        <footer class="footer">时间统一按北京时间显示，数字状态码不作未经确认的文案转换</footer>
+    </article>
+</main>
+</body>
+</html>

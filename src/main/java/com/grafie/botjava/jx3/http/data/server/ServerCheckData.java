@@ -22,7 +22,7 @@ public class ServerCheckData {
     private String server;
 
     @JsonProperty("status")
-    private Integer status;
+    private String status;
 
     @JsonProperty("time")
     public String time;

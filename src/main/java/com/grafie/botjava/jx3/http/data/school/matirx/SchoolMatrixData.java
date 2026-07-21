@@ -1,5 +1,6 @@
 package com.grafie.botjava.jx3.http.data.school.matirx;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -19,7 +20,8 @@ public class SchoolMatrixData {
     @JsonProperty("skillName")
     private String skillName;
 
-    @JsonProperty("descs")
-    private List<DescriptiveSkill> descs;
+    @JsonProperty("data")
+    @JsonAlias("descs")
+    private List<DescriptiveSkill> effects;
 }
 

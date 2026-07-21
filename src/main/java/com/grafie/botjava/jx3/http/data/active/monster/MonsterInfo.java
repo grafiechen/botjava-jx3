@@ -8,6 +8,9 @@ import java.util.List;
 @Data
 public class MonsterInfo {
 
+    @JsonProperty("index")
+    private Integer index;
+
     @JsonProperty("name")
     private String name;
 

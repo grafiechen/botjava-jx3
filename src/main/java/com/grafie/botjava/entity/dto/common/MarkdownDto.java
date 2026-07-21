@@ -1,14 +1,36 @@
 package com.grafie.botjava.entity.dto.common;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
- * Markdown对象
- *  <a href="https://bot.q.qq.com/wiki/develop/api-v2/server-inter/message/type/markdown.html#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E5%8D%8F%E8%AE%AE">Markdown对象</a>
- * @author grafie.chen
- * @since 2025/1/23  15:55
+ * QQ Markdown 消息结构。
  */
 @Data
-public class MarkdownDto{
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class MarkdownDto {
+    private String content;
+    @JsonProperty("custom_template_id")
+    private String customTemplateId;
+    private List<Param> params;
 
+    public static MarkdownDto content(String content) {
+        MarkdownDto markdown = new MarkdownDto();
+        markdown.setContent(content);
+        return markdown;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class Param {
+        private String key;
+        private List<String> values;
+    }
 }

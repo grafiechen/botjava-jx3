@@ -1,6 +1,6 @@
 package com.grafie.botjava.jx3.http.data.tieba;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Data;
 
 /**
@@ -11,27 +11,13 @@ import lombok.Data;
  */
 @Data
 public class TiebaRandomData {
-    @JsonProperty("id")
     private Long id;
-
-    @JsonProperty("class")
-    private String classType;
-
-    @JsonProperty("zone")
+    @JsonAlias("class")
+    private String tags;
     private String zone;
-
-    @JsonProperty("server")
     private String server;
-
-    @JsonProperty("name")
     private String name;
-
-    @JsonProperty("title")
     private String title;
-
-    @JsonProperty("url")
     private Long url;
-
-    @JsonProperty("date")
     private String date;
 }

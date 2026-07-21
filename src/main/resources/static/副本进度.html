@@ -183,19 +183,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for instance in data %}
+                        <template v-for="instance in data">
                         <tr>
                             <td>{{ instance.name }}</td>
                             <td>{{ instance.type }}</td>
                             <td>
-                                {% for boss in instance.bosses %}
-                                <div class="boss {% if boss.finished %}completed{% else %}not-completed{% endif %}">
+                                <template v-for="boss in instance.bosses">
+                                <div :class="['boss', boss.finished ? 'completed' : 'not-completed']">
                                     {{ boss.boss_name }}
                                 </div>
-                                {% endfor %}
+                                </template>
                             </td>
                         </tr>
-                        {% endfor %}
+                        </template>
                     </tbody>
                 </table>
             </div>

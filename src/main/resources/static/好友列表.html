@@ -26,13 +26,13 @@
                         </tr>
                     </thead>
                     <tbody class="fs-5">
-                        {% for user in user_list %}
+                        <template v-for="user in user_list">
                         <tr>
                             <td>{{ user.user_id }}</td>
                             <td>{{ user.nickname }}</td>
                             <td>{{ user.remark }}</td>
                         </tr>
-                        {% endfor %}
+                        </template>
                     </tbody>
                 </table>
             </div>

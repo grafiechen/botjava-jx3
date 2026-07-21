@@ -1,5 +1,6 @@
 package com.grafie.botjava.jx3.http.data.role;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -23,7 +24,8 @@ public class RoleDetailedData {
     @JsonProperty("roleId")
     private String roleId;
 
-    @JsonProperty("globalRoleId")
+    @JsonAlias("globalRoleId")
+    @JsonProperty("globalId")
     private String globalRoleId;
 
     @JsonProperty("forceName")

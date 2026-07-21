@@ -1,9 +1,11 @@
 package com.grafie.botjava.jx3.config;
 
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.Assert;
 
 /**
  * Api相关配置信息
@@ -40,4 +42,28 @@ public class ApiProperties {
      * dps计算服务的token
      */
     private String dpsToken;
+    /**
+     * dps计算服务地址
+     */
+    private String dpsServiceUrl = "https://www.jx3hps.com";
+    /**
+     * dps计算服务路径
+     */
+    private String dpsServicePath = "/dps";
+    /**
+     * dps计算模型，例如 旗舰、无界。
+     */
+    private String dpsModel = "旗舰";
+
+    @PostConstruct
+    public void validate() {
+        Assert.hasText(apiUrl, "jx3api.api.api-url 不能为空");
+        Assert.hasText(apiToken, "jx3api.api.api-token 不能为空");
+        Assert.hasText(defaultServer, "jx3api.api.default-server 不能为空");
+        Assert.hasText(ticket, "jx3api.api.ticket 不能为空");
+        Assert.hasText(name, "jx3api.api.name 不能为空");
+        Assert.hasText(dpsServiceUrl, "jx3api.api.dps-service-url 不能为空");
+        Assert.hasText(dpsServicePath, "jx3api.api.dps-service-path 不能为空");
+        Assert.hasText(dpsModel, "jx3api.api.dps-model 不能为空");
+    }
 }

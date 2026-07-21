@@ -17,7 +17,7 @@
 
         <div class="text-center">
           <p class="obs-time">{{ now['obsTime'] }}</p>
-          <em class="qi-{{ now['icon'] }}"></em>
+          <em :class="'qi-' + now['icon']"></em>
           <p class="realtime-text">{{ now['text'] }}</p>
         </div>
       </div>
@@ -46,7 +46,7 @@
 
 
     <div class="days-weather">
-      {% for day in daily %}
+      <template v-for="day in daily">
       <div class="days">
         <!-- 1 -->
         <div class="week-date">
@@ -63,11 +63,11 @@
 
           <div class="days-icon">
             <div>
-              <em class="qi-{{ day['iconDay'] }} icon-size icon-day"></em>
+              <em :class="['qi-' + day['iconDay'], 'icon-size', 'icon-day']"></em>
 
             </div>
             <div class="icon-night">
-              <em class="qi-{{ day['iconNight'] }} icon-size icon-night"></em>
+              <em :class="['qi-' + day['iconNight'], 'icon-size', 'icon-night']"></em>
             </div>
           </div>
 
@@ -83,12 +83,12 @@
 
         </div>
       </div>
-      {% endfor %}
+      </template>
     </div>
-    {% for w in warning %}
+    <template v-for="w in warning">
     <div class="warning-box">
       <div class="warning-side">
-        <div class="warning-icon"><em class="qi-{{ w['type'] }}"></em></div>
+        <div class="warning-icon"><em :class="'qi-' + w['type']"></em></div>
         <div class="warning-header">
           <p class="warning-title">{{ w['title'] }}</p>
           <p class="warning-time">{{ w['startTime'] }}</p>
@@ -98,7 +98,7 @@
         <p>{{ w['text'] }}</p>
       </div>
     </div>
-    {% endfor %}
+    </template>
   </div>
   </div>
 </body>

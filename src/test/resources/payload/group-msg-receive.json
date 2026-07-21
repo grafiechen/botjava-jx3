@@ -1,0 +1,10 @@
+{
+  "op": 0,
+  "s": 103,
+  "t": "GROUP_MSG_RECEIVE",
+  "d": {
+    "timestamp": 1783933320,
+    "group_openid": "group-1",
+    "op_member_openid": "account-1"
+  }
+}

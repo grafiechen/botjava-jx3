@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.grafie.botjava.util.SensitiveDataUtil;
 
 /**
  * @author grafie.chen
@@ -23,10 +24,12 @@ public class BotMessageController {
     @PostMapping()
     public Object getMessage(@RequestBody Payload payload) {
         try {
-            log.info("接收到推送消息 =>{}", payload);
+            log.info("接收到 QQ 推送，op=>{}，t=>{}，sequence=>{}",
+                    payload.getOp(), payload.getT(), payload.getS());
             return botMessageService.dealMessage(payload);
         } catch (Exception e) {
-            log.error("处理消息出错请求参数=>{}", payload, e);
+            log.error("处理 QQ 推送失败，op=>{}，t=>{}，reason=>{}",
+                    payload.getOp(), payload.getT(), SensitiveDataUtil.summarize(e));
             return null;
         }
 

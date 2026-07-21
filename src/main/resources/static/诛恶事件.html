@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>诛恶事件</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #edf1f2; color: #20272c; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 42px 60px; }
+        .board { width: 100%; max-width: 1160px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #cfd5d8; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 38, 43, .12); }
+        .header { min-height: 144px; padding: 27px 36px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; border-top: 8px solid #5d6671; border-bottom: 1px solid #dce1e4; }
+        .eyebrow { margin: 0 0 8px; color: #68747c; font-size: 17px; }
+        h1 { margin: 0; font-size: 38px; line-height: 1.2; }
+        .scope { color: #8a5447; font-size: 19px; font-weight: 800; }
+        .table-head, .row { display: grid; grid-template-columns: 72px 1.2fr 1.2fr 1.45fr 1.6fr; gap: 22px; align-items: center; }
+        .table-head { min-height: 54px; padding: 0 38px; color: #68747c; background: #f4f6f7; border-bottom: 1px solid #dce1e4; font-size: 14px; font-weight: 700; }
+        .row { min-height: 84px; padding: 13px 38px; border-bottom: 1px solid #e2e6e8; }
+        .row:last-child { border-bottom: 0; }
+        .index { color: #8a5447; font-size: 24px; font-weight: 800; }
+        .zone { color: #647178; font-size: 14px; overflow-wrap: anywhere; }
+        .server { color: #20272c; font-size: 17px; font-weight: 800; overflow-wrap: anywhere; }
+        .map { color: #35636b; font-size: 17px; font-weight: 750; overflow-wrap: anywhere; }
+        .time { color: #786054; font-size: 14px; overflow-wrap: anywhere; }
+        .empty { min-height: 320px; display: flex; align-items: center; justify-content: center; color: #77838a; font-size: 22px; }
+        .footer { padding: 18px 38px 21px; color: #7a858c; background: #fafbfb; border-top: 1px solid #dce1e4; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header"><div><p class="eyebrow">剑网 3 跨服诛恶动态</p><h1>诛恶事件</h1></div><div class="scope">{{ scope || '全服' }}</div></header>
+        <template v-if="data && data.length">
+            <div class="table-head"><span>序号</span><span>大区</span><span>服务器</span><span>地图</span><span>发生时间</span></div>
+            <section>
+                <div class="row" v-for="(item, index) in data" :key="index">
+                    <span class="index">{{ index + 1 }}</span><span class="zone">{{ item.zone || '大区未知' }}</span>
+                    <span class="server">{{ item.server || '服务器未知' }}</span><span class="map">{{ item.mapName || '地图未知' }}</span>
+                    <span class="time">{{ item.time || '时间未知' }}</span>
+                </div>
+            </section>
+        </template>
+        <div class="empty" v-else>暂无诛恶事件记录</div>
+        <footer class="footer">共 {{ data && data.length ? data.length : 0 }} 条记录 · 时间按北京时间展示</footer>
+    </article>
+</main>
+</body>
+</html>

@@ -1,0 +1,49 @@
+package com.grafie.botjava.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+
+/**
+ * QQ 群成员的 JX3 查询偏好。
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Table(name = "user_info")
+public class UserInfo {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "member_openid", nullable = false, unique = true, length = 128)
+    private String memberOpenId;
+
+    @Column(length = 64)
+    private String server;
+
+    @Column(name = "role_name", length = 64)
+    private String roleName;
+
+    @Column(length = 64)
+    private String school;
+
+    @CreationTimestamp
+    @Column(name = "create_time", nullable = false, updatable = false)
+    private LocalDateTime createTime;
+
+    @UpdateTimestamp
+    @Column(name = "update_time", nullable = false)
+    private LocalDateTime updateTime;
+}

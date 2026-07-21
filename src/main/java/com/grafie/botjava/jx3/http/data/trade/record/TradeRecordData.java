@@ -1,5 +1,6 @@
 package com.grafie.botjava.jx3.http.data.trade.record;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -46,7 +47,8 @@ public class TradeRecordData {
     @JsonProperty("date")
     private String date;
 
-    @JsonProperty("data")
+    @JsonAlias("data")
+    @JsonProperty("list")
     private List<List<SaleData>> data;
 }
 
