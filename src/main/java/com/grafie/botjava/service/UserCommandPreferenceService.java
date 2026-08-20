@@ -19,7 +19,6 @@ import java.util.List;
  */
 @Service
 public class UserCommandPreferenceService {
-
     private final UserInfoMapper userInfoMapper;
     private final UserRoleBindingMapper roleBindingMapper;
 
@@ -34,15 +33,12 @@ public class UserCommandPreferenceService {
             return arguments;
         }
         UserInfo userInfo = userInfoMapper.findByMemberOpenId(memberOpenId);
-        if (userInfo == null) {
-            return arguments;
-        }
-        return arguments.withDefaults(userInfo.getServer(), userInfo.getRoleName(), userInfo.getSchool());
+        return userInfo == null ? arguments
+                : arguments.withDefaults(userInfo.getServer(), userInfo.getRoleName(), userInfo.getSchool());
     }
 
     public UserInfo find(GroupAtMessageCreateDto message) {
-        String memberOpenId = requireMemberOpenId(message);
-        return userInfoMapper.findByMemberOpenId(memberOpenId);
+        return userInfoMapper.findByMemberOpenId(requireMemberOpenId(message));
     }
 
     @Transactional
@@ -75,101 +71,106 @@ public class UserCommandPreferenceService {
     }
 
     @Transactional
-    public UserInfo bind(GroupAtMessageCreateDto message, String server, String roleName) {
+    public UserInfo bind(GroupAtMessageCreateDto message, String server, String roleName, String school) {
+        String groupOpenId = requireGroupOpenId(message);
         String memberOpenId = requireMemberOpenId(message);
         String cleanedServer = requireText(server, "服务器");
         String cleanedRoleName = requireText(roleName, "角色名");
-        saveRole(memberOpenId, cleanedServer, cleanedRoleName);
-        return saveDefault(memberOpenId, cleanedServer, cleanedRoleName);
+        String cleanedSchool = clean(school);
+        saveRole(groupOpenId, memberOpenId, cleanedServer, cleanedRoleName, cleanedSchool);
+        return saveDefault(memberOpenId, cleanedServer, cleanedRoleName, cleanedSchool);
     }
 
     @Transactional
-    public UserRoleBinding addRole(GroupAtMessageCreateDto message, String server, String roleName) {
+    public UserRoleBinding addRole(GroupAtMessageCreateDto message, String server, String roleName, String school) {
+        String groupOpenId = requireGroupOpenId(message);
         String memberOpenId = requireMemberOpenId(message);
         String cleanedServer = requireText(server, "服务器");
         String cleanedRoleName = requireText(roleName, "角色名");
-        UserRoleBinding binding = saveRole(memberOpenId, cleanedServer, cleanedRoleName);
+        String cleanedSchool = clean(school);
+        UserRoleBinding binding = saveRole(groupOpenId, memberOpenId, cleanedServer, cleanedRoleName, cleanedSchool);
         if (userInfoMapper.findByMemberOpenId(memberOpenId) == null) {
-            saveDefault(memberOpenId, cleanedServer, cleanedRoleName);
+            saveDefault(memberOpenId, cleanedServer, cleanedRoleName, cleanedSchool);
         }
         return binding;
     }
 
     @Transactional
-    public UserInfo switchRole(GroupAtMessageCreateDto message, String server, String roleName) {
+    public UserRoleBinding updateRoleSchool(GroupAtMessageCreateDto message,
+                                            String server, String roleName, String school) {
+        String groupOpenId = requireGroupOpenId(message);
         String memberOpenId = requireMemberOpenId(message);
         String cleanedServer = requireText(server, "服务器");
         String cleanedRoleName = requireText(roleName, "角色名");
-        UserRoleBinding binding = roleBindingMapper.findByMemberOpenIdAndServerAndRoleName(
-                memberOpenId, cleanedServer, cleanedRoleName);
+        String cleanedSchool = requireText(school, "门派");
+        UserRoleBinding binding = roleBindingMapper.findByGroupOpenIdAndMemberOpenIdAndServerAndRoleName(
+                groupOpenId, memberOpenId, cleanedServer, cleanedRoleName);
         if (binding == null) {
-            throw new IllegalArgumentException("未找到该角色绑定，请先使用：添加角色 服务器 角色名");
+            throw new IllegalArgumentException("未找到该角色，请先使用：我的角色");
         }
-        return saveDefault(memberOpenId, cleanedServer, cleanedRoleName);
+        UserInfo defaultRole = userInfoMapper.findByMemberOpenId(memberOpenId);
+        boolean updatesDefault = sameRole(binding, defaultRole);
+        binding.setSchool(cleanedSchool);
+        UserRoleBinding saved = roleBindingMapper.save(binding);
+        if (updatesDefault) {
+            saveDefault(memberOpenId, cleanedServer, cleanedRoleName, cleanedSchool);
+        }
+        return saved;
     }
 
     public BindingSnapshot findBindings(GroupAtMessageCreateDto message) {
+        String groupOpenId = requireGroupOpenId(message);
         String memberOpenId = requireMemberOpenId(message);
         UserInfo defaultRole = userInfoMapper.findByMemberOpenId(memberOpenId);
-        List<UserRoleBinding> storedRoles = roleBindingMapper.findByMemberOpenIdOrderByIdAsc(memberOpenId);
+        List<UserRoleBinding> storedRoles = roleBindingMapper
+                .findByGroupOpenIdAndMemberOpenIdOrderByIdAsc(groupOpenId, memberOpenId);
         List<UserRoleBinding> roles = new ArrayList<>(storedRoles == null ? Collections.emptyList() : storedRoles);
-        if (hasCompleteRole(defaultRole) && roles.stream().noneMatch(role -> sameRole(
-                role, defaultRole.getServer(), defaultRole.getRoleName()))) {
-            UserRoleBinding legacyRole = new UserRoleBinding();
-            legacyRole.setMemberOpenId(memberOpenId);
-            legacyRole.setServer(defaultRole.getServer());
-            legacyRole.setRoleName(defaultRole.getRoleName());
-            roles.add(0, legacyRole);
-        }
         return new BindingSnapshot(defaultRole, List.copyOf(roles));
     }
 
+    public List<UserRoleBinding> findGroupBindings(String groupOpenId) {
+        String cleanedGroupOpenId = requireText(groupOpenId, "群标识");
+        List<UserRoleBinding> bindings = roleBindingMapper
+                .findByGroupOpenIdOrderByMemberOpenIdAscIdAsc(cleanedGroupOpenId);
+        return bindings == null ? List.of() : List.copyOf(bindings);
+    }
+
     @Transactional
-    public boolean unbindRole(GroupAtMessageCreateDto message, String server, String roleName) {
+    public boolean deleteRole(GroupAtMessageCreateDto message, String server, String roleName) {
+        String groupOpenId = requireGroupOpenId(message);
         String memberOpenId = requireMemberOpenId(message);
         String cleanedServer = requireText(server, "服务器");
         String cleanedRoleName = requireText(roleName, "角色名");
-        UserInfo defaultRole = userInfoMapper.findByMemberOpenId(memberOpenId);
-        UserRoleBinding target = roleBindingMapper.findByMemberOpenIdAndServerAndRoleName(
-                memberOpenId, cleanedServer, cleanedRoleName);
-        boolean removesDefault = sameRole(defaultRole, cleanedServer, cleanedRoleName);
-        if (target == null && !removesDefault) {
+        UserRoleBinding target = roleBindingMapper.findByGroupOpenIdAndMemberOpenIdAndServerAndRoleName(
+                groupOpenId, memberOpenId, cleanedServer, cleanedRoleName);
+        if (target == null) {
             return false;
         }
-        if (target != null) {
-            roleBindingMapper.delete(target);
-        }
+        UserInfo defaultRole = userInfoMapper.findByMemberOpenId(memberOpenId);
+        boolean removesDefault = sameRole(target, defaultRole);
+        roleBindingMapper.delete(target);
         if (removesDefault) {
-            List<UserRoleBinding> remaining = roleBindingMapper.findByMemberOpenIdOrderByIdAsc(memberOpenId)
+            List<UserRoleBinding> remaining = roleBindingMapper
+                    .findByGroupOpenIdAndMemberOpenIdOrderByIdAsc(groupOpenId, memberOpenId)
                     .stream()
-                    .filter(role -> !sameRole(role, cleanedServer, cleanedRoleName))
+                    .filter(role -> !java.util.Objects.equals(role.getId(), target.getId()))
                     .toList();
             if (remaining.isEmpty()) {
                 clearDefaultRole(defaultRole);
             } else {
-                UserRoleBinding next = remaining.get(0);
-                saveDefault(memberOpenId, next.getServer(), next.getRoleName());
+                UserRoleBinding next = remaining.getFirst();
+                saveDefault(memberOpenId, next.getServer(), next.getRoleName(), next.getSchool());
             }
         }
         return true;
     }
 
-    private UserInfo saveDefault(String memberOpenId, String server, String roleName) {
-        UserInfo userInfo = userInfoMapper.findByMemberOpenId(memberOpenId);
-        if (userInfo == null) {
-            userInfo = new UserInfo();
-            userInfo.setMemberOpenId(memberOpenId);
-        }
-        userInfo.setServer(server);
-        userInfo.setRoleName(roleName);
-        return userInfoMapper.save(userInfo);
-    }
-
     @Transactional
     public boolean unbind(GroupAtMessageCreateDto message) {
+        String groupOpenId = requireGroupOpenId(message);
         String memberOpenId = requireMemberOpenId(message);
         UserInfo userInfo = userInfoMapper.findByMemberOpenId(memberOpenId);
-        long deletedRoles = roleBindingMapper.deleteByMemberOpenId(memberOpenId);
+        long deletedRoles = roleBindingMapper.deleteByGroupOpenIdAndMemberOpenId(groupOpenId, memberOpenId);
         boolean hadDefaultRole = hasAnyRole(userInfo);
         if (hadDefaultRole) {
             clearDefaultRole(userInfo);
@@ -177,45 +178,58 @@ public class UserCommandPreferenceService {
         return hadDefaultRole || deletedRoles > 0;
     }
 
+    private UserInfo saveDefault(String memberOpenId, String server, String roleName, String school) {
+        UserInfo userInfo = userInfoMapper.findByMemberOpenId(memberOpenId);
+        if (userInfo == null) {
+            userInfo = new UserInfo();
+            userInfo.setMemberOpenId(memberOpenId);
+        }
+        userInfo.setServer(server);
+        userInfo.setRoleName(roleName);
+        userInfo.setSchool(school);
+        return userInfoMapper.save(userInfo);
+    }
+
     private void clearDefaultRole(UserInfo userInfo) {
-        userInfo.setServer(null);
-        userInfo.setRoleName(null);
-        if (clean(userInfo.getSchool()) == null) {
+        if (userInfo != null) {
             userInfoMapper.delete(userInfo);
-        } else {
-            userInfoMapper.save(userInfo);
         }
     }
 
-    private UserRoleBinding saveRole(String memberOpenId, String server, String roleName) {
-        UserRoleBinding existing = roleBindingMapper.findByMemberOpenIdAndServerAndRoleName(
-                memberOpenId, server, roleName);
+    private UserRoleBinding saveRole(String groupOpenId, String memberOpenId,
+                                     String server, String roleName, String school) {
+        UserRoleBinding existing = roleBindingMapper.findByGroupOpenIdAndMemberOpenIdAndServerAndRoleName(
+                groupOpenId, memberOpenId, server, roleName);
         if (existing != null) {
-            return existing;
+            existing.setSchool(school);
+            return roleBindingMapper.save(existing);
         }
         UserRoleBinding binding = new UserRoleBinding();
+        binding.setGroupOpenId(groupOpenId);
         binding.setMemberOpenId(memberOpenId);
-        binding.setServer(server);
         binding.setRoleName(roleName);
+        binding.setServer(server);
+        binding.setSchool(school);
         return roleBindingMapper.save(binding);
     }
 
-    private boolean sameRole(UserRoleBinding binding, String server, String roleName) {
-        return binding != null && server != null && roleName != null
-                && server.equals(binding.getServer()) && roleName.equals(binding.getRoleName());
-    }
-
-    private boolean sameRole(UserInfo binding, String server, String roleName) {
-        return binding != null && server != null && roleName != null
-                && server.equals(binding.getServer()) && roleName.equals(binding.getRoleName());
-    }
-
-    private boolean hasCompleteRole(UserInfo binding) {
-        return binding != null && clean(binding.getServer()) != null && clean(binding.getRoleName()) != null;
+    private boolean sameRole(UserRoleBinding binding, UserInfo defaultRole) {
+        return binding != null && defaultRole != null
+                && java.util.Objects.equals(binding.getServer(), defaultRole.getServer())
+                && java.util.Objects.equals(binding.getRoleName(), defaultRole.getRoleName());
     }
 
     private boolean hasAnyRole(UserInfo binding) {
         return binding != null && (clean(binding.getServer()) != null || clean(binding.getRoleName()) != null);
+    }
+
+    private String requireGroupOpenId(GroupAtMessageCreateDto message) {
+        String groupOpenId = message == null ? null : clean(firstNotBlank(
+                message.getGroupOpenid(), message.getGroupId()));
+        if (groupOpenId == null) {
+            throw new IllegalArgumentException("当前消息缺少群标识，无法保存绑定。");
+        }
+        return groupOpenId;
     }
 
     private String requireMemberOpenId(GroupAtMessageCreateDto message) {
@@ -228,10 +242,7 @@ public class UserCommandPreferenceService {
 
     private String memberOpenId(GroupAtMessageCreateDto message) {
         AuthorDto author = message == null ? null : message.getAuthor();
-        if (author == null) {
-            return null;
-        }
-        return clean(firstNotBlank(author.getMemberOpenid(), author.getId()));
+        return author == null ? null : clean(firstNotBlank(author.getMemberOpenid(), author.getId()));
     }
 
     private String requireText(String value, String fieldName) {

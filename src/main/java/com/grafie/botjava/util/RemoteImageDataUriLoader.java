@@ -2,6 +2,8 @@ package com.grafie.botjava.util;
 
 import com.grafie.botjava.jx3.config.RemoteImageProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
@@ -23,12 +25,14 @@ import java.util.Locale;
 import java.util.Optional;
 
 @Component
+@ConditionalOnProperty(prefix = "jx3api", name = {"enabled", "http.enabled"}, havingValue = "true", matchIfMissing = true)
 @Slf4j
 public class RemoteImageDataUriLoader {
 
     private final RemoteImageProperties properties;
     private final ImageFetcher fetcher;
 
+    @Autowired
     public RemoteImageDataUriLoader(RemoteImageProperties properties) {
         this(properties, new JdkImageFetcher(properties));
     }
@@ -159,6 +163,7 @@ public class RemoteImageDataUriLoader {
 
         @Override
         public FetchResult fetch(URI uri, int maxBytes, Duration timeout) throws Exception {
+            long startNanos = System.nanoTime();
             rejectPrivateAddress(uri.getHost());
             HttpRequest request = HttpRequest.newBuilder(uri)
                     .timeout(timeout)
@@ -166,16 +171,38 @@ public class RemoteImageDataUriLoader {
                     .header("User-Agent", "botjava-jx3/1.0")
                     .GET()
                     .build();
-            HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
-            long contentLength = response.headers().firstValueAsLong("Content-Length").orElse(-1L);
-            String contentType = response.headers().firstValue("Content-Type").orElse(null);
-            try (InputStream body = response.body()) {
-                if (contentLength > maxBytes) {
-                    return new FetchResult(response.statusCode(), contentType, contentLength, new byte[0]);
+            OutboundHttpRateLimiter.awaitPermit();
+            log.info("外部 HTTP 请求开始，service=>RemoteImage，method=>GET，url=>{}", summarizeUri(uri));
+            try {
+                HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+                long contentLength = response.headers().firstValueAsLong("Content-Length").orElse(-1L);
+                String contentType = response.headers().firstValue("Content-Type").orElse(null);
+                try (InputStream body = response.body()) {
+                    if (contentLength > maxBytes) {
+                        log.info("外部 HTTP 请求完成，service=>RemoteImage，method=>GET，url=>{}，status=>{}，contentType=>{}，contentLength=>{}，elapsedMs=>{}",
+                                summarizeUri(uri), response.statusCode(), contentType, contentLength,
+                                elapsedMillis(startNanos));
+                        return new FetchResult(response.statusCode(), contentType, contentLength, new byte[0]);
+                    }
+                    byte[] bytes = readBounded(body, maxBytes);
+                    log.info("外部 HTTP 请求完成，service=>RemoteImage，method=>GET，url=>{}，status=>{}，contentType=>{}，contentLength=>{}，bytes=>{}，elapsedMs=>{}",
+                            summarizeUri(uri), response.statusCode(), contentType, contentLength, bytes.length,
+                            elapsedMillis(startNanos));
+                    return new FetchResult(response.statusCode(), contentType, contentLength, bytes);
                 }
-                return new FetchResult(response.statusCode(), contentType, contentLength,
-                        readBounded(body, maxBytes));
+            } catch (Exception e) {
+                log.error("外部 HTTP 请求失败，service=>RemoteImage，method=>GET，url=>{}，elapsedMs=>{}，reason=>{}",
+                        summarizeUri(uri), elapsedMillis(startNanos), SensitiveDataUtil.summarize(e), e);
+                throw e;
             }
+        }
+
+        private static String summarizeUri(URI uri) {
+            return uri == null ? null : uri.getScheme() + "://" + uri.getHost() + uri.getPath();
+        }
+
+        private static long elapsedMillis(long startNanos) {
+            return (System.nanoTime() - startNanos) / 1_000_000;
         }
 
         private static byte[] readBounded(InputStream input, int maxBytes) throws Exception {

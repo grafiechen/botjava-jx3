@@ -60,8 +60,9 @@ class SensitiveLoggingSourceContractTest {
                         || text.contains("setMsg_seq(")
                         || text.contains("setEvent_id(");
                 if (assemblesGroupMessage) {
-                    assertTrue(source.endsWith(Path.of("service", "GroupMessageSender.java")),
-                            source + " 不应直接拼装 QQ 群消息传输字段");
+                    assertTrue(source.endsWith(Path.of("service", "GroupMessageSender.java"))
+                                    || source.endsWith(Path.of("service", "C2cMessageSender.java")),
+                            source + " 不应直接拼装 QQ 消息传输字段");
                 }
             }
         }

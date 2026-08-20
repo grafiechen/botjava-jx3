@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>角色聊天</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1180px; background: #e9edef; color: #20282d; font-family: "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 38px 52px; }
+        .board { width: 100%; max-width: 1280px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #cbd3d7; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 42, 48, .12); }
+        .header { min-height: 142px; padding: 26px 36px; display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; border-top: 8px solid #3f6f70; border-bottom: 1px solid #d9e1e4; }
+        .eyebrow { margin: 0 0 8px; color: #738086; font-size: 15px; }
+        h1 { margin: 0; color: #202b30; font-size: 36px; line-height: 1.2; overflow-wrap: anywhere; }
+        .scope { margin-top: 8px; color: #5e6d73; font-size: 16px; }
+        .summary { color: #8a5945; font-size: 17px; font-weight: 800; text-align: right; line-height: 1.6; }
+        .head, .row { display: grid; grid-template-columns: 54px 180px 82px minmax(480px, 1fr) 154px; gap: 18px; align-items: center; }
+        .head { min-height: 50px; padding: 0 34px; color: #6d7a80; background: #f2f5f6; border-bottom: 1px solid #dce3e5; font-size: 13px; font-weight: 700; }
+        .row { min-height: 92px; padding: 15px 34px; border-bottom: 1px solid #e1e7e9; }
+        .row:last-child { border-bottom: 0; }
+        .index { color: #8c5944; font-size: 22px; font-weight: 800; }
+        .identity strong { display: block; color: #315f67; font-size: 16px; overflow-wrap: anywhere; }
+        .identity span { display: block; margin-top: 5px; color: #76838a; font-size: 13px; overflow-wrap: anywhere; }
+        .channel { color: #596b72; font-size: 14px; font-weight: 800; overflow-wrap: anywhere; }
+        .message { margin: 0; color: #2a3439; font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; word-break: break-word; }
+        .time { color: #748087; font-size: 13px; line-height: 1.45; text-align: right; }
+        .empty { min-height: 390px; display: flex; align-items: center; justify-content: center; color: #78858b; font-size: 22px; }
+        .footer { padding: 16px 34px 19px; color: #7b878d; background: #fafbfb; border-top: 1px solid #dce3e5; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header">
+            <div>
+                <p class="eyebrow">剑网 3 角色聊天记录</p>
+                <h1>{{ roleName || '角色聊天' }}</h1>
+                <div class="scope">{{ server || '未知服务器' }}</div>
+            </div>
+            <div class="summary">第 {{ page || 1 }} 页<br>本页 {{ data && data.length ? data.length : 0 }} 条 / 共 {{ total == null ? 0 : total }} 条</div>
+        </header>
+        <template v-if="data && data.length">
+            <div class="head"><span>序号</span><span>角色</span><span>频道</span><span>聊天内容</span><span>时间</span></div>
+            <section>
+                <div class="row" v-for="(item, index) in data" :key="index">
+                    <span class="index">{{ index + 1 }}</span>
+                    <div class="identity"><strong>{{ item.roleName || roleName || '未知角色' }}</strong><span>{{ item.zone || '未知大区' }} · {{ item.server || server || '未知服务器' }}</span></div>
+                    <span class="channel">{{ item.channel || '未知' }}</span>
+                    <p class="message">{{ item.message || '暂无聊天内容' }}</p>
+                    <span class="time">{{ item.time || '时间未知' }}</span>
+                </div>
+            </section>
+        </template>
+        <div class="empty" v-else>暂无角色聊天记录</div>
+        <footer class="footer">数据来源：JX3API</footer>
+    </article>
+</main>
+</body>
+</html>

@@ -16,6 +16,7 @@ import com.grafie.botjava.service.GroupConfigurationService;
 import com.grafie.botjava.util.ObjectMapperUtil;
 import com.grafie.botjava.util.SensitiveDataUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpMethod;
 
 import java.util.Iterator;
 import java.lang.reflect.Array;
@@ -104,7 +105,9 @@ public abstract class Jx3BaseAction {
             if (requestParam == null) {
                 requestParam = Map.of();
             }
-            RequestResult requestResult = jx3RequestUtil.doPostRequest(regex.getMethodEnum().getMethodPath(), requestParam);
+            RequestResult requestResult = HttpMethod.GET.equals(regex.getMethodEnum().getHttpMethod())
+                    ? jx3RequestUtil.doGetRequest(regex.getMethodEnum(), requestParam)
+                    : jx3RequestUtil.doPostRequest(regex.getMethodEnum().getMethodPath(), requestParam);
             BaseResult baseResult = jx3RequestUtil.getResultRealData(requestResult, regex.getMethodEnum());
             if (baseResult == null) {
                 return Jx3ApiFailureMapper.fromApiResult(null, null, requestId);
@@ -122,7 +125,7 @@ public abstract class Jx3BaseAction {
             return BotResponse.text("指令参数有误：" + e.getMessage());
         } catch (Exception e) {
             log.error("调用 JX3API 失败，requestId=>{}，command=>{}，reason=>{}",
-                    requestId, regex.name(), SensitiveDataUtil.summarize(e));
+                    requestId, regex.name(), SensitiveDataUtil.summarize(e), e);
             return Jx3ApiFailureMapper.fromException(e, requestId);
         } finally {
             long elapsedMillis = (System.nanoTime() - startNanos) / 1_000_000;
@@ -192,6 +195,15 @@ public abstract class Jx3BaseAction {
 
     protected Object buildTemplateData(BaseResult baseResult) {
         throw new UnsupportedOperationException("请在子类中实现 Vue 模板数据拼装");
+    }
+
+
+    /**
+     * 物价类查询的物品别名解析入口。
+     * 当前未接入配置，直接返回传入名称；后续可在这里接数据库或群配置别名。
+     */
+    protected String resolveTradeItemNameAlias(String itemName) {
+        return itemName;
     }
 
     protected BotResponse buildTextMessage(String content) {

@@ -59,7 +59,7 @@ class SoundConverterActionTest {
         assertEquals(BotResponse.ResponseType.AUDIO_URL, response.getResponseType());
         assertEquals("https://audio.example.com/result.mp3", response.getAudioUrl());
         ArgumentCaptor<Map<String, Object>> params = ArgumentCaptor.forClass(Map.class);
-        verify(requestUtil).doPostRequest(eq("/data/sound/converter"), params.capture());
+        verify(requestUtil).doPostRequest(eq(REGEX.SoundConverter.getMethodEnum().getMethodPath()), params.capture());
         assertEquals("app-key", params.getValue().get("appkey"));
         assertEquals("access-key", params.getValue().get("access"));
         assertEquals("secret-key", params.getValue().get("secret"));

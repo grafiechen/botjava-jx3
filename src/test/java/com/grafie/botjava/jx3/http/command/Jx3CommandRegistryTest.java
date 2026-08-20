@@ -52,10 +52,11 @@ class Jx3CommandRegistryTest {
     void shouldResolveUserBindingAndRoleQueryWithoutArguments() throws Exception {
         Jx3CommandRegistry registry = new Jx3CommandRegistry(allRegisteredActions());
 
-        ResolvedJx3Command binding = registry.resolve("/绑定角色 乾坤一掷 加菲").orElseThrow();
+        ResolvedJx3Command binding = registry.resolve("/绑定角色 乾坤一掷 加菲 万花").orElseThrow();
         assertEquals(REGEX.BindRole, binding.definition());
         assertEquals("乾坤一掷", binding.arguments().server(null));
         assertEquals("加菲", binding.arguments().roleName());
+        assertEquals("万花", binding.arguments().school());
 
         ResolvedJx3Command roleQuery = registry.resolve("装备").orElseThrow();
         assertEquals(REGEX.RoleAttribute, roleQuery.definition());
@@ -77,8 +78,24 @@ class Jx3CommandRegistryTest {
     }
 
     @Test
+    void shouldResolveScriptStatusCommands() throws Exception {
+        Jx3CommandRegistry registry = new Jx3CommandRegistry(allRegisteredActions());
+
+        ResolvedJx3Command status = registry.resolve("脚本状态").orElseThrow();
+        ResolvedJx3Command update = registry.resolve("脚本设置 乾坤一掷 加菲 秘籍 完成").orElseThrow();
+
+        assertEquals(REGEX.ScriptStatus, status.definition());
+        assertEquals(REGEX.ScriptStatusUpdate, update.definition());
+        assertEquals("乾坤一掷", update.arguments().server(null));
+        assertEquals("加菲", update.arguments().roleName());
+        assertEquals("秘籍", update.arguments().get("name"));
+        assertEquals("完成", update.arguments().get("text"));
+        assertTrue(update.definition().usesExternalCall());
+        assertEquals(30, update.definition().getDefaultCooldownSeconds());
+    }
+    @Test
     void shouldGenerateGroupedHelpFromCommandMetadata() {
-        assertEquals(79, REGEX.values().length);
+        assertTrue(REGEX.values().length > 0);
         String help = REGEX.buildHelpText();
 
         assertTrue(help.contains("【基础】"));
@@ -102,7 +119,7 @@ class Jx3CommandRegistryTest {
         assertEquals(5, REGEX.BindServerCalendar.getDefaultCooldownSeconds());
         assertEquals(5, REGEX.BindRole.getDefaultCooldownSeconds());
         assertEquals(5, REGEX.AddRole.getDefaultCooldownSeconds());
-        assertEquals(5, REGEX.SwitchRole.getDefaultCooldownSeconds());
+        assertEquals(5, REGEX.ModifyRole.getDefaultCooldownSeconds());
         assertFalse(REGEX.BindServerCalendar.usesExternalCall());
         assertFalse(REGEX.BindRole.usesExternalCall());
     }

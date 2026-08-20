@@ -1,17 +1,11 @@
 package com.grafie.botjava.mapper;
 
 import com.grafie.botjava.config.CommandCooldownProperties;
-import com.grafie.botjava.entity.GroupCommandCooldown;
 import com.grafie.botjava.jx3.http.util.REGEX;
 import com.grafie.botjava.service.GroupCommandCooldownService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,18 +27,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         "jx3api.api.api-token=test-token",
         "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect"
 })
-@ContextConfiguration(classes = GroupCommandCooldownMapperTest.TestApplication.class)
 class GroupCommandCooldownMapperTest {
 
     @Autowired
     private GroupCommandCooldownMapper cooldownMapper;
-
-    @SpringBootConfiguration
-    @EnableAutoConfiguration
-    @EntityScan(basePackageClasses = GroupCommandCooldown.class)
-    @EnableJpaRepositories(basePackageClasses = GroupCommandCooldownMapper.class)
-    static class TestApplication {
-    }
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)

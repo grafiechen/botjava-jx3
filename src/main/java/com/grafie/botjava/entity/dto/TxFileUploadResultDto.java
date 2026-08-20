@@ -28,4 +28,9 @@ public class TxFileUploadResultDto {
      * 发送消息的唯一ID，当srv_send_msg设置为true时返回
      */
     private String id;
+    /**
+     * 分片上传合并后返回的临时下载地址。
+     */
+    @JsonProperty(value = "raw_url")
+    private String rawUrl;
 }

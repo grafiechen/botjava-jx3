@@ -16,6 +16,7 @@ import com.grafie.botjava.jx3.http.data.official.OfficialQueryData;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
 import com.grafie.botjava.jx3.http.util.REGEX;
 import com.grafie.botjava.service.GroupConfigurationService;
+import com.grafie.botjava.util.ObjectMapperUtil;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -59,6 +60,36 @@ class ActivityAndFlowerImageActionTest {
         assertEquals(3, execution.params().get("num"));
     }
 
+    @Test
+    void shouldDeserializeAndRenderCurrentArrayPayload() throws Exception {
+        ActiveCurrentData current = ObjectMapperUtil.readValue("""
+                {"date":"2026-08-19","week":"三","war":"大战！英雄天龙寺",\
+                 "battle":"三国古战场","orecar":"跨服·河西瀚漠","rescue":"万花·乱世",\
+                 "card":["英雄九辩馆","尘归海·巨冥湾"],\
+                 "draw":["苍云铁麟·成男","长歌儒风·成男","霸刀名少·成男","蓬莱仙梧·成男","凌雪冥夜·成男"],\
+                 "school":"唐门·兄弟之争","leader":["白非人","宗朗"],\
+                 "lucky":["崽崽","小落墨","刀豆"],\
+                 "weekly":{"conn":["洛阳城·攻打应天门","洛阳·神兵迷踪"],\
+                           "raid":["阆风悬城","武狱黑牢","西津渡"]}}
+                """, ActiveCurrentData.class);
+
+        Execution execution = execute(REGEX.ActiveCurrent, "日常 乾坤一掷", current);
+        ActiveCurrentAction.DailyView view = assertInstanceOf(
+                ActiveCurrentAction.DailyView.class, template(execution.response()).get("data"));
+
+        assertEquals(5, view.draws().size());
+        assertEquals(List.of("崽崽", "小落墨", "刀豆"), view.luck());
+        assertEquals(List.of("白非人", "宗朗"), view.leaders());
+        assertEquals(List.of(
+                "公共任务：洛阳城·攻打应天门", "公共任务：洛阳·神兵迷踪",
+                "团队秘境：阆风悬城", "团队秘境：武狱黑牢", "团队秘境：西津渡"), view.teams());
+        ActiveCurrentData legacy = ObjectMapperUtil.readValue(
+                "{\"draw\":\"美人画图·明教\",\"luck\":[\"丰丰\"],\"team\":[\"会战弓月城\"]}",
+                ActiveCurrentData.class);
+        assertEquals(List.of("美人画图·明教"), legacy.getDraw());
+        assertEquals(List.of("丰丰"), legacy.getLuck());
+        assertEquals(List.of("会战弓月城"), legacy.getTeam());
+    }
     @Test
     void shouldBuildMonthlyCalendarWithReadableDateFieldsOnly() {
         Today today = new Today();

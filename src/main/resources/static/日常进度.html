@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>日常进度</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1120px; background: #f1f3f3; color: #252b2e; font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
+        #main { min-height: 620px; padding: 42px 50px; }
+        .sheet { width: 100%; max-width: 1420px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #d8dddd; border-radius: 8px; box-shadow: 0 12px 34px rgba(39, 49, 52, .10); }
+        .header { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding: 28px 34px 23px; border-top: 7px solid #2f736a; border-bottom: 1px solid #dfe4e4; }
+        .eyebrow { margin: 0 0 7px; color: #768286; font-size: 14px; }
+        h1 { margin: 0; font-size: 31px; line-height: 1.2; }
+        .summary { text-align: right; color: #2f736a; font-size: 17px; font-weight: 700; }
+        .summary span { display: block; margin-top: 6px; color: #818b8f; font-size: 13px; font-weight: 400; }
+        .table-wrap { width: 100%; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th, td { padding: 15px 13px; border-right: 1px solid #e4e8e8; border-bottom: 1px solid #e4e8e8; text-align: center; overflow-wrap: anywhere; }
+        th:last-child, td:last-child { border-right: 0; }
+        th { color: #4c585d; background: #f7f9f9; font-size: 14px; font-weight: 700; }
+        td { color: #353d41; font-size: 14px; line-height: 1.45; }
+        tbody tr:nth-child(even) td { background: #fbfcfc; }
+        tbody tr:last-child td { border-bottom: 0; }
+        .server { color: #2f736a; font-weight: 700; }
+        .role { color: #d36d8c; font-weight: 700; }
+        .record { display: block; margin-top: 3px; color: #939b9e; font-size: 11px; font-weight: 400; }
+        .empty { padding: 48px; color: #8a9497; text-align: center; }
+        .footer { display: flex; justify-content: space-between; gap: 20px; padding: 16px 34px 18px; color: #838d90; background: #fafbfb; border-top: 1px solid #e0e5e5; font-size: 12px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="sheet">
+        <header class="header">
+            <div><p class="eyebrow">小猫饼 · 日常进度</p><h1>角色日常概览</h1></div>
+            <div class="summary">{{ roleCount || 0 }} 个绑定角色<span>{{ generatedAt || '-' }} 更新</span></div>
+        </header>
+        <div class="table-wrap" v-if="rows && rows.length">
+            <table>
+                <thead><tr><th>服务器</th><th>角色名</th><th v-for="column in columns" :key="column.field">{{ column.name }}</th></tr></thead>
+                <tbody>
+                <tr v-for="(row, index) in rows" :key="row.server + row.roleName + index">
+                    <td class="server">{{ row.server }}</td>
+                    <td class="role">{{ row.roleName }}<span class="record" v-if="row.recordIndex">记录 {{ row.recordIndex }}</span></td>
+                    <td v-for="(value, valueIndex) in row.values" :key="valueIndex">{{ value }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="empty" v-else>暂无可展示的角色进度</div>
+        <footer class="footer"><span>数据来自已绑定角色的脚本最近记录</span><span>共 {{ recordCount || 0 }} 条记录</span></footer>
+    </article>
+</main>
+</body>
+</html>

@@ -8,11 +8,13 @@ import com.grafie.botjava.util.RemoteHttpException;
 import com.grafie.botjava.util.RequestUtil;
 import com.grafie.botjava.util.SensitiveDataUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
+import java.time.Clock;
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,13 +32,20 @@ public class QqOpenApiClient {
 
     private final TxBotProperty txBotProperty;
     private final ObjectMapper objectMapper;
+    private final Clock clock;
 
-    private LocalDateTime needGetNewTokenTime;
+    private Instant tokenExpiresAt;
     private String accessToken;
 
+    @Autowired
     public QqOpenApiClient(TxBotProperty txBotProperty, ObjectMapper objectMapper) {
+        this(txBotProperty, objectMapper, Clock.systemDefaultZone());
+    }
+
+    protected QqOpenApiClient(TxBotProperty txBotProperty, ObjectMapper objectMapper, Clock clock) {
         this.txBotProperty = txBotProperty;
         this.objectMapper = objectMapper;
+        this.clock = clock;
     }
 
     public <T> T get(String path, Map<String, Object> query, Class<T> responseType) {
@@ -57,10 +66,21 @@ public class QqOpenApiClient {
         return request(HttpMethod.PUT, path, Collections.emptyMap(), request, responseType);
     }
 
+    public <T> T patch(String path, Map<String, Object> request, Class<T> responseType) {
+        if (request == null) {
+            throw new IllegalArgumentException("QQ OpenAPI PATCH 请求体不能为空");
+        }
+        return request(HttpMethod.PATCH, path, Collections.emptyMap(), request, responseType);
+    }
+
     public <T> T delete(String path, Map<String, Object> query, Class<T> responseType) {
         return request(HttpMethod.DELETE, path, query, null, responseType);
     }
 
+    public String getAuthorizationValue() {
+        refreshToken();
+        return "QQBot " + accessToken;
+    }
     protected AccessTokenDto requestAccessToken(Map<String, Object> request,
                                                 Map<String, String> headers) {
         return RequestUtil.doPost(txBotProperty.getAccessTokenUrl(), null,
@@ -109,8 +129,9 @@ public class QqOpenApiClient {
     }
 
     private synchronized void refreshToken() {
-        if (accessToken != null && needGetNewTokenTime != null
-                && LocalDateTime.now().isBefore(needGetNewTokenTime)) {
+        Instant now = clock.instant();
+        if (accessToken != null && tokenExpiresAt != null
+                && Duration.between(now, tokenExpiresAt).getSeconds() > TOKEN_EXPIRY_BUFFER_SECONDS) {
             return;
         }
         Map<String, String> headers = Map.of("Content-Type", "application/json");
@@ -124,9 +145,8 @@ public class QqOpenApiClient {
                     || token.getExpiresIn() == null) {
                 throw new IllegalStateException("QQ token 接口未返回有效凭证");
             }
-            long refreshAfterSeconds = Math.max(1, token.getExpiresIn() - TOKEN_EXPIRY_BUFFER_SECONDS);
             accessToken = token.getAccessToken();
-            needGetNewTokenTime = LocalDateTime.now().plusSeconds(refreshAfterSeconds);
+            tokenExpiresAt = now.plusSeconds(token.getExpiresIn());
         } catch (RemoteHttpException e) {
             clearToken();
             QqOpenApiException mapped = QqOpenApiErrorMapper.fromHttp(e, objectMapper);
@@ -157,7 +177,7 @@ public class QqOpenApiClient {
 
     private void clearToken() {
         accessToken = null;
-        needGetNewTokenTime = null;
+        tokenExpiresAt = null;
     }
 
     private Duration requestTimeout() {

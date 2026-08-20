@@ -1,5 +1,6 @@
 package com.grafie.botjava.service;
 
+import com.grafie.botjava.config.ActiveMessageProperties;
 import com.grafie.botjava.entity.dto.common.BotResponse;
 import com.grafie.botjava.entity.dto.common.ArkDto;
 import com.grafie.botjava.entity.dto.common.EmbedDto;
@@ -8,6 +9,7 @@ import com.grafie.botjava.entity.dto.common.MarkdownDto;
 import com.grafie.botjava.entity.dto.common.MediaDto;
 import com.grafie.botjava.entity.dto.common.TxMessageInfo;
 import com.grafie.botjava.entity.dto.group.at.GroupAtMessageCreateDto;
+import com.grafie.botjava.entity.dto.qq.QqBotGroupStateDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -59,7 +61,7 @@ class GroupMessageSenderTest {
         verify(client).uploadImage("group-image", "https://img.example.com/result.png");
         TxMessageInfo sent = captureMessage(client, "group-image");
         assertEquals(7, sent.getMsg_type());
-        assertEquals(" ", sent.getContent());
+        assertEquals("", sent.getContent());
         assertEquals(media, sent.getMedia());
         assertEquals("message-image", sent.getMsg_id());
     }
@@ -182,6 +184,45 @@ class GroupMessageSenderTest {
         assertNull(sent.getMsg_seq());
         assertNull(sent.getEvent_id());
         assertNull(sent.getMessageReference());
+    }
+
+    @Test
+    void shouldBuildWakeupActiveMessageWithoutReplyFields() {
+        QqGroupMessageClient client = mock(QqGroupMessageClient.class);
+        GroupMessageSender sender = sender(client);
+
+        GroupMessageSender.ActiveMessageResult result =
+                sender.sendActive("group-wakeup", BotResponse.text("召回通知").asWakeupMessage());
+
+        assertTrue(result.sent());
+        TxMessageInfo sent = captureMessage(client, "group-wakeup");
+        assertEquals(true, sent.getIsWakeup());
+        assertNull(sent.getMsg_id());
+        assertNull(sent.getEvent_id());
+    }
+
+    @Test
+    void shouldRejectActiveMessageWhenPlatformStateDisallowsProactiveMessage() {
+        QqGroupMessageClient client = mock(QqGroupMessageClient.class);
+        GroupActiveMessagePolicy policy = mock(GroupActiveMessagePolicy.class);
+        GroupActiveMessagePolicy.Permit permit = GroupActiveMessagePolicy.Permit.allowed(
+                "group-state", Instant.EPOCH, "reservation-state");
+        when(policy.acquire("group-state")).thenReturn(permit);
+        QqBotGroupStateDto state = new QqBotGroupStateDto();
+        state.setAllowProactiveMsg(false);
+        when(client.getBotState("group-state")).thenReturn(state);
+        ActiveMessageProperties properties = new ActiveMessageProperties();
+        properties.setVerifyPlatformStateBeforeActiveSend(true);
+        GroupMessageSender sender = new GroupMessageSender(client, policy, properties);
+
+        GroupMessageSender.ActiveMessageResult result =
+                sender.sendActive("group-state", BotResponse.text("主动通知"));
+
+        assertFalse(result.sent());
+        assertEquals("QQ 平台尚未允许向本群发送主动消息。", result.message());
+        verify(policy).rollback(permit);
+        verify(client, never()).send(
+                org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any());
     }
 
     @Test

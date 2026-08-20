@@ -6,11 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface UserRoleBindingMapper extends JpaRepository<UserRoleBinding, Long> {
+    List<UserRoleBinding> findByGroupOpenIdAndMemberOpenIdOrderByIdAsc(String groupOpenId, String memberOpenId);
 
-    List<UserRoleBinding> findByMemberOpenIdOrderByIdAsc(String memberOpenId);
+    List<UserRoleBinding> findByGroupOpenIdOrderByMemberOpenIdAscIdAsc(String groupOpenId);
 
-    UserRoleBinding findByMemberOpenIdAndServerAndRoleName(
-            String memberOpenId, String server, String roleName);
+    UserRoleBinding findByGroupOpenIdAndMemberOpenIdAndServerAndRoleName(
+            String groupOpenId, String memberOpenId, String server, String roleName);
 
-    long deleteByMemberOpenId(String memberOpenId);
+    long deleteByGroupOpenIdAndMemberOpenId(String groupOpenId, String memberOpenId);
 }

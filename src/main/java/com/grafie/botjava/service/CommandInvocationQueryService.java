@@ -5,6 +5,7 @@ import com.grafie.botjava.entity.CommandInvocationStatus;
 import com.grafie.botjava.jx3.http.util.REGEX;
 import com.grafie.botjava.mapper.CommandInvocationMapper;
 import com.grafie.botjava.mapper.CommandInvocationSummary;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -20,6 +21,7 @@ public class CommandInvocationQueryService {
     private final CommandAuditProperties properties;
     private final Clock clock;
 
+    @Autowired
     public CommandInvocationQueryService(CommandInvocationMapper mapper, CommandAuditProperties properties) {
         this(mapper, properties, Clock.systemDefaultZone());
     }

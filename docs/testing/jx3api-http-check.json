@@ -20,15 +20,34 @@
                       "type":  "enum-path",
                       "description":  "MethodEnum must use the latest HTTP paths from the official docs for high-use interfaces.",
                       "expected":  {
-                                       "DATA_ACTIVE_CALENDAR":  "/data/active/calendar",
-                                       "DATA_SERVER_CHECK":  "/data/status/check",
-                                       "DATA_SERVER_STATUS":  "/data/status/check",
-                                       "DATA_SERVER_MASTER":  "/data/master/search",
-                                       "DATA_ROLE_DETAILED":  "/data/role/detail",
-                                       "DATA_MEMBER_RECRUIT":  "/data/recruit/search",
-                                       "DATA_MATCH_RECENT":  "/data/arena/recent",
-                                       "DATA_LUCK_ADVENTURE":  "/data/event/records",
-                                       "DATA_TRADE_RECORD":  "/data/trade/item/records"
+                                       "DATA_ACTIVE_CALENDAR":  "/active/calendar",
+                                       "DATA_SERVER_CHECK":  "/server/status/check",
+                                       "DATA_SERVER_STATUS":  "/server/status/check",
+                                       "DATA_SERVER_MASTER":  "/master/search",
+                                       "DATA_ROLE_DETAILED":  "/role/detail",
+                                       "DATA_MEMBER_RECRUIT":  "/recruit/search",
+                                       "DATA_MATCH_RECENT":  "/arena/recent",
+                                       "DATA_LUCK_ADVENTURE":  "/event/records",
+                                       "DATA_TRADE_RECORD":  "/trade/item/records",
+                                       "DATA_TRADE_WANBAOLOU":  "/trade/wanbaolou",
+                                       "DATA_ROLE_ACHIEVEMENT":  "/role/achievement",
+                                       "DATA_EVENT_STRATEGY":  "/event/strategy",
+                                       "DATA_CARD_PRESET":  "/card/preset",
+                                       "DATA_CHAT_RECORDS":  "/chat/records",
+                                       "DATA_RANK_ARENA":  "/rank/arena",
+                                       "DATA_RANK_CHAMPIONSHIP":  "/rank/championship",
+                                       "DATA_RANK_CONSTABLE":  "/rank/constable",
+                                       "DATA_RANK_OUTLAW":  "/rank/outlaw",
+                                       "DATA_RANK_WANTED":  "/rank/wanted",
+                                       "DATA_SAOHUA_CONTEXT":  "/saohua/context",
+                                       "DATA_SCHOOL_SEARCH":  "/school/search",
+                                       "DATA_SKILL_CALCULATE":  "/skill/calculate",
+                                       "DATA_TRADE_MANUFACTURE":  "/trade/manufacture",
+                                       "DATA_TUILAN_ACHIEVEMENT":  "/tuilan/achievement",
+                                       "DATA_SAOHUA_ANSWER":  "/saohua/answer",
+                                       "DATA_SAOHUA_DRINK":  "/saohua/drink",
+                                       "DATA_SAOHUA_EAT":  "/saohua/eat",
+                                       "DATA_SAOHUA_ZHANAN":  "/saohua/zhanan"
                                    }
                   },
                   {
@@ -71,20 +90,18 @@
                                                  "date":  "2024-02-22",
                                                  "view":  "https://example.com/item.png",
                                                  "list":  [
-                                                              [
-                                                                  {
-                                                                      "id":  "4676245",
-                                                                      "index":  1063,
-                                                                      "zone":  "电信区",
-                                                                      "server":  "幽月轮",
-                                                                      "value":  3600,
-                                                                      "sale":  4,
-                                                                      "token":  "mock-token",
-                                                                      "date":  "2025-12-02",
-                                                                      "source":  1,
-                                                                      "status":  1
-                                                                  }
-                                                              ]
+                                                              {
+                                                                  "id":  "4676245",
+                                                                  "index":  1063,
+                                                                  "zone":  "电信区",
+                                                                  "server":  "幽月轮",
+                                                                  "value":  3600,
+                                                                  "sale":  4,
+                                                                  "token":  "mock-token",
+                                                                  "date":  "2025-12-02",
+                                                                  "source":  1,
+                                                                  "status":  1
+                                                              }
                                                           ]
                                              },
                                     "time":  1764667088
@@ -156,7 +173,7 @@
                       "expected":  {
                                        "responseType":  "IMAGE",
                                        "templateName":  "物品价格",
-                                       "requestPath":  "/data/trade/item/records",
+                                       "requestPath":  "/trade/item/records",
                                        "requestServer":  "乾坤一掷",
                                        "requestName":  "十五夜观灯·南涧·标准"
                                    }
@@ -203,35 +220,50 @@
                               "name":  "活动日历",
                               "doc":  "doc/active.calendar.md",
                               "methodEnum":  "DATA_ACTIVE_CALENDAR",
-                              "expectedPath":  "/data/active/calendar",
+                              "expectedPath":  "/active/calendar",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
                                              "msg":  "success",
                                              "data":  {
-                                                          "date":  "2025-12-03",
+                                                          "date":  "2026-08-19",
                                                           "week":  "三",
-                                                          "war":  "大战！英雄冰川宫宝库",
-                                                          "battle":  "浮香丘",
+                                                          "war":  "大战！英雄天龙寺",
+                                                          "battle":  "三国古战场",
                                                           "orecar":  "跨服·河西瀚漠",
-                                                          "school":  "明教·漫漫朝圣路",
-                                                          "rescue":  "七秀·乱世",
-                                                          "luck":  [
-                                                                       "丰丰",
-                                                                       "童心客",
-                                                                       "沅沅"
-                                                                   ],
+                                                          "rescue":  "万花·乱世",
                                                           "card":  [
-                                                                       "英雄天子峰",
-                                                                       "英雄日轮山城",
-                                                                       "英雄风雨稻香村"
+                                                                       "英雄九辩馆",
+                                                                       "尘归海·巨冥湾"
                                                                    ],
-                                                          "draw":  "",
-                                                          "team":  [
-                                                                       "五台山·无遮大会;太原·寒光铁衣卫大唐",
-                                                                       "会战弓月城;冰火岛·荒血路;白帝江关"
-                                                                   ]
-                                                      },
+                                                          "draw":  [
+                                                                       "苍云铁麟·成男",
+                                                                       "长歌儒风·成男",
+                                                                       "霸刀名少·成男",
+                                                                       "蓬莱仙梧·成男",
+                                                                       "凌雪冥夜·成男"
+                                                                   ],
+                                                          "school":  "唐门·兄弟之争",
+                                                          "leader":  [
+                                                                         "白非人",
+                                                                         "宗朗"
+                                                                     ],
+                                                          "lucky":  [
+                                                                        "崽崽",
+                                                                        "小落墨",
+                                                                        "刀豆"
+                                                                    ],
+                                                          "weekly":  {
+                                                                         "conn":  [
+                                                                                      "洛阳城·攻打应天门",
+                                                                                      "洛阳·神兵迷踪"
+                                                                                  ],
+                                                                         "raid":  [
+                                                                                      "阆风悬城",
+                                                                                      "武狱黑牢",
+                                                                                      "西津渡"
+                                                                                  ]
+                                                                     }                                                      },
                                              "time":  1764564055
                                          }
                           },
@@ -240,7 +272,7 @@
                               "name":  "活动月历",
                               "doc":  "doc/active.list.calendar.md",
                               "methodEnum":  "DATA_ACTIVE_LIST_CALENDAR",
-                              "expectedPath":  "/data/active/list/calendar",
+                              "expectedPath":  "/active/calendar",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -281,7 +313,7 @@
                               "name":  "行侠事件",
                               "doc":  "doc/active.celebs.md",
                               "methodEnum":  "DATA_ACTIVE_CELEBS",
-                              "expectedPath":  "/data/active/celebs",
+                              "expectedPath":  "/active/celebs",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -304,7 +336,7 @@
                               "name":  "科举答题",
                               "doc":  "doc/exam.search.md",
                               "methodEnum":  "DATA_EXAM_ANSWER",
-                              "expectedPath":  "/data/exam/search",
+                              "expectedPath":  "/exam/search",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -327,7 +359,7 @@
                               "name":  "家园鲜花",
                               "doc":  "doc/home.flower.md",
                               "methodEnum":  "DATA_HOME_FLOWER",
-                              "expectedPath":  "/data/home/flower",
+                              "expectedPath":  "/home/flower",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -354,7 +386,7 @@
                               "name":  "家园装饰",
                               "doc":  "doc/home.furniture.md",
                               "methodEnum":  "DATA_HOME_FURNITURE",
-                              "expectedPath":  "/data/home/furniture",
+                              "expectedPath":  "/home/furniture",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -387,7 +419,7 @@
                               "name":  "器物图谱",
                               "doc":  "doc/home.travel.md",
                               "methodEnum":  "DATA_HOME_TRAVEL",
-                              "expectedPath":  "/data/home/travel",
+                              "expectedPath":  "/home/travel",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -420,7 +452,7 @@
                               "name":  "新闻资讯",
                               "doc":  "doc/news.allnews.md",
                               "methodEnum":  "DATA_WEB_NEWS_ALLNEWS",
-                              "expectedPath":  "/data/news/allnews",
+                              "expectedPath":  "/news/records",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -443,7 +475,7 @@
                               "name":  "维护公告",
                               "doc":  "doc/news.announce.md",
                               "methodEnum":  "DATA_WEB_NEWS_ANNOUNCE",
-                              "expectedPath":  "/data/news/announce",
+                              "expectedPath":  "/news/announce",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -466,7 +498,7 @@
                               "name":  "搜索区服",
                               "doc":  "doc/master.search.md",
                               "methodEnum":  "DATA_SERVER_MASTER",
-                              "expectedPath":  "/data/master/search",
+                              "expectedPath":  "/master/search",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -502,7 +534,7 @@
                               "name":  "开服状态",
                               "doc":  "doc/status.check.md",
                               "methodEnum":  "DATA_SERVER_CHECK",
-                              "expectedPath":  "/data/status/check",
+                              "expectedPath":  "/server/status/check",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -520,7 +552,7 @@
                               "name":  "技改记录",
                               "doc":  "doc/skill.rework.md",
                               "methodEnum":  "DATA_SKILL_REWORK",
-                              "expectedPath":  "/data/skill/rework",
+                              "expectedPath":  "/skill/rework",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -541,7 +573,7 @@
                               "name":  "小药推荐",
                               "doc":  "doc/school.foods.md",
                               "methodEnum":  "DATA_SCHOOL_FOODS",
-                              "expectedPath":  "/data/school/foods",
+                              "expectedPath":  "/food/list",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -565,7 +597,7 @@
                               "name":  "百战首领",
                               "doc":  "doc/active.monster.md",
                               "methodEnum":  "DATA_ACTIVE_MONSTER",
-                              "expectedPath":  "/data/active/monster",
+                              "expectedPath":  "/monster/weekly",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -604,7 +636,7 @@
                               "name":  "扶摇预测",
                               "doc":  "doc/active.next.event.md",
                               "methodEnum":  "DATA_ACTIVE_NEXT_EVENT",
-                              "expectedPath":  "/data/active/next/event",
+                              "expectedPath":  "/ranch/chat",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -625,7 +657,7 @@
                               "name":  "阵营拍卖",
                               "doc":  "doc/auction.records.md",
                               "methodEnum":  "DATA_AUCTION_RECORDS",
-                              "expectedPath":  "/data/auction/records",
+                              "expectedPath":  "/auction/records",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -650,7 +682,7 @@
                               "name":  "的卢记录",
                               "doc":  "doc/steed.records.md",
                               "methodEnum":  "DATA_HORSE_RECORDS",
-                              "expectedPath":  "/data/steed/records",
+                              "expectedPath":  "/steed/records",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -681,7 +713,7 @@
                               "name":  "烟花记录",
                               "doc":  "doc/show.records.md",
                               "methodEnum":  "DATA_WATCH_RECORD",
-                              "expectedPath":  "/data/show/records",
+                              "expectedPath":  "/firework/records",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -720,7 +752,7 @@
                               "name":  "骗子查询",
                               "doc":  "doc/fraud.detail.md",
                               "methodEnum":  "DATA_FRAUD_DETAIL",
-                              "expectedPath":  "/data/fraud/detail",
+                              "expectedPath":  "/fraud/detail",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -748,7 +780,7 @@
                               "name":  "角色奇遇",
                               "doc":  "doc/event.records.md",
                               "methodEnum":  "DATA_LUCK_ADVENTURE",
-                              "expectedPath":  "/data/event/records",
+                              "expectedPath":  "/event/records",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -772,7 +804,7 @@
                               "name":  "未做奇遇",
                               "doc":  "doc/event.unfinished.md",
                               "methodEnum":  "DATA_LUCK_UNFINISHED",
-                              "expectedPath":  "/data/event/unfinished",
+                              "expectedPath":  "/event/missing",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -792,7 +824,7 @@
                               "name":  "近期奇遇",
                               "doc":  "doc/event.recent.md",
                               "methodEnum":  "DATA_LUCK_RECENT",
-                              "expectedPath":  "/data/event/recent",
+                              "expectedPath":  "/event/recent",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -817,7 +849,7 @@
                               "name":  "奇遇统计",
                               "doc":  "doc/event.statistics.md",
                               "methodEnum":  "DATA_LUCK_STATISTICAL",
-                              "expectedPath":  "/data/event/statistics",
+                              "expectedPath":  "/event/statistics",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -842,7 +874,7 @@
                               "name":  "奇遇汇总",
                               "doc":  "doc/event.collect.md",
                               "methodEnum":  "DATA_LUCK_COLLECT",
-                              "expectedPath":  "/data/event/collect",
+                              "expectedPath":  "/event/collect",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -868,7 +900,7 @@
                               "name":  "名剑战绩",
                               "doc":  "doc/arena.recent.md",
                               "methodEnum":  "DATA_MATCH_RECENT",
-                              "expectedPath":  "/data/arena/recent",
+                              "expectedPath":  "/arena/recent",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -936,7 +968,7 @@
                               "name":  "名剑排行",
                               "doc":  "doc/arena.awesome.md",
                               "methodEnum":  "DATA_MATCH_AWESOME",
-                              "expectedPath":  "/data/arena/awesome",
+                              "expectedPath":  "/arena/awesome",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -962,7 +994,7 @@
                               "name":  "名剑统计",
                               "doc":  "doc/arena.schools.md",
                               "methodEnum":  "DATA_MATCH_SCHOOLS",
-                              "expectedPath":  "/data/arena/schools",
+                              "expectedPath":  "/arena/schools",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -982,7 +1014,7 @@
                               "name":  "团队招募",
                               "doc":  "doc/recruit.search.md",
                               "methodEnum":  "DATA_MEMBER_RECRUIT",
-                              "expectedPath":  "/data/recruit/search",
+                              "expectedPath":  "/recruit/search",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1020,7 +1052,7 @@
                               "name":  "师徒系统",
                               "doc":  "doc/mentor.search.md",
                               "methodEnum":  "DATA_MEMBER_TEACHER",
-                              "expectedPath":  "/data/mentor/search",
+                              "expectedPath":  "/mentor/search",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1054,7 +1086,7 @@
                               "name":  "本服榜单",
                               "doc":  "doc/rank.statistical.md",
                               "methodEnum":  "DATA_RANK_STATISTICAL",
-                              "expectedPath":  "/data/rank/statistics",
+                              "expectedPath":  "/rank/statistics",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1084,7 +1116,7 @@
                               "name":  "掉落统计",
                               "doc":  "doc/reward.statistics.md",
                               "methodEnum":  "DATA_VALUABLES_STATISTICAL",
-                              "expectedPath":  "/data/reward/statistics",
+                              "expectedPath":  "/reward/statistics",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1109,7 +1141,7 @@
                               "name":  "角色信息",
                               "doc":  "doc/role.detail.md",
                               "methodEnum":  "DATA_ROLE_DETAILED",
-                              "expectedPath":  "/data/role/detail",
+                              "expectedPath":  "/role/detail",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1137,7 +1169,7 @@
                               "name":  "角色名片",
                               "doc":  "doc/card.record.md",
                               "methodEnum":  "DATA_ROLE_SHOW_CARD",
-                              "expectedPath":  "/data/card/record",
+                              "expectedPath":  "/card/record",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1159,7 +1191,7 @@
                               "name":  "所有名片",
                               "doc":  "doc/card.records.md",
                               "methodEnum":  "DATA_ROLE_SHOW_CARDS",
-                              "expectedPath":  "/data/card/records",
+                              "expectedPath":  "/card/records",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1184,7 +1216,7 @@
                               "name":  "随机名片",
                               "doc":  "doc/card.random.md",
                               "methodEnum":  "DATA_ROLE_SHOW_RANDOM",
-                              "expectedPath":  "/data/card/random",
+                              "expectedPath":  "/card/random",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1205,7 +1237,7 @@
                               "name":  "缓存名片",
                               "doc":  "doc/card.cached.md",
                               "methodEnum":  "DATA_ROLE_SHOW_CACHED",
-                              "expectedPath":  "/data/card/cached",
+                              "expectedPath":  "/card/cached",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1225,7 +1257,7 @@
                               "name":  "角色百战",
                               "doc":  "doc/role.monster.md",
                               "methodEnum":  "DATA_ROLE_MONSTER",
-                              "expectedPath":  "/data/role/monster",
+                              "expectedPath":  "/monster/records",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1259,7 +1291,7 @@
                               "name":  "心法阵眼",
                               "doc":  "doc/school.matrix.md",
                               "methodEnum":  "DATA_SCHOOL_MATRIX",
-                              "expectedPath":  "/data/school/matrix",
+                              "expectedPath":  "/school/matrix",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1283,7 +1315,7 @@
                               "name":  "奇穴详情",
                               "doc":  "doc/school.talent.md",
                               "methodEnum":  "DATA_SCHOOL_FORCE",
-                              "expectedPath":  "/data/school/talent",
+                              "expectedPath":  "/school/talent",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1318,7 +1350,7 @@
                               "name":  "技能详情",
                               "doc":  "doc/school.skills.md",
                               "methodEnum":  "DATA_SCHOOL_SKILL",
-                              "expectedPath":  "/data/school/skills",
+                              "expectedPath":  "/school/skills",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1352,7 +1384,7 @@
                               "name":  "资历排行",
                               "doc":  "doc/school.seniority.md",
                               "methodEnum":  "DATA_SCHOOL_SENIORITY",
-                              "expectedPath":  "/data/school/seniority",
+                              "expectedPath":  "/school/seniority",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1378,7 +1410,7 @@
                               "name":  "阵营沙盘",
                               "doc":  "doc/sand.records.md",
                               "methodEnum":  "DATA_SERVER_SAND",
-                              "expectedPath":  "/data/sand/records",
+                              "expectedPath":  "/sand/records",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1409,7 +1441,7 @@
                               "name":  "阵营事件",
                               "doc":  "doc/fenxian.records.md",
                               "methodEnum":  "DATA_SERVER_EVENT",
-                              "expectedPath":  "/data/fenxian/records",
+                              "expectedPath":  "/fenxian/records",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1432,7 +1464,7 @@
                               "name":  "诛恶事件",
                               "doc":  "doc/smite.records.md",
                               "methodEnum":  "DATA_SERVER_ANTIVICE",
-                              "expectedPath":  "/data/smite/records",
+                              "expectedPath":  "/wicked/records",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1454,7 +1486,7 @@
                               "name":  "关隘首领",
                               "doc":  "doc/mine.cart.md",
                               "methodEnum":  "DATA_MINE_CART",
-                              "expectedPath":  "/data/mine/cart",
+                              "expectedPath":  "/castle/status",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1483,7 +1515,7 @@
                               "name":  "本日赤兔",
                               "doc":  "doc/chitu.records.md",
                               "methodEnum":  "DATA_CHITU_RECORDS",
-                              "expectedPath":  "/data/chitu/records",
+                              "expectedPath":  "/chitu/records",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1506,7 +1538,7 @@
                               "name":  "本周赤兔",
                               "doc":  "doc/chitu.week.records.md",
                               "methodEnum":  "DATA_CHITU_WEEK_RECORDS",
-                              "expectedPath":  "/data/chitu/week/records",
+                              "expectedPath":  "/chitu/week/records",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1527,7 +1559,7 @@
                               "name":  "马场刷新",
                               "doc":  "doc/ranch.records.md",
                               "methodEnum":  "DATA_HORSE_EVENT",
-                              "expectedPath":  "/data/ranch/records",
+                              "expectedPath":  "/ranch/records",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1559,7 +1591,7 @@
                               "name":  "试炼排行",
                               "doc":  "doc/rank.trials.md",
                               "methodEnum":  "DATA_RANK_TRIALS",
-                              "expectedPath":  "/data/rank/trials",
+                              "expectedPath":  "/rank/trials",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1587,7 +1619,7 @@
                               "name":  "贴吧物价",
                               "doc":  "doc/tieba.item.records.md",
                               "methodEnum":  "DATA_TIEBA_ITEM_RECORDS",
-                              "expectedPath":  "/data/tieba/item/records",
+                              "expectedPath":  "/tieba/item/records",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1614,7 +1646,7 @@
                               "name":  "金币价格",
                               "doc":  "doc/trade.demon.md",
                               "methodEnum":  "DATA_TRADE_DEMON",
-                              "expectedPath":  "/data/trade/demon",
+                              "expectedPath":  "/trade/demon",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1637,7 +1669,7 @@
                               "name":  "黑市物价",
                               "doc":  "doc/trade.records.md",
                               "methodEnum":  "DATA_TRADE_RECORDS",
-                              "expectedPath":  "/data/trade/records",
+                              "expectedPath":  "/trade/records",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1676,7 +1708,7 @@
                               "name":  "搜索物品",
                               "doc":  "doc/trade.item.search.md",
                               "methodEnum":  "DATA_TRADE_ITEM_SEARCH",
-                              "expectedPath":  "/data/trade/item/search",
+                              "expectedPath":  "/trade/item/search",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1702,7 +1734,7 @@
                               "name":  "物品价格",
                               "doc":  "doc/trade.item.records.md",
                               "methodEnum":  "DATA_TRADE_RECORD",
-                              "expectedPath":  "/data/trade/item/records",
+                              "expectedPath":  "/trade/item/records",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1741,7 +1773,7 @@
                               "name":  "帮战记录",
                               "doc":  "doc/battle.records.md",
                               "methodEnum":  "DATA_BATTLE_RECORDS",
-                              "expectedPath":  "/data/battle/records",
+                              "expectedPath":  "/battle/records",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1774,7 +1806,7 @@
                               "name":  "副本解密",
                               "doc":  "doc/mech.calculator.md",
                               "methodEnum":  "DATA_MECH_CALCULATOR",
-                              "expectedPath":  "/data/mech/calculator",
+                              "expectedPath":  "/mech/decrypt",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1795,7 +1827,7 @@
                               "name":  "统战歪歪",
                               "doc":  "doc/duowan.statistics.md",
                               "methodEnum":  "DATA_DUOWAN_STATISTICS",
-                              "expectedPath":  "/data/duowan/statistics",
+                              "expectedPath":  "/duowan/statistics",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1826,7 +1858,7 @@
                               "name":  "八卦帖子",
                               "doc":  "doc/tieba.random.md",
                               "methodEnum":  "DATA_TIEBA_RANDOM",
-                              "expectedPath":  "/data/tieba/random",
+                              "expectedPath":  "/tieba/random",
                               "dataShape":  "list",
                               "result":  {
                                              "code":  200,
@@ -1851,7 +1883,7 @@
                               "name":  "世界骚话",
                               "doc":  "doc/saohua.random.md",
                               "methodEnum":  "DATA_SAOHUA_RANDOM",
-                              "expectedPath":  "/data/saohua/random",
+                              "expectedPath":  "/saohua/random",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1868,7 +1900,7 @@
                               "name":  "舔狗日记",
                               "doc":  "doc/saohua.content.md",
                               "methodEnum":  "DATA_SAOHUA_CONTENT",
-                              "expectedPath":  "/data/saohua/content",
+                              "expectedPath":  "/saohua/content",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1885,7 +1917,7 @@
                               "name":  "阿里语音",
                               "doc":  "doc/sound.converter.md",
                               "methodEnum":  "DATA_SOUND_CONVERTER",
-                              "expectedPath":  "/data/sound/converter",
+                              "expectedPath":  "/sound/converter",
                               "dataShape":  "object",
                               "result":  {
                                              "code":  200,
@@ -1896,6 +1928,425 @@
                                                           "url":  "https://nls-gateway.cn-shanghai.aliyuncs.com/stream/v1/tts?appkey=usTUQnlSuPRzMaw6\u0026token=60573f1203ed4774a44ba47ea8273ef3\u0026format=mp3\u0026voice=Aitong\u0026sample_rate=16000\u0026speech_rate=0\u0026volume=50\u0026pitch_rate=0\u0026text=%E5%89%91%E7%BD%91%E4%B8%89%E7%9C%9F%E5%A5%BD%E7%8E%A9%E5%84%BF"
                                                       },
                                              "time":  1713010443
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_TRADE_WANBAOLOU",
+                              "name":  "编号搜索",
+                              "doc":  "openapi#/paths/~1trade~1wanbaolou/get",
+                              "methodEnum":  "DATA_TRADE_WANBAOLOU",
+                              "expectedPath":  "/trade/wanbaolou",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "id":  "1405435120446099456",
+                                                          "serverName":  "梦江南",
+                                                          "roleName":  "心***",
+                                                          "roleLevel":  130,
+                                                          "followNum":  0,
+                                                          "forceName":  "五毒",
+                                                          "bodyName":  "萝莉",
+                                                          "meetingNum":  43,
+                                                          "campName":  "浩气盟",
+                                                          "equipScore":  "771856",
+                                                          "seniorityNum":  76140,
+                                                          "priceNum":  4666,
+                                                          "tradeStatus":  3,
+                                                          "updatePrices":  [
+                                                                               {
+                                                                                   "accoSeq":  "1397858208903151616",
+                                                                                   "createtime":  1785343254000,
+                                                                                   "updatePrice":  1888,
+                                                                                   "updateTime":  1785141010000,
+                                                                                   "zhanghaoId":  "14953339700512"
+                                                                               }
+                                                                           ],
+                                                          "replyTitle":  "【电信双梦毒萝4K6】五红蓝葵蓝发蝶粉红寻香红发二代灰粉三/喵金巴卡金新云金水母金铃金白陇西金发粉浮光金发/瑶台仙梦黑发/点寒星沉玉/白白菜银罗姆彩云归素青黑贺华岁墨韵绯烟黑机车瑶池戏月安驻黄二公主白墨韵紫不欺沧海间烟暮折花留芳坠绯/沧海间冷川罗姆晴明黑夜斩白/白菩提衣粉游园衣红六七盒衣红懒猪衣黑沧洲盒衣六代重阳衣/金琼枝盒紫人间盒紫椿山盒黑幽馥瑶台盒蓝葵盒蓝问刀粉浮光/侠行囧途/雪凤冰凰/天妒画颜/装分77W1/资历7W6",
+                                                          "replyContent":  "【区服】电信电信梦江南\u003cbr\u003e【门派】五毒萝莉\u003cbr\u003e【阵营】浩气盟2阶\u003cbr\u003e【JJC】22零段,33陆段,55零段\u003cbr\u003e【装备】771856\u003cbr\u003e【称号】[傲岸, 红尘, 侠客行]\u003cbr\u003e【橙武】[鸣沙陨铁*36, 劫烬陨铁*33, 星络陨铁*20, 蜃海陨铁*25, 星雷陨铁*13, 浮屠陨铁*25, 乌金陨铁*54, 天外陨铁*36]\u003cbr\u003e【发型】金发8个[喵金, 巴卡金, 新云金, 水母金, 傲月金发, 铃金, 白陇西金发, 粉浮光金发], 红发6个[五红, 二代灰, 红寻香红发, 蝶粉, 蓝葵蓝发, 粉三], 黑发4个, 白发13个, 盒子发型[白如归黑发, 澄琼枝黑发, 沧海黑发, 紫幽香黑发, 新粉游园黑, 红六七黑发, 紫人间黑发, 小金龙白发, 小熊白发, 紫椿山黑发, 黑幽馥黑发, 瑶华盒白发, 蓝问刀黑发, 粉浮光黑发, 瑶台仙梦白发, 瑶台仙梦黑发, 蓝葵黑发]\u003cbr\u003e【成衣】总计58件，单盒成衣6件，限时限量5件，商城3件，下架10件\u003cbr\u003e盒子：[金琼枝盒(标), 紫人间盒(标), 紫椿山盒(标), 黑幽馥(标), 瑶台盒, 蓝葵盒, 蓝问刀(标), 粉浮光(豪)]\u003cbr\u003e单盒成衣：[白菩提衣, 粉游园衣, 红六七盒衣, 红懒猪衣, 黑沧洲盒衣, 六代重阳衣]\u003cbr\u003e限时限量：[红云飞, 十三周年成衣, 点寒星沉玉, 十二周年工作服, 平岸春溪]\u003cbr\u003e复刻：[白白菜, 银罗姆, 彩云归素青, 黑贺华岁, 墨韵绯烟, 黑机车, 瑶池戏月安驻, 黄二公主, 白墨韵, 紫不欺, 沧海间烟暮, 折花留芳坠绯]\u003cbr\u003e下架精品：[沧海间冷川, 罗姆晴明, 黑夜斩白]\u003cbr\u003e【头饰】19个，[挽卿心丹, 挽卿心墨, 挽卿心莹, 绽春蕾白, 美团骑士, 烟雨平生, 啾啾铃凤, 愤愤不平, 匿林之虎, 心花怒放, 帽牌鲨]\u003cbr\u003e【披风】1个，[狂山骨·霁色]\u003cbr\u003e【坐骑】3个[西风瘦逐狱, 飞霞骠黑云, 里飞沙踏秋]\u003cbr\u003e【挂宠】1个[白松鼠]\u003cbr\u003e【奇遇】11个[劝学记, 惜往日, 扶摇九天, 清风捕王, 侠行囧途, 茶馆奇缘, 庆舞良宵, 凌云梯, 度人心, 赴九幽, 旧宴承欢]\u003cbr\u003e【奇珍】32个[枫林酒, 归乡路, 捉妖记, 滇南行, 青草歌, 荆轲刺, 破晓鸣, 竹马情, 关外商, 烟花戏·春]\u003cbr\u003e【奇趣】31个[雪凤冰凰, 卷黄尘, 西山拂雪, 步步登云, 千里炎龙, 雪负苍山, 玄焰, 鹿归雪明, 百年苍郁, 咫尺天涯]\u003cbr\u003e【面挂】12个[不见澜生, 天妒画颜]\u003cbr\u003e【背挂】190个[罗伞·蝶恋花, 唐风玉壶挂件, 韵仙灵]\u003cbr\u003e【腰挂】161个[]\u003cbr\u003e【眼饰】2个[流光焕锦镜, 海岛来信]\u003cbr\u003e【佩囊】1个[梅雪调]\u003cbr\u003e【肩饰】5左，3右，[][]\u003cbr\u003e【拓印】3武器, 133成衣收集，八代武器拓印离尘梦\u003cbr\u003e【头像】16个，[小头像·画意, 像韵·五毒, 像韵·江湖豪杰, 像韵·武林名宿, 像韵·蓝海, 由来意·五毒, 像韵·侠路, 像韵·荷娃, 像韵·炙野, 小企·一心向阳, 像韵·铃心露, 像韵·金小獴, 像韵·熊趣团茸, 像韵·知翘, 像韵·笑发财, 像韵·蜉蝣之羽]\u003cbr\u003e【宠物】88个\u003cbr\u003e【资历】76140\u003cbr\u003e【家园】等级16，梓行点5487，家具1622256，私宅皮肤：幽隐乡、西湖、雪岭镜湖\u003cbr\u003e【同伴】卫庄81级境界壹，盖聂79级境界壹，李逍遥79级境界壹，沐晴柔79级境界壹，温折枝78级境界壹，康宴别77级境界壹，赵灵儿75级境界壹，景天75级境界壹，茸茸72级境界壹，沈剑心71级境界壹，阮归云69级境界壹，李萼68级境界壹\u003cbr\u003e",
+                                                          "replyTime":  1786947585
+                                                      },
+                                             "time":  1786690525
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_ROLE_ACHIEVEMENT",
+                              "name":  "成就百科",
+                              "doc":  "openapi#/paths/~1role~1achievement/get",
+                              "methodEnum":  "DATA_ROLE_ACHIEVEMENT",
+                              "expectedPath":  "/role/achievement",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "zoneName":  "电信区",
+                                                          "serverName":  "乾坤一掷",
+                                                          "roleName":  "测试角色",
+                                                          "forceName":  "万花",
+                                                          "data":  [
+                                                                       {
+                                                                           "name":  "初入江湖",
+                                                                           "desc":  "完成一项江湖成就"
+                                                                       }
+                                                                   ]
+                                                      },
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_EVENT_STRATEGY",
+                              "name":  "奇遇攻略",
+                              "doc":  "openapi#/paths/~1event~1strategy/get",
+                              "methodEnum":  "DATA_EVENT_STRATEGY",
+                              "expectedPath":  "/event/strategy",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "box":  3,
+                                                          "type":  "绝世奇遇",
+                                                          "name":  "阴阳两界",
+                                                          "level":  2
+                                                      },
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_CARD_PRESET",
+                              "name":  "名片预设",
+                              "doc":  "openapi#/paths/~1card~1preset/get",
+                              "methodEnum":  "DATA_CARD_PRESET",
+                              "expectedPath":  "/card/preset",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "name":  "测试角色",
+                                                          "server":  "乾坤一掷",
+                                                          "preset":  "默认名片预设"
+                                                      },
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_CHAT_RECORDS",
+                              "name":  "角色聊天",
+                              "doc":  "openapi#/paths/~1chat~1records/get",
+                              "methodEnum":  "DATA_CHAT_RECORDS",
+                              "expectedPath":  "/chat/records",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "total":  1,
+                                                          "list":  [
+                                                                       {
+                                                                           "zone":  "电信区",
+                                                                           "server":  "乾坤一掷",
+                                                                           "roleName":  "琉枫",
+                                                                           "roleId":  "5715151",
+                                                                           "globalId":  "306244774666908879",
+                                                                           "channel":  "世界",
+                                                                           "message":  "[跨服房间招募·25人普通会战弓月城]【千机】大小M 提升速 来T和奶",
+                                                                           "time":  1767102878
+                                                                       }
+                                                                   ]
+                                                      },
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_RANK_ARENA",
+                              "name":  "跨服名剑",
+                              "doc":  "openapi#/paths/~1rank~1arena/get",
+                              "methodEnum":  "DATA_RANK_ARENA",
+                              "expectedPath":  "/rank/arena",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "mode":  0,
+                                                          "name":  "跨服名剑榜",
+                                                          "server":  "乾坤一掷",
+                                                          "data":  [
+                                                                       {
+                                                                           "name":  "测试角色",
+                                                                           "score":  2500
+                                                                       }
+                                                                   ],
+                                                          "time":  1786692000
+                                                      },
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_RANK_CHAMPIONSHIP",
+                              "name":  "武林争霸",
+                              "doc":  "openapi#/paths/~1rank~1championship/get",
+                              "methodEnum":  "DATA_RANK_CHAMPIONSHIP",
+                              "expectedPath":  "/rank/championship",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "mode":  1,
+                                                          "name":  "武林争霸赛",
+                                                          "server":  "乾坤一掷",
+                                                          "data":  [
+                                                                       {
+                                                                           "name":  "测试战队",
+                                                                           "score":  120
+                                                                       }
+                                                                   ],
+                                                          "time":  1786692000
+                                                      },
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_RANK_CONSTABLE",
+                              "name":  "捕快荣誉",
+                              "doc":  "openapi#/paths/~1rank~1constable/get",
+                              "methodEnum":  "DATA_RANK_CONSTABLE",
+                              "expectedPath":  "/rank/constable",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "mode":  0,
+                                                          "name":  "捕快荣誉榜",
+                                                          "server":  "乾坤一掷",
+                                                          "data":  [
+                                                                       {
+                                                                           "name":  "测试角色",
+                                                                           "score":  100
+                                                                       }
+                                                                   ],
+                                                          "time":  1786692000
+                                                      },
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_RANK_OUTLAW",
+                              "name":  "江湖浪客",
+                              "doc":  "openapi#/paths/~1rank~1outlaw/get",
+                              "methodEnum":  "DATA_RANK_OUTLAW",
+                              "expectedPath":  "/rank/outlaw",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "mode":  0,
+                                                          "name":  "江湖浪客榜",
+                                                          "server":  "乾坤一掷",
+                                                          "data":  [
+                                                                       {
+                                                                           "name":  "测试角色",
+                                                                           "score":  90
+                                                                       }
+                                                                   ],
+                                                          "time":  1786692000
+                                                      },
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_RANK_WANTED",
+                              "name":  "决斗挑战",
+                              "doc":  "openapi#/paths/~1rank~1wanted/get",
+                              "methodEnum":  "DATA_RANK_WANTED",
+                              "expectedPath":  "/rank/wanted",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "mode":  1,
+                                                          "name":  "决斗挑战榜",
+                                                          "server":  "乾坤一掷",
+                                                          "data":  [
+                                                                       {
+                                                                           "name":  "测试角色",
+                                                                           "score":  80
+                                                                       }
+                                                                   ],
+                                                          "time":  1786692000
+                                                      },
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SAOHUA_CONTEXT",
+                              "name":  "分类语录",
+                              "doc":  "openapi#/paths/~1saohua~1context/get",
+                              "methodEnum":  "DATA_SAOHUA_CONTEXT",
+                              "expectedPath":  "/saohua/context",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "content":  "今天是疯狂星期四。"
+                                                      },
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SCHOOL_SEARCH",
+                              "name":  "配装搜索",
+                              "doc":  "openapi#/paths/~1school~1search/get",
+                              "methodEnum":  "DATA_SCHOOL_SEARCH",
+                              "expectedPath":  "/school/search",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "name":  "花间游",
+                                                          "mode":  "PVE",
+                                                          "content":  "测试配装方案"
+                                                      },
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SKILL_CALCULATE",
+                              "name":  "急速计算",
+                              "doc":  "openapi#/paths/~1skill~1calculate/get",
+                              "methodEnum":  "DATA_SKILL_CALCULATE",
+                              "expectedPath":  "/skill/calculate",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          {
+                                                              "duration":  1.5,
+                                                              "hastePercent":  0.000476,
+                                                              "hastePercentLimit":  0.000476,
+                                                              "nowFrame":  24,
+                                                              "uNowFrame":  24,
+                                                              "surplusNowFrame":  1,
+                                                              "level":  1
+                                                          }
+                                                      ],
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_TRADE_MANUFACTURE",
+                              "name":  "成本计算",
+                              "doc":  "openapi#/paths/~1trade~1manufacture/get",
+                              "methodEnum":  "DATA_TRADE_MANUFACTURE",
+                              "expectedPath":  "/trade/manufacture",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "server":  "乾坤一掷",
+                                                          "name":  "测试配方",
+                                                          "cost":  120,
+                                                          "materials":  [
+                                                                            "材料一",
+                                                                            "材料二"
+                                                                        ]
+                                                      },
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_TUILAN_ACHIEVEMENT",
+                              "name":  "资历分布",
+                              "doc":  "openapi#/paths/~1tuilan~1achievement/get",
+                              "methodEnum":  "DATA_TUILAN_ACHIEVEMENT",
+                              "expectedPath":  "/tuilan/achievement",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "server":  "乾坤一掷",
+                                                          "name":  "测试角色",
+                                                          "class":  1,
+                                                          "total":  76140
+                                                      },
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SAOHUA_ANSWER",
+                              "name":  "答案之书",
+                              "doc":  "openapi#/paths/~1saohua~1answer/get",
+                              "methodEnum":  "DATA_SAOHUA_ANSWER",
+                              "expectedPath":  "/saohua/answer",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "answer":  "你不得不妥协",
+                                                          "hearten":  "听从你心，无问西东"
+                                                      },
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SAOHUA_DRINK",
+                              "name":  "喝什么",
+                              "doc":  "openapi#/paths/~1saohua~1drink/get",
+                              "methodEnum":  "DATA_SAOHUA_DRINK",
+                              "expectedPath":  "/saohua/drink",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          "芒果西米露"
+                                                      ],
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SAOHUA_EAT",
+                              "name":  "吃什么",
+                              "doc":  "openapi#/paths/~1saohua~1eat/get",
+                              "methodEnum":  "DATA_SAOHUA_EAT",
+                              "expectedPath":  "/saohua/eat",
+                              "dataShape":  "list",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  [
+                                                          "蟹黄包"
+                                                      ],
+                                             "time":  1786692000
+                                         }
+                          },
+                          {
+                              "caseId":  "JX3API_DESERIALIZE_SAOHUA_ZHANAN",
+                              "name":  "渣男语录",
+                              "doc":  "openapi#/paths/~1saohua~1zhanan/get",
+                              "methodEnum":  "DATA_SAOHUA_ZHANAN",
+                              "expectedPath":  "/saohua/zhanan",
+                              "dataShape":  "object",
+                              "result":  {
+                                             "code":  200,
+                                             "msg":  "success",
+                                             "data":  {
+                                                          "text":  "拥有了无可挑剔的温柔，可为什么总觉得不够。"
+                                                      },
+                                             "time":  1786692000
                                          }
                           }
                       ]

@@ -15,6 +15,7 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,6 +34,17 @@ public class HtmlToImageUtl {
     private static final int MAX_BROWSER_ATTEMPTS = 2;
     private static final Path DEFAULT_OUTPUT_DIR = Paths.get("target", "generated-images", "html");
     private static final DateTimeFormatter OUTPUT_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+    private static final String CJK_FONT_FAMILY = """
+            <style id="bot-cjk-font-fallback">
+            :root {
+                --bot-cjk-font-family: "Noto Sans CJK SC", "Noto Sans CJK JP", "Noto Sans CJK TC",
+                    "Noto Serif CJK SC", "Microsoft YaHei", "PingFang SC", "Noto Sans", sans-serif;
+            }
+            html, body, #main, #main * {
+                font-family: var(--bot-cjk-font-family) !important;
+            }
+            </style>
+            """;
 
     /**
      * 根据模板名渲染图片。
@@ -137,7 +149,7 @@ public class HtmlToImageUtl {
                     .setArgs(List.of("--no-sandbox", "--disable-dev-shm-usage")));
             BrowserContext context = browser.newContext();
             Page page = context.newPage();
-            page.route("http://bot.local/**", HtmlToImageUtl::fulfillClasspathResource);
+            page.route("**/*", HtmlToImageUtl::routePageResource);
 
             page.setViewportSize(DEFAULT_VIEWPORT_WIDTH, DEFAULT_VIEWPORT_HEIGHT);
             page.setContent(htmlContent);
@@ -228,12 +240,12 @@ public class HtmlToImageUtl {
         return sanitized;
     }
 
-    private static String injectVueData(String htmlFilePath, String htmlContent, Object data) throws Exception {
-        String json = OBJECT_MAPPER.writeValueAsString(data)
-                .replace("</script>", "<\\/script>");
-        String script = "<script>window.__BOT_DATA__ = " + json + ";</script>";
+    static String injectVueData(String htmlFilePath, String htmlContent, Object data) throws Exception {
+        String encodedJson = Base64.getEncoder().encodeToString(OBJECT_MAPPER.writeValueAsBytes(data));
+        String script = "<script>window.__BOT_DATA__ = JSON.parse(new TextDecoder('utf-8').decode("
+                + "Uint8Array.from(atob('" + encodedJson + "'), function (c) { return c.charCodeAt(0); })));</script>";
         String base = buildBaseTag(htmlFilePath);
-        String injection = base + script + buildVueScriptIfMissing(htmlContent);
+        String injection = base + CJK_FONT_FAMILY + script + buildVueScriptIfMissing(htmlContent);
         if (htmlContent.contains("<head>")) {
             htmlContent = htmlContent.replace("<head>", "<head>\n" + injection);
         } else if (htmlContent.contains("</head>")) {
@@ -342,6 +354,23 @@ public class HtmlToImageUtl {
         return "<base href=\"http://bot.local/" + directory + "\">\n";
     }
 
+    private static void routePageResource(Route route) {
+        try {
+            URI uri = URI.create(route.request().url());
+            if ("http".equalsIgnoreCase(uri.getScheme()) && "bot.local".equalsIgnoreCase(uri.getHost())) {
+                fulfillClasspathResource(route);
+                return;
+            }
+            if ("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme())) {
+                route.abort();
+                return;
+            }
+            route.resume();
+        } catch (Exception exception) {
+            route.abort();
+        }
+    }
+
     private static void fulfillClasspathResource(Route route) {
         try {
             URI uri = URI.create(route.request().url());
@@ -392,21 +421,43 @@ public class HtmlToImageUtl {
     }
 
     private static void assertPageResourcesLoaded(Page page) {
-        Number brokenImages = (Number) page.evaluate("""
+        List<?> brokenImages = (List<?>) page.evaluate("""
                 Array.from(document.images)
                     .filter(function (image) { return !image.complete || image.naturalWidth === 0; })
-                    .length
+                    .map(function (image) {
+                        var value = image.currentSrc || image.getAttribute('src') || '(empty src)';
+                        if (value.indexOf('data:') === 0) {
+                            var comma = value.indexOf(',');
+                            return (comma >= 0 ? value.substring(0, comma + 1) : 'data:') + '...';
+                        }
+                        try {
+                            var url = new URL(value, document.baseURI);
+                            return url.protocol + '//' + url.host + url.pathname;
+                        } catch (ignored) {
+                            return String(value).substring(0, 300);
+                        }
+                    })
                 """);
-        if (brokenImages.intValue() > 0) {
-            throw new IllegalStateException("HTML 模板存在 " + brokenImages + " 个未加载图片资源");
+        if (!brokenImages.isEmpty()) {
+            throw new IllegalStateException("HTML 模板存在 " + brokenImages.size()
+                    + " 个未加载图片资源，resources=>" + brokenImages);
         }
-        Number unloadedStylesheets = (Number) page.evaluate("""
+        List<?> unloadedStylesheets = (List<?>) page.evaluate("""
                 Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
                     .filter(function (link) { return !link.sheet; })
-                    .length
+                    .map(function (link) {
+                        var value = link.href || link.getAttribute('href') || '(empty href)';
+                        try {
+                            var url = new URL(value, document.baseURI);
+                            return url.protocol + '//' + url.host + url.pathname;
+                        } catch (ignored) {
+                            return String(value).substring(0, 300);
+                        }
+                    })
                 """);
-        if (unloadedStylesheets.intValue() > 0) {
-            throw new IllegalStateException("HTML 模板存在 " + unloadedStylesheets + " 个未加载样式表");
+        if (!unloadedStylesheets.isEmpty()) {
+            throw new IllegalStateException("HTML 模板存在 " + unloadedStylesheets.size()
+                    + " 个未加载样式表，resources=>" + unloadedStylesheets);
         }
     }
 }

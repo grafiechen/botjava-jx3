@@ -54,7 +54,7 @@ class ProjectDocumentationContractTest {
                 .filter(this::usesImageResponse)
                 .count();
 
-        assertTrue(architecture.contains("当前覆盖 " + contracts.size() + " 个接口"));
+        assertTrue(architecture.contains("当前覆盖 " + contracts.size() + " 个可执行 contract"));
         assertTrue(architecture.contains("当前注册 " + REGEX.values().length + " 条指令"));
         assertTrue(architecture.contains("当前图片响应清单共 " + imageCommands + " 条"));
         assertTrue(architecture.contains("项目使用四个独立口径描述完成度"));
@@ -73,14 +73,17 @@ class ProjectDocumentationContractTest {
     }
 
     @Test
-    void shouldKeepWebSocketOutOfCurrentHttpAcceptanceScope() throws Exception {
+    void shouldDocumentQqWebSocketDefaultIngressAndWebhookFallback() throws Exception {
         String architecture = read(ARCHITECTURE);
         String deployment = read(DEPLOYMENT);
+        String application = read(Path.of("src", "main", "resources", "application.yml"));
 
-        assertTrue(deployment.contains("只部署群指令时不需要启用 WebSocket"));
-        assertTrue(architecture.contains("WebSocket 订阅配置表属于未来 WS 专项，不纳入当前 HTTP 群指令完成口径"));
-        assertTrue(architecture.contains("当前 `feature-jx3api` 的完成口径只覆盖 HTTP 群指令"));
-        assertTrue(architecture.contains("JX3API WebSocket 不在当前 HTTP 群指令验收范围内"));
+        assertTrue(application.contains("BOT_QQ_MESSAGE_INGRESS_MODE:WS"));
+        assertTrue(application.contains("BOT_QQ_WEBSOCKET_INTENTS:33554432"));
+        assertTrue(deployment.contains("QQ 群消息入口默认使用 QQ v2 WebSocket"));
+        assertTrue(deployment.contains("BOT_QQ_MESSAGE_INGRESS_MODE=HOOK"));
+        assertTrue(architecture.contains("QQ v2 WebSocket 是默认消息入口"));
+        assertTrue(architecture.contains("JX3API WebSocket 仍是游戏事件推送基础结构"));
     }
 
     @Test

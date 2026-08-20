@@ -1,17 +1,11 @@
 package com.grafie.botjava.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grafie.botjava.entity.Jx3ApiCacheEntry;
 import com.grafie.botjava.jx3.http.RequestResult;
 import com.grafie.botjava.jx3.http.cache.Jx3ApiResponseCache;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,18 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
         "jx3api.api.api-token=test-token",
         "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect"
 })
-@ContextConfiguration(classes = Jx3ApiCacheEntryMapperTest.TestApplication.class)
 class Jx3ApiCacheEntryMapperTest {
 
     @Autowired
     private Jx3ApiCacheEntryMapper cacheMapper;
-
-    @SpringBootConfiguration
-    @EnableAutoConfiguration
-    @EntityScan(basePackageClasses = Jx3ApiCacheEntry.class)
-    @EnableJpaRepositories(basePackageClasses = Jx3ApiCacheEntryMapper.class)
-    static class TestApplication {
-    }
 
     @Test
     @Transactional(propagation = Propagation.NOT_SUPPORTED)

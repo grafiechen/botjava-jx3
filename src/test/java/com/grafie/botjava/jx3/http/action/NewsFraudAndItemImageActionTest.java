@@ -21,7 +21,6 @@ import org.mockito.ArgumentCaptor;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -29,13 +28,11 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class NewsFraudAndItemImageActionTest {
-
-    private static final String SOURCE_URL = "https://www.jx3api.com/cache/item.png";
-    private static final String DATA_URI = "data:image/png;base64,AA==";
 
     @Test
     void shouldReadCurrentNewsFieldsAndExposeOnlyReadableContent() throws Exception {
@@ -92,7 +89,7 @@ class NewsFraudAndItemImageActionTest {
     }
 
     @Test
-    void shouldEmbedValidatedItemImageAndExcludeRawSearchFields() {
+    void shouldReturnEachItemOnOneTextLineWithoutLoadingImage() {
         OfficialQueryData.TradeItem item = new OfficialQueryData.TradeItem();
         item.setCategory("道具");
         item.setSubclass("节日物品");
@@ -100,20 +97,18 @@ class NewsFraudAndItemImageActionTest {
         item.setAlias("观灯");
         item.setWblalias("internal-alias");
         item.setValue("12000");
-        item.setDesc("节日活动相关物品");
+        item.setDesc("节日活动\n相关物品");
         item.setDate("2026-07-15");
-        item.setView(SOURCE_URL);
+        item.setView("https://www.jx3api.com/cache/item.png");
 
         Execution execution = execute(REGEX.TradeItemSearch, "搜索物品 十五", List.of(item));
-        TradeItemSearchAction.ItemView view = firstView(execution.response(), TradeItemSearchAction.ItemView.class);
 
-        assertEquals("十五", template(execution.response()).get("name"));
-        assertEquals(DATA_URI, view.imageDataUri());
+        assertEquals(BotResponse.ResponseType.TEXT, execution.response().getResponseType());
+        assertEquals("搜索物品（显示 1 条）\n1. 十五夜观灯；别名：观灯/internal-alias",
+                execution.response().getContent());
         assertEquals("十五", execution.params().get("name"));
-        assertRecordExcludes(view, "wblalias", "view", "url");
-        verify(execution.requestUtil()).loadRemoteImageDataUri(SOURCE_URL);
+        verify(execution.requestUtil(), never()).loadRemoteImageDataUri(anyString());
     }
-
     private Execution execute(REGEX regex, String command, Object apiData) {
         Jx3RequestUtil requestUtil = mock(Jx3RequestUtil.class);
         RequestResult requestResult = new RequestResult();
@@ -122,7 +117,6 @@ class NewsFraudAndItemImageActionTest {
         baseResult.setData(apiData);
         when(requestUtil.doPostRequest(anyString(), any())).thenReturn(requestResult);
         when(requestUtil.getResultRealData(requestResult, regex.getMethodEnum())).thenReturn(baseResult);
-        when(requestUtil.loadRemoteImageDataUri(anyString())).thenReturn(Optional.of(DATA_URI));
         ApiProperties properties = new ApiProperties();
         properties.setDefaultServer("梦江南");
         Jx3BaseAction action = switch (regex) {
@@ -134,7 +128,10 @@ class NewsFraudAndItemImageActionTest {
         };
 
         BotResponse response = action.doRequest(message(), command, regex);
-        assertEquals(BotResponse.ResponseType.IMAGE, response.getResponseType());
+        BotResponse.ResponseType expectedType = regex == REGEX.TradeItemSearch
+                ? BotResponse.ResponseType.TEXT
+                : BotResponse.ResponseType.IMAGE;
+        assertEquals(expectedType, response.getResponseType());
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
         verify(requestUtil).doPostRequest(anyString(), captor.capture());
         return new Execution(response, captor.getValue(), requestUtil);

@@ -1,12 +1,19 @@
 package com.grafie.botjava.config;
 
 import com.grafie.botjava.jx3.config.ApiProperties;
+import com.grafie.botjava.jx3.config.Jx3Action;
 import com.grafie.botjava.jx3.config.RemoteImageProperties;
+import com.grafie.botjava.jx3.config.WebSocketProperties;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.context.ConfigurationPropertiesAutoConfiguration;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.Set;
@@ -23,8 +30,8 @@ class ConfigurationValidationTest {
     @Test
     void shouldAcceptRequiredQqConfiguration() {
         TxBotProperty properties = new TxBotProperty();
-        properties.setOpenapiUrl("https://api.sgroup.qq.com");
-        properties.setAccessTokenUrl("https://bots.qq.com/app/getAppAccessToken");
+        properties.setOpenapiUrl("https://api.bot.qq.com");
+        properties.setAccessTokenUrl("https://api.bot.qq.com/app/getAppAccessToken");
         properties.setAppId("app-id");
         properties.setAppSecret("app-secret");
 
@@ -109,6 +116,31 @@ class ConfigurationValidationTest {
     }
 
     @Test
+    void shouldControlJx3ApiHttpActionRegistrationFromProperties() {
+        ApplicationContextRunner runner = new ApplicationContextRunner()
+                .withUserConfiguration(ConditionalJx3ActionMarker.class);
+
+        runner.run(context ->
+                assertFalse(context.getBeansOfType(ConditionalJx3ActionMarker.class).isEmpty()));
+        runner.withPropertyValues("jx3api.enabled=false")
+                .run(context ->
+                        assertTrue(context.getBeansOfType(ConditionalJx3ActionMarker.class).isEmpty()));
+        runner.withPropertyValues("jx3api.http.enabled=false")
+                .run(context ->
+                        assertTrue(context.getBeansOfType(ConditionalJx3ActionMarker.class).isEmpty()));
+    }
+    @Test
+    void shouldControlJx3ApiWebSocketPushFromProperties() {
+        ApplicationContextRunner runner = new ApplicationContextRunner()
+                .withUserConfiguration(WebSocketProperties.class);
+
+        runner.run(context -> assertFalse(context.containsBean("webSocketProperties")));
+        runner.withPropertyValues("jx3api.ws.enabled=true")
+                .run(context -> assertTrue(context.containsBean("webSocketProperties")));
+        runner.withPropertyValues("jx3api.enabled=false", "jx3api.ws.enabled=true")
+                .run(context -> assertFalse(context.containsBean("webSocketProperties")));
+    }
+    @Test
     void shouldValidateAndResolvePerCommandCooldown() {
         CommandCooldownProperties properties = new CommandCooldownProperties();
         properties.setCooldownSeconds(Map.of("servercheck", 9));
@@ -139,10 +171,44 @@ class ConfigurationValidationTest {
         assertThrows(IllegalArgumentException.class, tooLong::validate);
     }
 
+    @Test
+    void shouldDefaultQqIngressToWebSocketAndAllowWebhookAlias() {
+        QqIngressProperties properties = new QqIngressProperties();
+
+        assertEquals(QqIngressProperties.MessageIngressMode.WS, properties.getMessageIngressMode());
+        assertEquals(true, properties.isWebSocketEnabled());
+        assertEquals(false, properties.isWebhookEnabled());
+
+        properties.setMessageIngressMode(QqIngressProperties.MessageIngressMode.HOOK);
+        assertEquals(false, properties.isWebSocketEnabled());
+        assertEquals(true, properties.isWebhookEnabled());
+
+        properties.setMessageIngressMode(QqIngressProperties.MessageIngressMode.WEBHOOK);
+        assertEquals(true, properties.isWebhookEnabled());
+    }
+
+    @Test
+    void shouldValidateQqWebSocketProperties() {
+        QqWebSocketProperties properties = new QqWebSocketProperties();
+        assertEquals(33554432, properties.getIntents());
+        assertEquals(0, properties.getShardId());
+        assertEquals(1, properties.getShardCount());
+        assertEquals(true, properties.isUseGatewayBot());
+
+        assertThrows(IllegalArgumentException.class, () -> properties.setIntents(0));
+        assertThrows(IllegalArgumentException.class, () -> properties.setShardId(-1));
+        assertThrows(IllegalArgumentException.class, () -> properties.setShardCount(0));
+        assertThrows(IllegalArgumentException.class, () -> properties.setReconnectDelaySeconds(0));
+        assertThrows(IllegalArgumentException.class, () -> properties.setHandshakeCheckSeconds(0));
+    }
+    @Jx3Action
+    private static class ConditionalJx3ActionMarker {
+    }
+
     private static TxBotProperty validQqProperties() {
         TxBotProperty properties = new TxBotProperty();
-        properties.setOpenapiUrl("https://api.sgroup.qq.com");
-        properties.setAccessTokenUrl("https://bots.qq.com/app/getAppAccessToken");
+        properties.setOpenapiUrl("https://api.bot.qq.com");
+        properties.setAccessTokenUrl("https://api.bot.qq.com/app/getAppAccessToken");
         properties.setAppId("app-id");
         properties.setAppSecret("app-secret");
         return properties;

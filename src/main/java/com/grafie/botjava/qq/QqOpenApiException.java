@@ -8,25 +8,29 @@ public class QqOpenApiException extends RuntimeException {
     private final Category category;
     private final int httpStatus;
     private final String apiCode;
+    private final String apiMessage;
     private final String traceId;
     private final boolean retryable;
     private final String userMessage;
 
-    public QqOpenApiException(Category category, int httpStatus, String apiCode, String traceId,
+    public QqOpenApiException(Category category, int httpStatus, String apiCode, String apiMessage, String traceId,
                               boolean retryable, String userMessage, Throwable cause) {
-        super(buildMessage(category, httpStatus, apiCode, traceId), cause);
+        super(buildMessage(category, httpStatus, apiCode, apiMessage, traceId), cause);
         this.category = category;
         this.httpStatus = httpStatus;
         this.apiCode = apiCode;
+        this.apiMessage = apiMessage;
         this.traceId = traceId;
         this.retryable = retryable;
         this.userMessage = userMessage;
     }
 
-    private static String buildMessage(Category category, int httpStatus, String apiCode, String traceId) {
+    private static String buildMessage(Category category, int httpStatus, String apiCode,
+                                       String apiMessage, String traceId) {
         return "QQ OpenAPI 请求失败，category=" + category
                 + "，httpStatus=" + httpStatus
                 + "，apiCode=" + (apiCode == null ? "unknown" : apiCode)
+                + "，apiMessage=" + (apiMessage == null ? "unknown" : apiMessage)
                 + "，traceId=" + (traceId == null ? "unknown" : traceId);
     }
 
@@ -40,6 +44,10 @@ public class QqOpenApiException extends RuntimeException {
 
     public String getApiCode() {
         return apiCode;
+    }
+
+    public String getApiMessage() {
+        return apiMessage;
     }
 
     public String getTraceId() {

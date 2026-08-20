@@ -56,8 +56,8 @@ public class ActiveCurrentAction extends Jx3BaseAction {
         if (baseResult != null && baseResult.getData() instanceof ActiveCurrentData current) {
             template.put("data", new DailyView(current.getDate(), current.getWeek(), current.getWar(),
                     current.getBattle(), current.getOrecar(), current.getSchool(), current.getRescue(),
-                    current.getDraw(), readable(current.getLeader()), readable(current.getLuck()),
-                    readable(current.getCard()), readable(current.getTeam())));
+                    readable(current.getDraw()), readable(current.getLeader()), readable(current.getLuck()),
+                    readable(current.getCard()), weeklyTasks(current)));
         }
         return template;
     }
@@ -75,8 +75,24 @@ public class ActiveCurrentAction extends Jx3BaseAction {
         return List.copyOf(result);
     }
 
+    private List<String> weeklyTasks(ActiveCurrentData current) {
+        List<String> result = new ArrayList<>(readable(current.getTeam()));
+        ActiveCurrentData.Weekly weekly = current.getWeekly();
+        if (weekly != null) {
+            addPrefixed(result, "公共任务", weekly.getConn());
+            addPrefixed(result, "团队秘境", weekly.getRaid());
+        }
+        return List.copyOf(result);
+    }
+
+    private void addPrefixed(List<String> target, String prefix, List<String> values) {
+        for (String value : readable(values)) {
+            target.add(prefix + "：" + value);
+        }
+    }
+
     public record DailyView(String date, String week, String war, String battle, String orecar,
-                            String school, String rescue, String draw, List<String> leaders,
+                            String school, String rescue, List<String> draws, List<String> leaders,
                             List<String> luck, List<String> cards, List<String> teams) {
     }
 }

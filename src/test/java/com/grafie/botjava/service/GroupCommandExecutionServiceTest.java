@@ -1,5 +1,8 @@
 package com.grafie.botjava.service;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.grafie.botjava.entity.CommandInvocationStatus;
 import com.grafie.botjava.entity.dto.common.AuthorDto;
 import com.grafie.botjava.entity.dto.common.BotResponse;
@@ -14,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 
 import java.time.Duration;
 import java.util.Map;
@@ -33,6 +38,32 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class GroupCommandExecutionServiceTest {
+
+    @Test
+    void shouldLogReceivedAndUnmatchedMessageContentOnOneLineWithRedaction() throws Exception {
+        Fixture fixture = new Fixture();
+        fixture.message.setContent("这不是指令\n第二行 token=secret-value");
+        when(fixture.registry.resolve(fixture.message.getContent())).thenReturn(Optional.empty());
+
+        Logger logger = (Logger) LoggerFactory.getLogger(GroupCommandExecutionService.class);
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        try {
+            fixture.service.execute(fixture.message);
+        } finally {
+            logger.detachAppender(appender);
+            appender.stop();
+        }
+
+        String logText = appender.list.stream()
+                .map(ILoggingEvent::getFormattedMessage)
+                .reduce("", (left, right) -> left + "\n" + right);
+        assertTrue(logText.contains("收到群消息"));
+        assertTrue(logText.contains("未匹配到可处理的群消息命令"));
+        assertTrue(logText.contains("content=>这不是指令 第二行 token=******"));
+        assertFalse(logText.contains("secret-value"));
+    }
 
     @Test
     void shouldExecuteResolvedCommandWithEffectiveArgumentsAndRecordSuccess() throws Exception {
@@ -62,6 +93,22 @@ class GroupCommandExecutionServiceTest {
     }
 
     @Test
+    void shouldReplyFeatureDisabledWhenJx3ApiHttpCommandRegistryIsUnavailable() throws Exception {
+        Fixture fixture = new Fixture();
+        when(fixture.registryProvider.getIfAvailable()).thenReturn(null);
+
+        fixture.service.execute(fixture.message);
+
+        ArgumentCaptor<BotResponse> response = ArgumentCaptor.forClass(BotResponse.class);
+        verify(fixture.sender).send(org.mockito.ArgumentMatchers.eq(fixture.message), response.capture());
+        assertEquals("该功能未开启。", response.getValue().getContent());
+        verify(fixture.policy, never()).evaluate(any(), any());
+        verify(fixture.cooldown, never()).tryAcquire(any(), any());
+        verify(fixture.action, never()).doRequest(any(), any(), any(), any());
+        verify(fixture.recorder, never()).record(any(), any(), any(), any(), any(), anyLong(), any());
+    }
+
+    @Test
     void shouldRejectAdministrativeCommandBeforePolicyAndCooldown() throws Exception {
         Fixture fixture = new Fixture();
         fixture.resolve(REGEX.BindServerCalendar, "绑定 乾坤一掷", CommandArguments.of(Map.of()));
@@ -75,6 +122,48 @@ class GroupCommandExecutionServiceTest {
         verify(fixture.sender).send(org.mockito.ArgumentMatchers.eq(fixture.message), response.capture());
         assertEquals("该指令仅限群主或管理员使用。", response.getValue().getContent());
         fixture.verifyRecorded(REGEX.BindServerCalendar,
+                CommandInvocationStatus.PERMISSION_DENIED, BotResponse.ResponseType.TEXT, null);
+    }
+
+    @Test
+    void shouldAllowPermissionConfiguredMemberToUseManagedCommand() throws Exception {
+        Fixture fixture = new Fixture();
+        fixture.message.setContent("绑定 乾坤一掷");
+        CommandArguments arguments = CommandArguments.of(Map.of("server", "乾坤一掷"));
+        fixture.resolve(REGEX.BindServerCalendar, "绑定 乾坤一掷", arguments);
+        when(fixture.permissionConfiguration.isPermissionCommand(REGEX.BindServerCalendar)).thenReturn(true);
+        when(fixture.permissionConfiguration.evaluate("group-1", "user-1", REGEX.BindServerCalendar))
+                .thenReturn(Optional.of(GroupCommandPermissionConfiguration.Decision.ALLOW));
+        BotResponse response = BotResponse.text("默认服务器设置成功，[乾坤一掷]");
+        when(fixture.action.doRequest(any(), any(), any(), any())).thenReturn(response);
+
+        fixture.service.execute(fixture.message);
+
+        verify(fixture.policy).evaluate("group-1", REGEX.BindServerCalendar);
+        verify(fixture.action).doRequest(fixture.message, "绑定 乾坤一掷",
+                REGEX.BindServerCalendar, arguments);
+        verify(fixture.sender).send(fixture.message, response);
+        fixture.verifyRecorded(REGEX.BindServerCalendar,
+                CommandInvocationStatus.SUCCESS, BotResponse.ResponseType.TEXT, null);
+    }
+
+    @Test
+    void shouldDenyPermissionManagedCommandWithoutAuthorization() throws Exception {
+        Fixture fixture = new Fixture();
+        fixture.resolve(REGEX.ServerCheck, "开服 乾坤一掷", CommandArguments.of(Map.of()));
+        when(fixture.permissionConfiguration.isPermissionCommand(REGEX.ServerCheck)).thenReturn(true);
+        when(fixture.permissionConfiguration.evaluate("group-1", "user-1", REGEX.ServerCheck))
+                .thenReturn(Optional.of(GroupCommandPermissionConfiguration.Decision.DENY));
+
+        fixture.service.execute(fixture.message);
+
+        verify(fixture.policy, never()).evaluate(any(), any());
+        verify(fixture.cooldown, never()).tryAcquire(any(), any());
+        verify(fixture.action, never()).doRequest(any(), any(), any(), any());
+        ArgumentCaptor<BotResponse> response = ArgumentCaptor.forClass(BotResponse.class);
+        verify(fixture.sender).send(org.mockito.ArgumentMatchers.eq(fixture.message), response.capture());
+        assertEquals("该指令仅限授权成员使用。", response.getValue().getContent());
+        fixture.verifyRecorded(REGEX.ServerCheck,
                 CommandInvocationStatus.PERMISSION_DENIED, BotResponse.ResponseType.TEXT, null);
     }
 
@@ -117,7 +206,7 @@ class GroupCommandExecutionServiceTest {
     }
 
     @Test
-    void shouldSilentlyRecordCooldownWithoutExecutingOrSending() throws Exception {
+    void shouldReplyCooldownDelayWithoutExecutingAction() throws Exception {
         Fixture fixture = new Fixture();
         fixture.resolve(REGEX.ServerCheck, "开服 乾坤一掷", CommandArguments.of(Map.of()));
         when(fixture.cooldown.tryAcquire("group-1", REGEX.ServerCheck))
@@ -126,8 +215,11 @@ class GroupCommandExecutionServiceTest {
         fixture.service.execute(fixture.message);
 
         verify(fixture.action, never()).doRequest(any(), any(), any(), any());
-        verify(fixture.sender, never()).send(any(), any());
-        fixture.verifyRecorded(REGEX.ServerCheck, CommandInvocationStatus.COOLDOWN, null, null);
+        ArgumentCaptor<BotResponse> response = ArgumentCaptor.forClass(BotResponse.class);
+        verify(fixture.sender).send(org.mockito.ArgumentMatchers.eq(fixture.message), response.capture());
+        assertEquals("指令冷却中，请在 17 秒后重试。", response.getValue().getContent());
+        fixture.verifyRecorded(REGEX.ServerCheck,
+                CommandInvocationStatus.COOLDOWN, BotResponse.ResponseType.TEXT, null);
     }
 
     @Test
@@ -225,10 +317,14 @@ class GroupCommandExecutionServiceTest {
     private static class Fixture {
         private final GroupMessageSender sender = mock(GroupMessageSender.class);
         private final Jx3CommandRegistry registry = mock(Jx3CommandRegistry.class);
+        @SuppressWarnings("unchecked")
+        private final ObjectProvider<Jx3CommandRegistry> registryProvider = mock(ObjectProvider.class);
         private final GroupCommandPolicy policy = mock(GroupCommandPolicy.class);
         private final GroupCommandCooldownService cooldown = mock(GroupCommandCooldownService.class);
         private final UserCommandPreferenceService preferences = mock(UserCommandPreferenceService.class);
         private final CommandInvocationRecorder recorder = mock(CommandInvocationRecorder.class);
+        private final GroupCommandPermissionConfiguration permissionConfiguration =
+                mock(GroupCommandPermissionConfiguration.class);
         private final Jx3BaseAction action = mock(Jx3BaseAction.class);
         private final GroupAtMessageCreateDto message = message();
         private final GroupCommandCooldownService.Decision permit =
@@ -241,8 +337,10 @@ class GroupCommandExecutionServiceTest {
             when(cooldown.tryAcquire(any(), any())).thenReturn(permit);
             when(preferences.applyDefaults(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
             when(recorder.newInvocationId()).thenReturn("invocation-1");
+            when(registryProvider.getIfAvailable()).thenReturn(registry);
+            when(permissionConfiguration.isPermissionCommand(any())).thenReturn(false);
             service = new GroupCommandExecutionService(
-                    sender, registry, policy, cooldown, preferences, recorder);
+                    sender, registryProvider, policy, cooldown, preferences, recorder, permissionConfiguration);
         }
 
         private void resolve(REGEX definition, String commandText, CommandArguments arguments) {

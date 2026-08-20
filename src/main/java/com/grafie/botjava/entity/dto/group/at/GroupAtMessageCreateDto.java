@@ -2,11 +2,15 @@ package com.grafie.botjava.entity.dto.group.at;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.grafie.botjava.entity.dto.common.ArkDataDto;
 import com.grafie.botjava.entity.dto.common.MessageSceneDto;
 import com.grafie.botjava.entity.dto.common.AuthorDto;
+import com.grafie.botjava.entity.dto.common.MessageAttachmentDto;
+import com.grafie.botjava.entity.dto.common.MsgElementDto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * @author grafie.chen
@@ -30,4 +34,10 @@ public class GroupAtMessageCreateDto {
     private MessageSceneDto messageSceneDto;
     @JsonProperty(value = "message_type")
     private Integer messageType;
+    private List<MessageAttachmentDto> attachments;
+    private List<AuthorDto> mentions;
+    @JsonProperty(value = "ark_data")
+    private ArkDataDto arkData;
+    @JsonProperty(value = "msg_elements")
+    private List<MsgElementDto> msgElements;
 }

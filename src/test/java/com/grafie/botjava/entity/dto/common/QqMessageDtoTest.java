@@ -1,6 +1,8 @@
 package com.grafie.botjava.entity.dto.common;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.grafie.botjava.entity.dto.group.at.GroupAtMessageCreateDto;
+import com.grafie.botjava.entity.dto.qq.QqGroupMessageSendResultDto;
 import com.grafie.botjava.util.ObjectMapperUtil;
 import org.junit.jupiter.api.Test;
 
@@ -90,5 +92,90 @@ class QqMessageDtoTest {
         assertEquals(2, json.get("msg_seq"));
         assertEquals("source-message", reference.get("message_id"));
         assertEquals(true, reference.get("ignore_get_message_error"));
+    }
+
+    @Test
+    void shouldSerializeWakeupMessageWithOfficialFieldName() {
+        TxMessageInfo message = new TxMessageInfo();
+        message.setContent("召回消息");
+        message.setMsg_type(0);
+        message.setIsWakeup(true);
+
+        Map<String, Object> json = ObjectMapperUtil.getObjectMapper().convertValue(message, new TypeReference<>() {
+        });
+
+        assertEquals(true, json.get("is_wakeup"));
+    }
+
+    @Test
+    void shouldDeserializeOfficialGroupMessageEventAdditions() throws Exception {
+        String json = """
+                {
+                  "id": "message-1",
+                  "content": "看看图片",
+                  "group_openid": "group-1",
+                  "message_type": 103,
+                  "author": {
+                    "id": "member-1",
+                    "username": "加菲",
+                    "member_role": "admin",
+                    "union_user_account": "union-account-1"
+                  },
+                  "attachments": [{
+                    "content_type": "image/png",
+                    "filename": "demo.png",
+                    "url": "https://example.com/demo.png",
+                    "width": 320,
+                    "height": 240
+                  }],
+                  "mentions": [{
+                    "id": "member-2",
+                    "username": "小明",
+                    "member_openid": "member-2"
+                  }],
+                  "ark_data": {
+                    "prompt": "卡片",
+                    "ark_type": "tuwen",
+                    "fields": {
+                      "title": "标题"
+                    }
+                  },
+                  "msg_elements": [{
+                    "msg_idx": "REFIDX_1",
+                    "message_type": 0,
+                    "content": "被引用消息"
+                  }]
+                }
+                """;
+
+        GroupAtMessageCreateDto message = ObjectMapperUtil.getObjectMapper()
+                .readValue(json, GroupAtMessageCreateDto.class);
+
+        assertEquals("group-1", message.getGroupOpenid());
+        assertEquals("admin", message.getAuthor().getMemberRole());
+        assertEquals("union-account-1", message.getAuthor().getUnionUserAccount());
+        assertEquals("image/png", message.getAttachments().get(0).getContentType());
+        assertEquals("member-2", message.getMentions().get(0).getMemberOpenid());
+        assertEquals("tuwen", message.getArkData().getArkType());
+        assertEquals("被引用消息", message.getMsgElements().get(0).getContent());
+    }
+
+    @Test
+    void shouldDeserializeGroupMessageSendResult() throws Exception {
+        String json = """
+                {
+                  "id": "ROBOT1.0_result",
+                  "timestamp": "2026-07-21T10:00:00+08:00",
+                  "ext_info": {
+                    "ref_idx": "REFIDX_xxx=="
+                  }
+                }
+                """;
+
+        QqGroupMessageSendResultDto result = ObjectMapperUtil.getObjectMapper()
+                .readValue(json, QqGroupMessageSendResultDto.class);
+
+        assertEquals("ROBOT1.0_result", result.getId());
+        assertEquals("REFIDX_xxx==", result.getExtInfo().getRefIdx());
     }
 }

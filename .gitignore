@@ -36,3 +36,8 @@ build/
 ### Local runtime ###
 logs/
 .codex/
+/config/application.yml
+
+### Local runtime ###
+logs/
+.codex/

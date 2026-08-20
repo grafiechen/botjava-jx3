@@ -1,21 +1,29 @@
 package com.grafie.botjava.service;
 
+import com.grafie.botjava.config.ActiveMessageProperties;
+import com.grafie.botjava.config.QqMediaUploadProperties;
+import com.grafie.botjava.entity.dto.common.ArkDto;
 import com.grafie.botjava.entity.dto.common.BotResponse;
+import com.grafie.botjava.entity.dto.common.EmbedDto;
 import com.grafie.botjava.entity.dto.common.KeyboardDto;
 import com.grafie.botjava.entity.dto.common.MarkdownDto;
 import com.grafie.botjava.entity.dto.common.MediaDto;
 import com.grafie.botjava.entity.dto.common.MessageReferenceDto;
 import com.grafie.botjava.entity.dto.common.TxMessageInfo;
 import com.grafie.botjava.entity.dto.group.at.GroupAtMessageCreateDto;
+import com.grafie.botjava.entity.dto.qq.QqBotGroupStateDto;
 import com.grafie.botjava.minio.MinioUtil;
+import com.grafie.botjava.qq.QqOpenApiException;
 import com.grafie.botjava.util.HtmlToImageUtl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.UUID;
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 群消息发送器。
@@ -30,13 +38,31 @@ public class GroupMessageSender {
 
     private final QqGroupMessageClient messageClient;
     private final GroupActiveMessagePolicy activeMessagePolicy;
+    private final ActiveMessageProperties activeMessageProperties;
+    private final QqMediaUploadProperties mediaUploadProperties;
     @Autowired(required = false)
     private MinioUtil minioUtil;
 
     public GroupMessageSender(QqGroupMessageClient messageClient,
                               GroupActiveMessagePolicy activeMessagePolicy) {
+        this(messageClient, activeMessagePolicy, new ActiveMessageProperties(), new QqMediaUploadProperties());
+    }
+
+    public GroupMessageSender(QqGroupMessageClient messageClient,
+                              GroupActiveMessagePolicy activeMessagePolicy,
+                              ActiveMessageProperties activeMessageProperties) {
+        this(messageClient, activeMessagePolicy, activeMessageProperties, new QqMediaUploadProperties());
+    }
+
+    @Autowired
+    public GroupMessageSender(QqGroupMessageClient messageClient,
+                              GroupActiveMessagePolicy activeMessagePolicy,
+                              ActiveMessageProperties activeMessageProperties,
+                              QqMediaUploadProperties mediaUploadProperties) {
         this.messageClient = messageClient;
         this.activeMessagePolicy = activeMessagePolicy;
+        this.activeMessageProperties = activeMessageProperties;
+        this.mediaUploadProperties = mediaUploadProperties;
     }
 
     /**
@@ -68,6 +94,10 @@ public class GroupMessageSender {
         GroupActiveMessagePolicy.Permit permit = activeMessagePolicy.acquire(groupOpenId);
         if (!permit.allowed()) {
             return ActiveMessageResult.rejected(permit.message(), permit.retryAfterSeconds());
+        }
+        ActiveMessageResult platformRejection = verifyPlatformStateBeforeActiveSend(groupOpenId, permit);
+        if (platformRejection != null) {
+            return platformRejection;
         }
         try {
             sendInternal(groupOpenId, response, DeliveryContext.active());
@@ -123,17 +153,17 @@ public class GroupMessageSender {
                 return messageInfo;
             case IMAGE:
                 requireText(response.getTemplateName(), "图片消息 templateName 不能为空");
-                messageInfo.setContent(" ");
+                messageInfo.setContent("");
                 messageInfo.setMedia(buildTemplateImageMedia(groupOpenId, response));
                 return messageInfo;
             case IMAGE_URL:
                 requireText(response.getImageUrl(), "图片消息 imageUrl 不能为空");
-                messageInfo.setContent(" ");
+                messageInfo.setContent("");
                 messageInfo.setMedia(uploadImageUrl(groupOpenId, response.getImageUrl()));
                 return messageInfo;
             case AUDIO_URL:
                 requireText(response.getAudioUrl(), "语音消息 audioUrl 不能为空");
-                messageInfo.setContent(" ");
+                messageInfo.setContent("");
                 messageInfo.setMedia(messageClient.uploadAudio(groupOpenId, response.getAudioUrl()));
                 return messageInfo;
             case MEDIA:
@@ -141,7 +171,7 @@ public class GroupMessageSender {
                         || response.getMedia().getFile_info().isBlank()) {
                     throw new IllegalArgumentException("媒体消息 file_info 不能为空");
                 }
-                messageInfo.setContent(response.getContent() == null ? " " : response.getContent());
+                messageInfo.setContent(response.getContent() == null ? "" : response.getContent());
                 messageInfo.setMedia(response.getMedia());
                 return messageInfo;
             case MARKDOWN:
@@ -164,15 +194,58 @@ public class GroupMessageSender {
     }
 
     private MediaDto buildTemplateImageMedia(String groupOpenId, BotResponse response) {
-        if (minioUtil == null) {
-            throw new IllegalStateException("图片消息需要配置 MinioUtil");
-        }
+        Path outputPath = null;
         try {
-            Path outputPath = Path.of(HtmlToImageUtl.renderTemplateToImage(response.getTemplateName(), response.getTemplateData()));
+            outputPath = Path.of(HtmlToImageUtl.renderTemplateToImage(
+                    response.getTemplateName(), response.getTemplateData()));
+            if (mediaUploadProperties.useChunkUploadForImage()) {
+                log.info("图片消息已生成本地 PNG，即将通过 QQ 分片上传，templateName=>{}，filePath=>{}",
+                        response.getTemplateName(), outputPath.toAbsolutePath().normalize());
+                return messageClient.uploadImageFile(groupOpenId, outputPath);
+            }
+            if (minioUtil == null) {
+                throw new IllegalStateException("图片消息使用 MINIO 上传模式时需要配置 MinioUtil");
+            }
             String imageUrl = minioUtil.uploadFile(outputPath.toFile(), UUID.randomUUID() + ".png");
+            log.info("图片消息已上传到对象存储，即将提交 QQ URL 素材上传，templateName=>{}",
+                    response.getTemplateName());
             return messageClient.uploadImage(groupOpenId, imageUrl);
         } catch (Exception e) {
+            log.error("生成图片消息失败，templateName=>{}，uploadMode=>{}，reason=>{}",
+                    response.getTemplateName(), mediaUploadProperties.getImageUploadMode(),
+                    com.grafie.botjava.util.SensitiveDataUtil.summarize(e), e);
             throw new RuntimeException("生成图片消息失败", e);
+        } finally {
+            if (outputPath != null) {
+                try {
+                    Files.deleteIfExists(outputPath);
+                } catch (Exception cleanupFailure) {
+                    log.warn("清理图片消息临时文件失败，templateName=>{}，reason=>{}",
+                            response.getTemplateName(),
+                            com.grafie.botjava.util.SensitiveDataUtil.summarize(cleanupFailure));
+                }
+            }
+        }
+    }
+
+    private ActiveMessageResult verifyPlatformStateBeforeActiveSend(String groupOpenId,
+                                                                    GroupActiveMessagePolicy.Permit permit) {
+        if (!activeMessageProperties.isVerifyPlatformStateBeforeActiveSend()) {
+            return null;
+        }
+        try {
+            QqBotGroupStateDto state = messageClient.getBotState(groupOpenId);
+            if (state == null || !Boolean.TRUE.equals(state.getAllowProactiveMsg())) {
+                activeMessagePolicy.rollback(permit);
+                return ActiveMessageResult.rejected("QQ 平台尚未允许向本群发送主动消息。", 0);
+            }
+            return null;
+        }
+        catch (QqOpenApiException e) {
+            activeMessagePolicy.rollback(permit);
+            log.warn("QQ 群内机器人状态查询失败，主动消息已拦截，category=>{}，apiCode=>{}，traceId=>{}",
+                    e.getCategory(), e.getApiCode(), e.getTraceId());
+            return ActiveMessageResult.rejected("QQ 群内机器人状态查询失败，暂不发送主动消息。", 0);
         }
     }
 
@@ -187,10 +260,17 @@ public class GroupMessageSender {
         messageInfo.setMsg_id(null);
         messageInfo.setMsg_seq(null);
         messageInfo.setMessageReference(null);
+        messageInfo.setIsWakeup(null);
 
         messageInfo.setEvent_id(deliveryContext.eventId());
         messageInfo.setMsg_id(deliveryContext.messageId());
         messageInfo.setMsg_seq(deliveryContext.msgSeq());
+        if (response.isWakeupMessage()) {
+            if (deliveryContext.eventId() != null || deliveryContext.messageId() != null) {
+                throw new IllegalArgumentException("互动召回消息不能设置 msg_id 或 event_id");
+            }
+            messageInfo.setIsWakeup(true);
+        }
         if (response.isReferenceSourceMessage()) {
             messageInfo.setMessageReference(new MessageReferenceDto(
                     deliveryContext.messageId(), response.isIgnoreReferenceError()));

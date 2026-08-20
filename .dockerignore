@@ -1,0 +1,12 @@
+.git
+.github
+.idea
+.codex
+.agents
+logs
+target
+*.iml
+*.log
+Dockerfile
+README.md
+docs

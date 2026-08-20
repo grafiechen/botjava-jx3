@@ -7,12 +7,22 @@ import com.grafie.botjava.util.RemoteHttpException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class QqOpenApiClientTest {
 
@@ -56,6 +66,47 @@ class QqOpenApiClientTest {
     }
 
     @Test
+    void shouldExposeCachedAuthorizationValueForWebSocketIdentify() {
+        StubQqOpenApiClient client = new StubQqOpenApiClient();
+
+        assertEquals("QQBot token-1", client.getAuthorizationValue());
+        assertEquals("QQBot token-1", client.getAuthorizationValue());
+        assertEquals(1, client.tokenRequests);
+        assertEquals(0, client.openApiRequests);
+    }
+    @Test
+    void shouldSynchronizeTokenRefreshAcrossConcurrentAuthorizationRequests() throws Exception {
+        StubQqOpenApiClient client = new StubQqOpenApiClient();
+        client.slowTokenResponse = true;
+        ExecutorService executor = Executors.newFixedThreadPool(8);
+        try {
+            Callable<String> call = client::getAuthorizationValue;
+            List<Future<String>> results = executor.invokeAll(List.of(call, call, call, call, call, call, call, call));
+            for (Future<String> result : results) {
+                assertEquals("QQBot token-1", result.get());
+            }
+            assertEquals(1, client.tokenRequests);
+        } finally {
+            executor.shutdownNow();
+            assertTrue(executor.awaitTermination(1, TimeUnit.SECONDS));
+        }
+    }
+
+    @Test
+    void shouldRefreshAuthorizationWhenTokenWillExpireWithinSixtySeconds() {
+        MutableClock clock = new MutableClock(Instant.parse("2026-08-12T00:00:00Z"));
+        StubQqOpenApiClient client = new StubQqOpenApiClient(clock);
+        client.tokenExpiresIn = 120;
+
+        assertEquals("QQBot token-1", client.getAuthorizationValue());
+        clock.advance(Duration.ofSeconds(59));
+        assertEquals("QQBot token-1", client.getAuthorizationValue());
+        clock.advance(Duration.ofSeconds(1));
+        assertEquals("QQBot token-2", client.getAuthorizationValue());
+        assertEquals(2, client.tokenRequests);
+    }
+
+    @Test
     void shouldRouteStandardHttpMethodsThroughSharedAuthentication() {
         StubQqOpenApiClient client = new StubQqOpenApiClient();
         client.unauthorizedOnce = false;
@@ -80,20 +131,34 @@ class QqOpenApiClientTest {
         private int openApiRequests;
         private boolean rateLimited;
         private boolean unauthorizedOnce = true;
+        private int tokenExpiresIn = 300;
+        private boolean slowTokenResponse;
         private final List<HttpMethod> methods = new ArrayList<>();
         private final List<Map<String, Object>> queries = new ArrayList<>();
         private final List<Map<String, Object>> bodies = new ArrayList<>();
 
         private StubQqOpenApiClient() {
-            super(properties(), new ObjectMapper());
+            this(Clock.fixed(Instant.parse("2026-08-12T00:00:00Z"), ZoneId.of("UTC")));
+        }
+
+        private StubQqOpenApiClient(Clock clock) {
+            super(properties(), new ObjectMapper(), clock);
         }
 
         @Override
         protected AccessTokenDto requestAccessToken(Map<String, Object> request, Map<String, String> headers) {
             tokenRequests++;
+            if (slowTokenResponse) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException(e);
+                }
+            }
             AccessTokenDto token = new AccessTokenDto();
             token.setAccessToken("token-" + tokenRequests);
-            token.setExpiresIn(300);
+            token.setExpiresIn(tokenExpiresIn);
             return token;
         }
 
@@ -115,10 +180,37 @@ class QqOpenApiClientTest {
         }
     }
 
+    private static class MutableClock extends Clock {
+        private Instant instant;
+
+        private MutableClock(Instant instant) {
+            this.instant = instant;
+        }
+
+        private void advance(Duration duration) {
+            instant = instant.plus(duration);
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return ZoneId.of("UTC");
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            return this;
+        }
+
+        @Override
+        public Instant instant() {
+            return instant;
+        }
+    }
+
     private static TxBotProperty properties() {
         TxBotProperty properties = new TxBotProperty();
-        properties.setAccessTokenUrl("https://bots.qq.com/app/getAppAccessToken");
-        properties.setOpenapiUrl("https://api.sgroup.qq.com");
+        properties.setAccessTokenUrl("https://api.bot.qq.com/app/getAppAccessToken");
+        properties.setOpenapiUrl("https://api.bot.qq.com");
         properties.setAppId("app-id");
         properties.setAppSecret("app-secret");
         return properties;

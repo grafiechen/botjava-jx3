@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>脚本状态</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1080px; background: #edf1f2; color: #20282d; font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
+        #main { min-height: 660px; padding: 36px 52px; }
+        .board { width: 100%; max-width: 1176px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #ccd5d8; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 42, 48, .12); }
+        .header { padding: 27px 34px 23px; border-top: 8px solid #326f68; border-bottom: 1px solid #dce3e5; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; }
+        .eyebrow { margin: 0 0 8px; color: #718087; font-size: 14px; }
+        h1 { margin: 0; font-size: 34px; line-height: 1.2; }
+        .identity { text-align: right; color: #326f68; font-size: 18px; font-weight: 700; }
+        .identity span { display: block; margin-top: 5px; color: #7a878d; font-size: 13px; font-weight: 400; }
+        .record { border-bottom: 1px solid #dce3e5; }
+        .record:last-child { border-bottom: 0; }
+        .record-title { margin: 0; padding: 15px 34px; color: #4b5a60; background: #f7f9f9; font-size: 15px; border-bottom: 1px solid #e2e7e9; }
+        .sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .section { padding: 21px 26px 24px; border-right: 1px solid #e2e7e9; border-bottom: 1px solid #e2e7e9; }
+        .section:nth-child(2n) { border-right: 0; }
+        .section h2 { margin: 0 0 14px; color: #8a5948; font-size: 16px; }
+        .values { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 18px; }
+        .value { min-width: 0; padding-left: 10px; border-left: 3px solid #6c8d91; }
+        .value-name { display: block; color: #7a878d; font-size: 12px; }
+        .value-text { display: block; margin-top: 4px; color: #263238; font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; }
+        .footer { padding: 15px 34px 18px; color: #7b878d; background: #fafbfb; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header">
+            <div><p class="eyebrow">小猫饼 · 角色脚本</p><h1>脚本状态</h1></div>
+            <div class="identity">{{ roleName || '未知角色' }}<span>{{ server || '未知区服' }} · 共 {{ matchCount || 0 }} 条记录</span></div>
+        </header>
+        <section class="record" v-for="record in records" :key="record.index">
+            <h2 class="record-title" v-if="matchCount > 1">记录 {{ record.index }}</h2>
+            <div class="sections">
+                <section class="section" v-for="section in record.sections" :key="section.name">
+                    <h2>{{ section.name }}</h2>
+                    <div class="values">
+                        <div class="value" v-for="field in section.values" :key="field.name">
+                            <span class="value-name">{{ field.name }}</span>
+                            <strong class="value-text">{{ field.value }}</strong>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+        <footer class="footer">状态来自已绑定角色的脚本最近上报数据</footer>
+    </article>
+</main>
+</body>
+</html>

@@ -28,6 +28,7 @@ public class BotResponse {
     private Integer msgSeq;
     private boolean referenceSourceMessage;
     private boolean ignoreReferenceError = true;
+    private boolean wakeupMessage;
 
     public static BotResponse text(String content) {
         BotResponse response = new BotResponse();
@@ -120,6 +121,15 @@ public class BotResponse {
      */
     public BotResponse asActiveMessage() {
         this.deliveryMode = DeliveryMode.ACTIVE;
+        return this;
+    }
+
+    /**
+     * 声明为 QQ 互动召回消息。平台要求该字段不能与 msg_id、event_id 同时使用。
+     */
+    public BotResponse asWakeupMessage() {
+        this.deliveryMode = DeliveryMode.ACTIVE;
+        this.wakeupMessage = true;
         return this;
     }
 

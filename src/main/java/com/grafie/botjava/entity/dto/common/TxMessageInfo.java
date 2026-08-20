@@ -49,6 +49,11 @@ public class TxMessageInfo {
     @JsonProperty(value = "message_reference")
     private MessageReferenceDto messageReference;
     /**
+     * 是否为互动召回消息，与 msg_id、event_id 互斥。
+     */
+    @JsonProperty(value = "is_wakeup")
+    private Boolean isWakeup;
+    /**
      * 前置收到的事件 ID，用于发送被动消息，支持事件："INTERACTION_CREATE"、"GROUP_ADD_ROBOT"、"GROUP_MSG_RECEIVE"
      */
     private String event_id;

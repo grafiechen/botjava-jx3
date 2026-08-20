@@ -3,6 +3,7 @@ package com.grafie.botjava.jx3.http.command;
 import com.grafie.botjava.jx3.http.action.base.Jx3BaseAction;
 import com.grafie.botjava.jx3.http.util.REGEX;
 import org.springframework.aop.support.AopUtils;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumMap;
@@ -17,6 +18,7 @@ import java.util.Optional;
  * 统一负责输入规范化、正则匹配和 Spring Action 定位，并在启动时校验所有已注册指令都有处理器。
  */
 @Component
+@ConditionalOnProperty(prefix = "jx3api", name = {"enabled", "http.enabled"}, havingValue = "true", matchIfMissing = true)
 public class Jx3CommandRegistry {
 
     private final Map<REGEX, Jx3BaseAction> actions;

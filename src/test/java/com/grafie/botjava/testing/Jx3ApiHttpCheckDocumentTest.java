@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -75,14 +77,34 @@ class Jx3ApiHttpCheckDocumentTest {
 
     @Test
     @DisplayName("CHECK_DOCUMENT_HTTP_CONTRACTS_MATCH_INVENTORY")
-    void shouldEnsureEveryInventoryHttpInterfaceHasContract() throws Exception {
+    void shouldEnsureEveryHttpContractPathExistsInInventoryOrLegacyList() throws Exception {
         Map<String, Object> document = readDocument();
         List<Map<String, Object>> httpContracts = httpContracts(document);
-        long inventoryCount = Files.readAllLines(Path.of("docs", "JX3API_HTTP_API_INVENTORY.md")).stream()
-                .filter(line -> line.startsWith("| ") && line.contains("`doc/"))
-                .count();
+        Set<String> inventoryPaths = inventoryPaths();
+        Set<String> legacyPaths = Set.of(
+                "/master/search",
+                "/save/detailed",
+                "/role/attribute",
+                "/role/teamCdList",
+                "/table/records",
+                "/mixed/chat",
+                "/music/tencent",
+                "/music/netease",
+                "/music/kugou",
+                "/idiom/solitaire"
+        );
 
-        assertEquals(inventoryCount, httpContracts.size(), "HTTP contract count must match inventory count");
+        Set<String> documentedOfficialPaths = new HashSet<>();
+        for (Map<String, Object> contract : httpContracts) {
+            String expectedPath = requireString(contract, "expectedPath");
+            assertTrue(inventoryPaths.contains(expectedPath) || legacyPaths.contains(expectedPath),
+                    "Contract path is neither official nor legacy: " + expectedPath);
+            if (inventoryPaths.contains(expectedPath)) {
+                documentedOfficialPaths.add(expectedPath);
+            }
+        }
+        assertEquals(inventoryPaths, documentedOfficialPaths,
+                "Every official inventory path must have at least one executable HTTP contract");
     }
 
     @Test
@@ -124,6 +146,28 @@ class Jx3ApiHttpCheckDocumentTest {
         });
     }
 
+
+    private static Set<String> inventoryPaths() throws Exception {
+        Set<String> paths = new HashSet<>();
+        Pattern pattern = Pattern.compile("`(/[^`]+)`");
+        for (String line : Files.readAllLines(Path.of("docs", "JX3API_HTTP_API_INVENTORY.md"))) {
+            if (!line.startsWith("| ") || line.startsWith("| ---")) {
+                continue;
+            }
+            Matcher matcher = pattern.matcher(line);
+            String lastPath = null;
+            while (matcher.find()) {
+                String value = matcher.group(1);
+                if (value.startsWith("/")) {
+                    lastPath = value;
+                }
+            }
+            if (lastPath != null) {
+                paths.add(lastPath);
+            }
+        }
+        return paths;
+    }
     private static String requireString(Map<String, Object> map, String key) {
         Object value = map.get(key);
         assertNotNull(value, "Missing key: " + key);

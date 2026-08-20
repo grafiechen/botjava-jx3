@@ -38,9 +38,9 @@ class QqGroupMessageLiveSmokeIT {
         properties.setAppId(requiredEnvironment("TX_BOT_APP_ID"));
         properties.setAppSecret(requiredEnvironment("TX_BOT_APP_SECRET"));
         properties.setAccessTokenUrl(optionalEnvironment(
-                "TX_BOT_ACCESS_TOKEN_URL", "https://bots.qq.com/app/getAppAccessToken"));
+                "TX_BOT_ACCESS_TOKEN_URL", "https://api.bot.qq.com/app/getAppAccessToken"));
         properties.setOpenapiUrl(optionalEnvironment(
-                "TX_BOT_OPENAPI_URL", "https://api.sgroup.qq.com"));
+                "TX_BOT_OPENAPI_URL", "https://api.bot.qq.com"));
         properties.setRequestTimeoutSeconds(timeoutSeconds());
         properties.validate();
 

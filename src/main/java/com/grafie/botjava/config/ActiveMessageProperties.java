@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 public class ActiveMessageProperties {
 
     private int activeMessageMinIntervalSeconds = 60;
+    private boolean verifyPlatformStateBeforeActiveSend = false;
 
     public int getActiveMessageMinIntervalSeconds() {
         return activeMessageMinIntervalSeconds;
@@ -18,5 +19,13 @@ public class ActiveMessageProperties {
             throw new IllegalArgumentException("bot.qq.active-message-min-interval-seconds 必须大于 0");
         }
         this.activeMessageMinIntervalSeconds = activeMessageMinIntervalSeconds;
+    }
+
+    public boolean isVerifyPlatformStateBeforeActiveSend() {
+        return verifyPlatformStateBeforeActiveSend;
+    }
+
+    public void setVerifyPlatformStateBeforeActiveSend(boolean verifyPlatformStateBeforeActiveSend) {
+        this.verifyPlatformStateBeforeActiveSend = verifyPlatformStateBeforeActiveSend;
     }
 }

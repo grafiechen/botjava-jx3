@@ -3,6 +3,7 @@ package com.grafie.botjava.qq;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grafie.botjava.util.RemoteHttpException;
+import com.grafie.botjava.util.SensitiveDataUtil;
 
 /**
  * 将 QQ HTTP 错误映射为稳定分类和安全提示。
@@ -15,24 +16,27 @@ public final class QqOpenApiErrorMapper {
     public static QqOpenApiException fromHttp(RemoteHttpException failure, ObjectMapper objectMapper) {
         ErrorFields fields = parseFields(failure.getResponseBody(), objectMapper);
         int status = failure.getStatusCode();
-        QqOpenApiException.Category category = category(status);
-        return new QqOpenApiException(category, status, fields.code(), fields.traceId(),
-                status == 429 || status >= 500,
+        QqOpenApiException.Category category = category(status, fields.code());
+        return new QqOpenApiException(category, status, fields.code(), safeMessage(fields.message()), fields.traceId(),
+                category == QqOpenApiException.Category.RATE_LIMIT || status >= 500,
                 userMessage(category), failure);
     }
 
     public static QqOpenApiException network(Throwable failure) {
         return new QqOpenApiException(QqOpenApiException.Category.NETWORK, 0,
-                null, null, true, "QQ 服务暂时无法连接，请稍后重试。", failure);
+                null, null, null, true, "QQ 服务暂时无法连接，请稍后重试。", failure);
     }
 
     public static QqOpenApiException invalidResponse(String operation) {
         return new QqOpenApiException(QqOpenApiException.Category.INVALID_RESPONSE, 200,
-                null, null, false, "QQ 服务返回数据异常，请稍后重试。",
+                null, null, null, false, "QQ 服务返回数据异常，请稍后重试。",
                 new IllegalStateException(operation + " 未返回必需字段"));
     }
 
-    private static QqOpenApiException.Category category(int status) {
+    private static QqOpenApiException.Category category(int status, String code) {
+        if ("100017".equals(code)) {
+            return QqOpenApiException.Category.RATE_LIMIT;
+        }
         return switch (status) {
             case 400, 405, 409, 422 -> QqOpenApiException.Category.INVALID_REQUEST;
             case 401 -> QqOpenApiException.Category.AUTHENTICATION;
@@ -43,6 +47,10 @@ public final class QqOpenApiErrorMapper {
                     ? QqOpenApiException.Category.SERVER_ERROR
                     : QqOpenApiException.Category.UNKNOWN;
         };
+    }
+
+    private static String safeMessage(String message) {
+        return message == null ? null : SensitiveDataUtil.redactText(message);
     }
 
     private static String userMessage(QqOpenApiException.Category category) {
@@ -59,13 +67,14 @@ public final class QqOpenApiErrorMapper {
 
     private static ErrorFields parseFields(String responseBody, ObjectMapper objectMapper) {
         if (responseBody == null || responseBody.isBlank()) {
-            return new ErrorFields(null, null);
+            return new ErrorFields(null, null, null);
         }
         try {
             JsonNode root = objectMapper.readTree(responseBody);
-            return new ErrorFields(text(root, "code"), firstText(root, "trace_id", "traceId"));
+            return new ErrorFields(text(root, "code"), firstText(root, "message", "msg"),
+                    firstText(root, "trace_id", "traceId"));
         } catch (Exception ignored) {
-            return new ErrorFields(null, null);
+            return new ErrorFields(null, null, null);
         }
     }
 
@@ -88,6 +97,6 @@ public final class QqOpenApiErrorMapper {
         return text.isEmpty() ? null : text;
     }
 
-    private record ErrorFields(String code, String traceId) {
+    private record ErrorFields(String code, String message, String traceId) {
     }
 }

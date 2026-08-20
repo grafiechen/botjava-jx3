@@ -1,6 +1,7 @@
 package com.grafie.botjava.jx3.config;
 
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.ElementType;
@@ -18,6 +19,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Component
+@ConditionalOnProperty(prefix = "jx3api", name = {"enabled", "http.enabled"}, havingValue = "true", matchIfMissing = true)
 public @interface Jx3Action{
 
 }

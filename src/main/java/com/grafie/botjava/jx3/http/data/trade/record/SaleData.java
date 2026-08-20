@@ -10,7 +10,7 @@ public class SaleData {
     private String id;
 
     @JsonProperty("index")
-    private Integer index;
+    private String index;
 
     @JsonProperty("zone")
     private String zone;

@@ -23,6 +23,7 @@ import com.grafie.botjava.jx3.http.data.luck.LuckAdventureData;
 import com.grafie.botjava.jx3.http.data.luck.unfinished.LuckUnfinishedData;
 import com.grafie.botjava.jx3.http.data.news.NewsAllNewsData;
 import com.grafie.botjava.jx3.http.data.news.NewsAnnounceData;
+import com.grafie.botjava.jx3.http.data.official.ChatRecordsData;
 import com.grafie.botjava.jx3.http.data.official.OfficialQueryData;
 import com.grafie.botjava.jx3.http.data.horse.HorseRanchData;
 import com.grafie.botjava.jx3.http.data.horse.HorseRecordsData;
@@ -85,6 +86,7 @@ class ImageActionResponseTest {
         baseResult.setCode(200);
         baseResult.setData(imageCase.apiData());
         when(requestUtil.doPostRequest(anyString(), any())).thenReturn(requestResult);
+        when(requestUtil.doGetRequest(any(), any())).thenReturn(requestResult);
         when(requestUtil.getResultRealData(requestResult, imageCase.regex().getMethodEnum()))
                 .thenReturn(baseResult);
         when(requestUtil.loadRemoteImageDataUri(anyString())).thenReturn(Optional.empty());
@@ -207,7 +209,7 @@ class ImageActionResponseTest {
         priceData.setSubclass("同人盒子");
         priceData.setName("十五夜观灯·南涧·标准");
         priceData.setAlias("标准蓝观灯");
-        priceData.setData(List.of(List.of(saleData)));
+        priceData.setData(List.of(saleData));
         OfficialQueryData.TradeListing marketListing = new OfficialQueryData.TradeListing();
         marketListing.setZone("电信区");
         marketListing.setServer("乾坤一掷");
@@ -457,15 +459,6 @@ class ImageActionResponseTest {
         fraudData.setServer("乾坤一掷");
         fraudData.setTieba("剑网3吧");
         fraudData.setData(List.of(fraudInfo));
-        OfficialQueryData.TradeItem itemData = new OfficialQueryData.TradeItem();
-        itemData.setCategory("道具");
-        itemData.setSubclass("节日物品");
-        itemData.setName("十五夜观灯");
-        itemData.setAlias("观灯");
-        itemData.setValue("12000");
-        itemData.setDesc("节日活动相关物品");
-        itemData.setDate("2026-07-15");
-        itemData.setView("https://www.jx3api.com/cache/item.png");
         TiebaItemRecordsData tiebaPrice = new TiebaItemRecordsData();
         tiebaPrice.setZone("电信区");
         tiebaPrice.setServer("乾坤一掷");
@@ -514,6 +507,16 @@ class ImageActionResponseTest {
         nextEvent.setServer("乾坤一掷");
         nextEvent.setStatus(1);
         nextEvent.setTime(1_764_574_651L);
+        ChatRecordsData.ChatRecord chatRecord = new ChatRecordsData.ChatRecord();
+        chatRecord.setZone("电信区");
+        chatRecord.setServer("乾坤一掷");
+        chatRecord.setRoleName("琉枫");
+        chatRecord.setChannel("世界");
+        chatRecord.setMessage("[跨服房间招募·25人普通会战弓月城]【千机】大小M 提升速 来T和奶");
+        chatRecord.setTime(1_767_102_878L);
+        ChatRecordsData chatRecords = new ChatRecordsData();
+        chatRecords.setTotal(36);
+        chatRecords.setList(List.of(chatRecord));
 
         return Stream.of(
                 imageCase("活动日历", REGEX.ActiveCurrent, "日常 乾坤一掷", "活动日历",
@@ -530,6 +533,8 @@ class ImageActionResponseTest {
                         homeFlowerData, "乾坤一掷", "绣球花"),
                 imageCase("角色名片", REGEX.RoleShowCard, "名片 乾坤一掷 夜温言", "角色名片",
                         cardData, "乾坤一掷", "夜温言"),
+                imageCase("角色聊天", REGEX.ChatRecords, "角色聊天 乾坤一掷 琉枫 20 1", "角色聊天",
+                        chatRecords, "乾坤一掷", null),
                 imageCase("所有名片", REGEX.RoleShowCards, "所有名片 乾坤一掷 夜温言", "角色名片",
                         List.of(cardData), "乾坤一掷", "夜温言"),
                 imageCase("随机名片", REGEX.RoleShowRandom, "随机名片 唯我独尊 萝莉 万花", "角色名片",
@@ -542,8 +547,6 @@ class ImageActionResponseTest {
                         List.of(announceData), null, null),
                 imageCase("骗子查询", REGEX.FraudDetail, "骗子 570790267", "骗子查询",
                         List.of(fraudData), null, null),
-                imageCase("搜索物品", REGEX.TradeItemSearch, "搜索物品 十五", "搜索物品",
-                        List.of(itemData), null, "十五"),
                 imageCase("贴吧物价", REGEX.TiebaItemRecords, "贴吧物价 乾坤一掷 狐金", "贴吧物价",
                         List.of(tiebaPrice), "乾坤一掷", "狐金"),
                 imageCase("金币价格", REGEX.TradeDemon, "金价 乾坤一掷", "金币价格",

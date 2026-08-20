@@ -5,6 +5,7 @@ import com.grafie.botjava.jx3.config.Jx3Action;
 import com.grafie.botjava.entity.dto.common.BotResponse;
 import com.grafie.botjava.jx3.http.action.base.Jx3BaseAction;
 import com.grafie.botjava.jx3.http.BaseResult;
+import com.grafie.botjava.jx3.http.data.saohua.SaohuaRandomData;
 
 import java.util.Map;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
@@ -31,6 +32,10 @@ public class SaohuaRandomAction extends Jx3BaseAction {
 
     @Override
     protected BotResponse dealAfterJx3ApiRequest(BaseResult baseResult) {
-        return buildReadableText("世界骚话", baseResult);
+        SaohuaRandomData data = (SaohuaRandomData) baseResult.getData();
+        if (data.getText() == null || data.getText().isBlank()) {
+            return BotResponse.text("暂无骚话。");
+        }
+        return BotResponse.text(data.getText().trim());
     }
 }

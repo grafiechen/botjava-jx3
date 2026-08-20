@@ -67,7 +67,7 @@ class OfficialIndependentTextActionTest {
                         Map.of("server", "乾坤一掷", "name", "加菲")),
                 imageCommand("贴吧物价", REGEX.TiebaItemRecords, "贴吧物价 乾坤一掷 狐金",
                         Map.of("server", "乾坤一掷", "name", "狐金", "limit", 10)),
-                imageCommand("搜索物品", REGEX.TradeItemSearch, "搜索物品 十五",
+                command("搜索物品", REGEX.TradeItemSearch, "搜索物品 十五",
                         Map.of("name", "十五")),
                 imageCommand("副本解密", REGEX.MechCalculator, "副本解密", Map.of()),
                 imageCommand("统战歪歪", REGEX.DuowanStatistics, "统战 乾坤一掷",

@@ -17,9 +17,25 @@ import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HtmlToImageUtlTest {
+
+    @Test
+    void shouldEncodeTemplateDataWithoutExecutableScriptBreakout() throws Exception {
+        String payload = "</ScRiPt><script>window.compromised=true</script>";
+        String html = HtmlToImageUtl.injectVueData("static/测试模板.html",
+                "<html><head></head><body><div id=\"main\"></div></body></html>",
+                Map.of("value", payload));
+
+        assertFalse(html.contains(payload));
+        assertFalse(html.contains("window.compromised=true"));
+        assertTrue(html.contains("JSON.parse(new TextDecoder('utf-8')"));
+        String expected = Base64.getEncoder().encodeToString(
+                new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsBytes(Map.of("value", payload)));
+        assertTrue(html.contains(expected));
+    }
 
     @Test
     void shouldRenderVueTemplateToImageByTemplateName() throws Exception {
@@ -63,6 +79,67 @@ class HtmlToImageUtlTest {
         assertTrue(image.getHeight() > 100);
     }
 
+    @Test
+    void shouldRenderScriptStatusWithMultipleMongoMatches() throws Exception {
+        Map<String, Object> data = Map.of(
+                "server", "乾坤一掷",
+                "roleName", "加菲",
+                "matchCount", 2,
+                "records", List.of(
+                        Map.of("index", 1, "sections", List.of(
+                                Map.of("name", "角色状态", "values", List.of(
+                                        Map.of("name", "秘籍", "value", "是"),
+                                        Map.of("name", "角色金币", "value", "128000"))),
+                                Map.of("name", "日常任务", "values", List.of(
+                                        Map.of("name", "每日签到", "value", "已完成"),
+                                        Map.of("name", "日常大战", "value", "未完成"))))),
+                        Map.of("index", 2, "sections", List.of(
+                                Map.of("name", "角色状态", "values", List.of(
+                                        Map.of("name", "秘籍", "value", "否"),
+                                        Map.of("name", "角色金币", "value", "64000"))),
+                                Map.of("name", "日常任务", "values", List.of(
+                                        Map.of("name", "每日签到", "value", "已完成"),
+                                        Map.of("name", "日常大战", "value", "已完成")))))
+                )
+        );
+        Path output = Path.of("target", "test-output", "html-image", "脚本状态-多记录.png");
+        Files.createDirectories(output.getParent());
+
+        HtmlToImageUtl.renderTemplateToImage("脚本状态", data, output.toString());
+
+        assertTrue(Files.exists(output));
+        BufferedImage image = ImageIO.read(output.toFile());
+        assertNotNull(image);
+        assertTrue(image.getWidth() > 1000);
+        assertTrue(image.getHeight() > 500);
+    }
+    @Test
+    void shouldRenderDailyProgressTableWithDynamicFields() throws Exception {
+        Map<String, Object> data = Map.of(
+                "generatedAt", "2026-08-13 10:00",
+                "roleCount", 2,
+                "recordCount", 2,
+                "columns", List.of(
+                        Map.of("field", "每日签到任务", "name", "上次日常完成"),
+                        Map.of("field", "角色金币", "name", "金币"),
+                        Map.of("field", "精力", "name", "精力"),
+                        Map.of("field", "侠行点", "name", "侠义")),
+                "rows", List.of(
+                        Map.of("server", "乾坤一掷", "roleName", "醉卧平沙", "values",
+                                List.of("2026-08-11 17:02:44", "27655", "5258", "42579")),
+                        Map.of("server", "梦江南", "roleName", "测试角色", "values",
+                                List.of("-", "30000", "4000", "50000")))
+        );
+        Path output = Path.of("target", "test-output", "html-image", "日常进度-动态字段.png");
+        Files.createDirectories(output.getParent());
+
+        HtmlToImageUtl.renderTemplateToImage("日常进度", data, output.toString());
+
+        BufferedImage image = ImageIO.read(output.toFile());
+        assertNotNull(image);
+        assertTrue(image.getWidth() > 1000);
+        assertTrue(image.getHeight() > 500);
+    }
     @Test
     void shouldRenderMigratedMainTemplates() throws Exception {
         assertRendered("角色信息", Map.of(
@@ -735,11 +812,11 @@ class HtmlToImageUtlTest {
                         Map.entry("date", "2025-12-03"), Map.entry("week", "三"),
                         Map.entry("war", "大战！英雄冰川宫宝库"), Map.entry("battle", "浮香丘"),
                         Map.entry("orecar", "跨服·河西瀚漠"), Map.entry("school", "明教·漫漫朝圣路"),
-                        Map.entry("rescue", "七秀·乱世"), Map.entry("draw", "美人画图·明教"),
+                        Map.entry("rescue", "七秀·乱世"), Map.entry("draws", List.of("苍云铁麟·成男", "长歌儒风·成男", "霸刀名少·成男", "蓬莱仙梧·成男", "凌雪冥夜·成男")),
                         Map.entry("leaders", List.of("九辩馆·章危")),
                         Map.entry("luck", List.of("丰丰", "童心客", "沅沅")),
                         Map.entry("cards", List.of("英雄天子峰", "英雄日轮山城", "英雄风雨稻香村")),
-                        Map.entry("teams", List.of("五台山·无遮大会；太原·寒光铁衣卫大唐", "会战弓月城；冰火岛·荒血路；白帝江关"))
+                        Map.entry("teams", List.of("公共任务：洛阳城·攻打应天门", "公共任务：洛阳·神兵迷踪", "团队秘境：阆风悬城", "团队秘境：武狱黑牢", "团队秘境：西津渡"))
                 )
         ));
         assertRendered("活动月历", Map.of(
@@ -839,6 +916,30 @@ class HtmlToImageUtlTest {
     }
 
     @Test
+    void shouldRenderChatRecordsTemplate() throws Exception {
+        List<Map<String, Object>> records = java.util.stream.IntStream.range(0, 20)
+                .mapToObj(index -> Map.<String, Object>of(
+                        "zone", "电信区",
+                        "server", "乾坤一掷",
+                        "roleName", "琉枫",
+                        "channel", "世界",
+                        "message", "[跨服房间招募·25人普通会战弓月城]【千机】大小M 提升速 来TND TN补500",
+                        "time", "2025-12-30 22:58:32"))
+                .toList();
+        assertRendered("角色聊天", Map.of(
+                "server", "乾坤一掷",
+                "roleName", "琉枫",
+                "page", 1,
+                "total", 36,
+                "data", records
+        ));
+
+        BufferedImage image = ImageIO.read(
+                Path.of("target", "test-output", "html-image", "角色聊天.png").toFile());
+        assertNotNull(image);
+        assertTrue(image.getHeight() > 1800);
+    }
+    @Test
     void shouldRenderMarketAndUtilityTemplates() throws Exception {
         assertRendered("贴吧物价", Map.of(
                 "server", "乾坤一掷", "name", "狐金",
@@ -906,7 +1007,113 @@ class HtmlToImageUtlTest {
                 )
         ));
     }
+    @Test
+    void shouldRenderTradeRecordPreviewWithGroupedJx3ApiData() throws Exception {
+        Path output = Path.of("target", "test-output", "html-image", "物品价格-金发因陀罗.png");
+        Files.createDirectories(output.getParent());
 
+        Map<String, Object> data = Map.ofEntries(
+                Map.entry("mode", "物品价格"),
+                Map.entry("server", "乾坤一掷"),
+                Map.entry("name", "金发·因陀罗"),
+                Map.entry("previewImageDataUri", sampleCardDataUri(new Color(245, 239, 225), new Color(218, 183, 86))),
+                Map.entry("data", Map.ofEntries(
+                        Map.entry("category", "发型"),
+                        Map.entry("name", "金发·因陀罗"),
+                        Map.entry("alias", "猴金/金发因陀罗"),
+                        Map.entry("retail", 280),
+                        Map.entry("desc", "2016/02/29上架发售，不绑定限时3周。售价280。"),
+                        Map.entry("date", "2016-02-29"),
+                        Map.entry("view", sampleCardDataUri(new Color(245, 239, 225), new Color(218, 183, 86))),
+                        Map.entry("groups", List.of(
+                                priceGroup("公示期", List.of(
+                                        priceRow("2026-08-12", "乾坤一掷", 6099, 7),
+                                        priceRow("2026-08-12", "梦江南", 6099, 7),
+                                        priceRow("2026-08-12", "梦江南", 6186, 7),
+                                        priceRow("2026-08-12", "龙争虎斗", 6666, 7)
+                                )),
+                                priceGroup("在售期", List.of(
+                                        priceRow("2026-08-12", "绝代天骄", 6188, 3),
+                                        priceRow("2026-08-12", "梦江南", 6333, 3),
+                                        priceRow("2026-08-12", "长安城", 6666, 3),
+                                        priceRow("2026-08-12", "天鹅坪", 7000, 3),
+                                        priceRow("2026-08-12", "龙争虎斗", 30000, 3)
+                                )),
+                                priceGroup("乾坤一掷", List.of(
+                                        priceRow("2026-07-08", "乾坤一掷", 4300, 3),
+                                        priceRow("2026-04-15", "乾坤一掷", 5500, 4),
+                                        priceRow("2026-04-14", "乾坤一掷", 5500, 4),
+                                        priceRow("2026-04-13", "乾坤一掷", 5500, 4),
+                                        priceRow("2026-04-12", "乾坤一掷", 5500, 4),
+                                        priceRow("2026-04-11", "乾坤一掷", 5500, 4),
+                                        priceRow("2026-04-10", "乾坤一掷", 5500, 4),
+                                        priceRow("2026-04-09", "乾坤一掷", 5500, 4),
+                                        priceRow("2026-04-08", "乾坤一掷", 5500, 4),
+                                        priceRow("2026-04-07", "乾坤一掷", 5500, 4)
+                                )),
+                                priceGroup("电信区", List.of(
+                                        priceRow("2026-07-08", "乾坤一掷", 4300, 3),
+                                        priceRow("2026-07-08", "斗转星移", 4300, 3),
+                                        priceRow("2026-07-08", "幽月轮", 4300, 3),
+                                        priceRow("2026-06-05", "龙争虎斗", 5000, 4),
+                                        priceRow("2026-06-01", "蝶恋花", 5000, 4)
+                                )),
+                                priceGroup("双线区", List.of(
+                                        priceRow("2026-07-08", "破阵子", 4300, 3),
+                                        priceRow("2026-04-02", "破阵子", 5500, 4),
+                                        priceRow("2026-04-01", "飞龙在天", 5500, 4),
+                                        priceRow("2026-02-05", "天鹅坪", 6300, 3)
+                                )),
+                                priceGroup("无界区", List.of())
+                        ))
+                ))
+        );
+
+        HtmlToImageUtl.renderTemplateToImage("物品价格", data, output.toString());
+
+        assertTrue(Files.exists(output));
+        assertTrue(Files.size(output) > 0);
+        BufferedImage image = ImageIO.read(output.toFile());
+        assertNotNull(image);
+        assertTrue(image.getWidth() > 1000);
+        assertTrue(image.getHeight() > 1200);
+    }
+
+    @Test
+    void shouldRenderTradeRecordWhenRemotePreviewCannotBeEmbedded() throws Exception {
+        Path output = Path.of("target", "test-output", "html-image", "物品价格-预览图降级.png");
+        Files.createDirectories(output.getParent());
+        Map<String, Object> data = Map.of(
+                "mode", "物品价格",
+                "server", "乾坤一掷",
+                "name", "金发·因陀罗",
+                "data", Map.of(
+                        "name", "金发·因陀罗",
+                        "view", "https://static.nicemoe.cn/static/view/unavailable.png",
+                        "groups", List.of()));
+
+        HtmlToImageUtl.renderTemplateToImage("物品价格", data, output.toString());
+
+        BufferedImage image = ImageIO.read(output.toFile());
+        assertNotNull(image);
+        assertTrue(image.getWidth() > 1000);
+        assertTrue(image.getHeight() > 700);
+    }
+
+    @Test
+    void shouldReportBrokenImageResourceWithoutDumpingDataUri() throws Exception {
+        Path output = Path.of("target", "test-output", "html-image", "坏图片资源.png");
+        Files.createDirectories(output.getParent());
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+                () -> HtmlToImageUtl.renderHtmlContentToImage(
+                        "<html><body><img src=\"data:image/png;base64,broken\"></body></html>",
+                        output.toString()));
+
+        assertTrue(exception.getMessage().contains("resources=>"));
+        assertTrue(exception.getMessage().contains("data:image/png;base64,..."));
+        assertFalse(exception.getMessage().contains("base64,broken"));
+    }
     private String sampleCardDataUri(Color background, Color accent) throws Exception {
         BufferedImage image = new BufferedImage(960, 540, BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics = image.createGraphics();
@@ -938,6 +1145,13 @@ class HtmlToImageUtlTest {
                 Map.entry("luck", List.of("丰丰", "童心客")),
                 Map.entry("cards", List.of("英雄迷渊岛", "尘归海·饕餮洞"))
         );
+    }
+    private Map<String, Object> priceGroup(String name, List<Map<String, Object>> rows) {
+        return Map.of("name", name, "list", rows);
+    }
+
+    private Map<String, Object> priceRow(String date, String server, int value, int sale) {
+        return Map.of("date", date, "server", server, "value", value, "sale", sale);
     }
 
     private Map<String, Object> skillData(String name, String summary, String description,
@@ -986,5 +1200,45 @@ class HtmlToImageUtlTest {
         assertNotNull(image, templateName);
         assertTrue(image.getWidth() > 700, templateName);
         assertTrue(image.getHeight() > 100, templateName);
+    }
+
+    @Test
+    void shouldRenderPushSubscriptionTableWithEnabledAndDisabledWsRows() throws Exception {
+        com.grafie.botjava.service.push.PushTaskRegistry registry =
+                new com.grafie.botjava.service.push.PushTaskRegistry();
+        List<Map<String, Object>> rows = new java.util.ArrayList<>();
+        int index = 0;
+        for (com.grafie.botjava.service.push.PushTaskDefinition task : registry.all()) {
+            boolean enabled = index++ % 3 == 0;
+            rows.add(Map.of(
+                    "source", task.source().getDisplayName(),
+                    "sourceCode", task.source().name(),
+                    "category", task.category(),
+                    "name", task.displayName(),
+                    "code", task.code(),
+                    "enabled", enabled,
+                    "ready", task.producerReady()));
+        }
+        long enabledCount = rows.stream()
+                .filter(row -> Boolean.TRUE.equals(row.get("enabled")))
+                .count();
+        long wsCount = registry.all().stream()
+                .filter(task -> task.source().isWebSocket())
+                .count();
+        Map<String, Object> data = Map.of(
+                "wsCount", wsCount,
+                "enabledCount", enabledCount,
+                "disabledCount", rows.size() - enabledCount,
+                "rows", rows
+        );
+        Path output = Path.of("target", "test-output", "html-image", "推送列表.png");
+        Files.createDirectories(output.getParent());
+
+        HtmlToImageUtl.renderTemplateToImage("推送列表", data, output.toString());
+
+        BufferedImage image = ImageIO.read(output.toFile());
+        assertNotNull(image);
+        assertTrue(image.getWidth() > 1000);
+        assertTrue(image.getHeight() > 2000);
     }
 }

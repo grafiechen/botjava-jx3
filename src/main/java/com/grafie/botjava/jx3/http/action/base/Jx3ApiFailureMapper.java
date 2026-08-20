@@ -1,6 +1,7 @@
 package com.grafie.botjava.jx3.http.action.base;
 
 import com.grafie.botjava.entity.dto.common.BotResponse;
+import com.grafie.botjava.util.SensitiveDataUtil;
 
 import java.net.SocketTimeoutException;
 import java.util.Locale;
@@ -19,6 +20,10 @@ final class Jx3ApiFailureMapper {
         if (isCredentialFailure(code, normalized)) {
             return response("查询服务认证失败，请联系管理员检查配置。", requestId);
         }
+        String upstreamMessage = userFacingUpstreamMessage(code, message, normalized);
+        if (!upstreamMessage.isBlank()) {
+            return response(upstreamMessage, requestId);
+        }
         return response("查询失败，请稍后再试。", requestId);
     }
 
@@ -32,6 +37,25 @@ final class Jx3ApiFailureMapper {
 
     static BotResponse empty(String requestId) {
         return response("查询成功，但暂无数据。", requestId);
+    }
+
+    private static String userFacingUpstreamMessage(Integer code, String rawMessage, String normalizedMessage) {
+        if (!isUserCorrectableFailure(code, normalizedMessage)) {
+            return "";
+        }
+        String message = SensitiveDataUtil.redactText(rawMessage == null ? "" : rawMessage).trim()
+                .replace('\r', ' ')
+                .replace('\n', ' ');
+        if (message.length() > 120) {
+            return message.substring(0, 117) + "...";
+        }
+        return message;
+    }
+
+    private static boolean isUserCorrectableFailure(Integer code, String message) {
+        return Integer.valueOf(400).equals(code)
+                || Integer.valueOf(404).equals(code)
+                || containsAny(message, "没有", "木有", "未找到", "不存在", "暂无", "为空", "换个名字", "参数");
     }
 
     private static boolean isRateLimited(Integer code, String message) {

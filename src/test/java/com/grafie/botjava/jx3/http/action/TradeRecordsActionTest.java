@@ -8,6 +8,7 @@ import com.grafie.botjava.jx3.http.RequestResult;
 import com.grafie.botjava.jx3.http.data.official.OfficialQueryData;
 import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
 import com.grafie.botjava.jx3.http.util.REGEX;
+import com.grafie.botjava.service.AppearanceNameAliasService;
 import com.grafie.botjava.service.GroupConfigurationService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -55,6 +56,37 @@ class TradeRecordsActionTest {
         assertEquals("狐金", templateData.get("name"));
     }
 
+
+    @Test
+    void shouldResolveAppearanceNameAliasBeforeRequestingJx3Api() {
+        ApiProperties properties = new ApiProperties();
+        properties.setDefaultServer("梦江南");
+        Jx3RequestUtil requestUtil = mock(Jx3RequestUtil.class);
+        AppearanceNameAliasService aliasService = mock(AppearanceNameAliasService.class);
+        RequestResult requestResult = new RequestResult();
+        BaseResult<Object> baseResult = new BaseResult<>();
+        baseResult.setCode(200);
+        baseResult.setData(marketData());
+        when(aliasService.resolve("group-1", "狐金")).thenReturn("金发·璨月蝶心");
+        when(aliasService.importTrustedAliases("金发·璨月蝶心", "狐金"))
+                .thenReturn(new AppearanceNameAliasService.TrustedImportResult(
+                        "金发·璨月蝶心", List.of("狐金"), List.of(), List.of()));
+        when(requestUtil.doPostRequest(anyString(), any())).thenReturn(requestResult);
+        when(requestUtil.getResultRealData(requestResult, REGEX.TradeRecords.getMethodEnum()))
+                .thenReturn(baseResult);
+        TradeRecordsAction action = new TradeRecordsAction(
+                properties, requestUtil, mock(GroupConfigurationService.class), aliasService);
+
+        BotResponse response = action.doRequest(
+                message(), "黑市物价 乾坤一掷 狐金", REGEX.TradeRecords);
+
+        ArgumentCaptor<Map<String, Object>> params = ArgumentCaptor.forClass(Map.class);
+        verify(requestUtil).doPostRequest(
+                eq(REGEX.TradeRecords.getMethodEnum().getMethodPath()), params.capture());
+        assertEquals("金发·璨月蝶心", params.getValue().get("name"));
+        assertEquals("金发·璨月蝶心", ((Map<?, ?>) response.getTemplateData()).get("name"));
+        verify(aliasService).importTrustedAliases("金发·璨月蝶心", "狐金");
+    }
     private OfficialQueryData.TradeRecords marketData() {
         OfficialQueryData.TradeListing listing = new OfficialQueryData.TradeListing();
         listing.setZone("电信区");

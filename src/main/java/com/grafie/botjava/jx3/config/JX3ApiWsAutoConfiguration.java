@@ -4,11 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grafie.botjava.jx3.ws.service.WsDataPushService;
 import com.grafie.botjava.jx3.ws.WebSocketClientInitializer;
 import jakarta.annotation.Resource;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 import java.lang.reflect.InvocationTargetException;
@@ -22,13 +19,12 @@ import java.util.List;
  * @since 1.0.0
  */
 @Configuration
-@Conditional(OnEnableJX3ApiWSCondition.class)
+@ConditionalOnExpression("'${jx3api.enabled:true}' == 'true' and '${jx3api.ws.enabled:false}' == 'true'")
 public class JX3ApiWsAutoConfiguration {
     /**
      * 默认ws data的包路径
      */
-    private static final String DEFAULT_WS_DATA_PACKAGE = "jx3api.api.ws.data";
-    private static final Logger logger = LoggerFactory.getLogger(JX3ApiWsAutoConfiguration.class);
+    private static final String DEFAULT_WS_DATA_PACKAGE = "com.grafie.botjava.jx3.ws.data";
     @Resource
     private WebSocketProperties webSocketProperties;
     @Resource
@@ -39,18 +35,12 @@ public class JX3ApiWsAutoConfiguration {
     @Bean
     public WebSocketClientInitializer webSocketClientInitializer() throws ClassNotFoundException,
             InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        if (StringUtils.isBlank(webSocketProperties.getWsUrl())) {
-            throw new NullPointerException("ws远程地址不允许为空,请检查配置信息");
-        }
-        if (StringUtils.isBlank(webSocketProperties.getWsToken())) {
-            logger.error("未获取到wsToken，付费ws推送将无法使用");
-        }
+        webSocketProperties.validate();
         if (webSocketProperties.getWsDataBeanBasePackage() == null) {
             List<String> wsDataBasePackageList = new ArrayList<>();
             webSocketProperties.setWsDataBeanBasePackage(wsDataBasePackageList);
         }
         webSocketProperties.getWsDataBeanBasePackage().add(DEFAULT_WS_DATA_PACKAGE);
-        logger.info("欢迎使用JX3 API Java sdk websocket");
         return new WebSocketClientInitializer(webSocketProperties, wsDataPushService, objectMapper);
     }
 

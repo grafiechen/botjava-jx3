@@ -42,6 +42,19 @@ class QqOpenApiErrorMapperTest {
         assertTrue(server.isRetryable());
     }
 
+
+    @Test
+    void shouldClassifyQqBusinessRateLimitCodeFromBadRequest() {
+        RemoteHttpException remote = new RemoteHttpException(400,
+                "{\"message\":\"接口调用超过频率限制\",\"code\":100017,\"err_code\":40023001,\"trace_id\":\"trace-rate\"}", null);
+
+        QqOpenApiException result = QqOpenApiErrorMapper.fromHttp(remote, objectMapper);
+
+        assertEquals(QqOpenApiException.Category.RATE_LIMIT, result.getCategory());
+        assertEquals("100017", result.getApiCode());
+        assertEquals("trace-rate", result.getTraceId());
+        assertTrue(result.isRetryable());
+    }
     @Test
     void shouldCreateTypedNetworkAndInvalidResponseErrors() {
         assertEquals(QqOpenApiException.Category.NETWORK,

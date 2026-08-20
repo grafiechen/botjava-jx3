@@ -24,31 +24,46 @@ class UserBindingActionTest {
     void shouldBindCurrentAccount() {
         UserCommandPreferenceService preferences = mock(UserCommandPreferenceService.class);
         GroupAtMessageCreateDto message = new GroupAtMessageCreateDto();
-        when(preferences.bind(message, "乾坤一掷", "加菲")).thenReturn(userInfo("乾坤一掷", "加菲"));
+        when(preferences.bind(message, "乾坤一掷", "加菲", "万花"))
+                .thenReturn(userInfo("乾坤一掷", "加菲", "万花"));
+
+        BotResponse response = action(preferences).doRequest(
+                message, "绑定角色 乾坤一掷 加菲 万花", REGEX.BindRole);
+
+        assertEquals("默认角色已绑定：乾坤一掷 加菲 万花", response.getContent());
+        verify(preferences).bind(message, "乾坤一掷", "加菲", "万花");
+    }
+
+    @Test
+    void shouldAddAndModifyPersonalRole() {
+        UserCommandPreferenceService preferences = mock(UserCommandPreferenceService.class);
+        GroupAtMessageCreateDto message = new GroupAtMessageCreateDto();
+        when(preferences.addRole(message, "梦江南", "乔峰", "丐帮"))
+                .thenReturn(role("梦江南", "乔峰", "丐帮"));
+        when(preferences.updateRoleSchool(message, "梦江南", "乔峰", "万花"))
+                .thenReturn(role("梦江南", "乔峰", "万花"));
+
+        BotResponse added = action(preferences).doRequest(message, "添加角色 梦江南 乔峰 丐帮", REGEX.AddRole);
+        BotResponse modified = action(preferences).doRequest(
+                message, "修改角色 梦江南 乔峰 万花", REGEX.ModifyRole);
+
+        assertEquals("常用角色已添加：梦江南 乔峰 丐帮", added.getContent());
+        assertEquals("角色门派已修改：梦江南 乔峰 万花", modified.getContent());
+    }
+
+    @Test
+    void shouldBindRoleWithoutSchool() {
+        UserCommandPreferenceService preferences = mock(UserCommandPreferenceService.class);
+        GroupAtMessageCreateDto message = new GroupAtMessageCreateDto();
+        when(preferences.bind(message, "乾坤一掷", "加菲", null))
+                .thenReturn(userInfo("乾坤一掷", "加菲", null));
 
         BotResponse response = action(preferences).doRequest(
                 message, "绑定角色 乾坤一掷 加菲", REGEX.BindRole);
 
-        assertEquals("角色绑定成功：乾坤一掷 加菲", response.getContent());
-        verify(preferences).bind(message, "乾坤一掷", "加菲");
+        assertEquals("默认角色已绑定：乾坤一掷 加菲（门派未设置）", response.getContent());
+        verify(preferences).bind(message, "乾坤一掷", "加菲", null);
     }
-
-    @Test
-    void shouldAddAndSwitchPersonalRole() {
-        UserCommandPreferenceService preferences = mock(UserCommandPreferenceService.class);
-        GroupAtMessageCreateDto message = new GroupAtMessageCreateDto();
-        when(preferences.addRole(message, "梦江南", "乔峰"))
-                .thenReturn(role("梦江南", "乔峰"));
-        when(preferences.switchRole(message, "梦江南", "乔峰"))
-                .thenReturn(userInfo("梦江南", "乔峰"));
-
-        BotResponse added = action(preferences).doRequest(message, "添加角色 梦江南 乔峰", REGEX.AddRole);
-        BotResponse switched = action(preferences).doRequest(message, "切换角色 梦江南 乔峰", REGEX.SwitchRole);
-
-        assertEquals("常用角色已添加：梦江南 乔峰", added.getContent());
-        assertEquals("默认角色已切换：梦江南 乔峰", switched.getContent());
-    }
-
     @Test
     void shouldBindAndUnbindDefaultSchool() {
         UserCommandPreferenceService preferences = mock(UserCommandPreferenceService.class);
@@ -72,27 +87,23 @@ class UserBindingActionTest {
         UserInfo selected = userInfo("乾坤一掷", "加菲");
         selected.setSchool("万花");
         when(preferences.findBindings(message)).thenReturn(new UserCommandPreferenceService.BindingSnapshot(
-                selected, List.of(role("乾坤一掷", "加菲"), role("梦江南", "乔峰"))));
+                selected, List.of(role("乾坤一掷", "加菲", "万花"), role("梦江南", "乔峰", "丐帮"))));
 
         BotResponse response = action(preferences).doRequest(message, "我的角色", REGEX.ShowRoleBinding);
 
-        assertEquals("我的绑定：\n默认门派：万花\n【默认】乾坤一掷 加菲\n- 梦江南 乔峰", response.getContent());
+        assertEquals("我的绑定：\n【默认】乾坤一掷 加菲 万花\n- 梦江南 乔峰 丐帮", response.getContent());
     }
 
     @Test
-    void shouldUnbindOneRoleOrAllRoles() {
+    void shouldDeleteOneRoleWithServerAndRoleName() {
         UserCommandPreferenceService preferences = mock(UserCommandPreferenceService.class);
         GroupAtMessageCreateDto message = new GroupAtMessageCreateDto();
-        when(preferences.unbindRole(message, "梦江南", "乔峰")).thenReturn(true);
-        when(preferences.unbind(message)).thenReturn(true);
+        when(preferences.deleteRole(message, "梦江南", "乔峰")).thenReturn(true);
 
-        BotResponse one = action(preferences).doRequest(message, "解绑角色 梦江南 乔峰", REGEX.UnbindRole);
-        BotResponse all = action(preferences).doRequest(message, "解绑角色", REGEX.UnbindRole);
+        BotResponse one = action(preferences).doRequest(message, "删除角色 梦江南 乔峰", REGEX.UnbindRole);
 
         assertEquals("角色绑定已解除：梦江南 乔峰", one.getContent());
-        assertEquals("角色绑定已解除。", all.getContent());
-        verify(preferences).unbindRole(message, "梦江南", "乔峰");
-        verify(preferences).unbind(message);
+        verify(preferences).deleteRole(message, "梦江南", "乔峰");
     }
 
     private static UserBindingAction action(UserCommandPreferenceService preferences) {
@@ -101,16 +112,26 @@ class UserBindingActionTest {
     }
 
     private static UserInfo userInfo(String server, String roleName) {
+        return userInfo(server, roleName, null);
+    }
+
+    private static UserInfo userInfo(String server, String roleName, String school) {
         UserInfo userInfo = new UserInfo();
         userInfo.setServer(server);
         userInfo.setRoleName(roleName);
+        userInfo.setSchool(school);
         return userInfo;
     }
 
     private static UserRoleBinding role(String server, String roleName) {
+        return role(server, roleName, null);
+    }
+
+    private static UserRoleBinding role(String server, String roleName, String school) {
         UserRoleBinding role = new UserRoleBinding();
         role.setServer(server);
         role.setRoleName(roleName);
+        role.setSchool(school);
         return role;
     }
 }

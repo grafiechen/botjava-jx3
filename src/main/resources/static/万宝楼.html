@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>万宝楼账号详情</title>
+    <style>
+        * { box-sizing: border-box; }
+        html, body { margin: 0; min-height: 100%; }
+        body {
+            background: #f3f4f5;
+            color: #25282c;
+            font-family: var(--bot-cjk-font-family, "Microsoft YaHei", sans-serif);
+            font-size: 15px;
+            letter-spacing: 0;
+        }
+        [v-cloak] { display: none; }
+        #main { width: 1180px; margin: 0 auto; padding: 30px 0; }
+        .panel {
+            background: #ffffff;
+            border: 1px solid #e2e5e7;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(23, 31, 38, 0.06);
+        }
+        .hero { padding: 34px 42px 30px; border-top: 6px solid #236b62; }
+        .eyebrow { color: #7b8288; font-size: 13px; margin-bottom: 10px; }
+        h1 { margin: 0; font-size: 36px; line-height: 1.2; font-weight: 700; }
+        .meta { display: flex; align-items: center; gap: 12px; margin-top: 12px; color: #626970; }
+        .meta .dot::before { content: "·"; margin-right: 12px; color: #a5aaae; }
+        .status {
+            display: inline-flex;
+            align-items: center;
+            height: 26px;
+            padding: 0 10px;
+            border-radius: 4px;
+            background: #fff1f3;
+            color: #c8465a;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .summary { margin-top: 18px; padding: 24px 42px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px 28px; }
+        .metric { min-width: 0; }
+        .metric-label { color: #899097; font-size: 13px; margin-bottom: 7px; }
+        .metric-value { color: #30353a; font-size: 18px; font-weight: 600; overflow-wrap: anywhere; }
+        .metric-value.price { color: #d34c60; font-size: 25px; }
+        .metric-value.price small { font-size: 13px; margin-left: 3px; font-weight: 500; }
+        .listing-title {
+            margin: 22px 0 0;
+            padding-top: 18px;
+            border-top: 1px solid #eceeef;
+            color: #687078;
+            line-height: 1.7;
+            font-size: 14px;
+        }
+        .details { margin-top: 18px; overflow: hidden; }
+        .details-title { padding: 22px 34px; border-bottom: 1px solid #e8eaec; font-size: 20px; font-weight: 700; }
+        .detail-row { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 18px; padding: 16px 34px; border-bottom: 1px solid #eceeef; }
+        .detail-row:last-child { border-bottom: 0; }
+        .detail-label {
+            align-self: start;
+            min-height: 30px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            background: #f0f2f2;
+            color: #62696f;
+            text-align: center;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .detail-content { min-width: 0; color: #42484e; line-height: 1.85; white-space: pre-line; overflow-wrap: anywhere; }
+        .empty { padding: 45px; text-align: center; color: #90969b; }
+        .footer { margin-top: 18px; padding: 18px 30px; display: flex; justify-content: center; gap: 18px; color: #858b91; font-size: 13px; }
+        .footer strong { color: #545b61; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <header class="panel hero">
+        <div class="eyebrow">JX3 · TREASURE PAVILION · 万宝楼账号详情</div>
+        <h1>万宝楼</h1>
+        <div class="meta">
+            <span>{{ data && data.serverName ? data.serverName : '区服未知' }}</span>
+            <span class="status">{{ tradeStatusText }}</span>
+            <span class="dot">开售 {{ replyTimeText }}</span>
+            <span class="dot">{{ data && data.id ? data.id : '编号未知' }}</span>
+        </div>
+    </header>
+
+    <section class="panel summary">
+        <div class="summary-grid">
+            <div class="metric">
+                <div class="metric-label">角色</div>
+                <div class="metric-value">{{ data && data.roleName ? data.roleName : '未知' }} {{ data && data.roleLevel ? data.roleLevel + '级' : '' }}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">门派 · 体型</div>
+                <div class="metric-value">{{ data && data.forceName ? data.forceName : '未知' }} · {{ data && data.bodyName ? data.bodyName : '未知' }}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">阵营</div>
+                <div class="metric-value">{{ data && data.campName ? data.campName : '未知' }}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">价格</div>
+                <div class="metric-value price">{{ data && data.priceNum != null ? data.priceNum.toLocaleString() : '-' }}<small>元</small></div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">装分</div>
+                <div class="metric-value">{{ data && data.equipScore ? Number(data.equipScore).toLocaleString() : '-' }}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">资历</div>
+                <div class="metric-value">{{ data && data.seniorityNum != null ? data.seniorityNum.toLocaleString() : '-' }}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">关注</div>
+                <div class="metric-value">{{ data && data.followNum != null ? data.followNum : '-' }}</div>
+            </div>
+            <div class="metric">
+                <div class="metric-label">奇遇</div>
+                <div class="metric-value">{{ data && data.meetingNum != null ? data.meetingNum : '-' }}</div>
+            </div>
+        </div>
+        <p class="listing-title" v-if="data && data.replyTitle">{{ data.replyTitle }}</p>
+    </section>
+
+    <section class="panel details">
+        <div class="details-title">账号收集详情</div>
+        <div v-if="details && details.length">
+            <div class="detail-row" v-for="(item, index) in details" :key="index">
+                <div class="detail-label">{{ item.label }}</div>
+                <div class="detail-content">{{ item.content || '暂无' }}</div>
+            </div>
+        </div>
+        <div class="empty" v-else>暂无可展示的账号明细</div>
+    </section>
+
+    <footer class="panel footer">
+        <strong>万宝汇聚，各得其主</strong>
+        <span>小猫饼 · 万宝楼行情</span>
+    </footer>
+</main>
+</body>
+</html>

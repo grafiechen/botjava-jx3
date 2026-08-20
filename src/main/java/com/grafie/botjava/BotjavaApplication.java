@@ -1,15 +1,20 @@
 package com.grafie.botjava;
 
-import com.grafie.botjava.jx3.config.EnableJX3Api;
-import com.grafie.botjava.jx3.config.EnableJX3ApiHttp;
+import com.grafie.botjava.config.BotMongoProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@ComponentScan(basePackages = {"com.grafie.botjava"})
-@SpringBootApplication
-@EnableJX3ApiHttp
+@SpringBootApplication(exclude = {
+        MongoAutoConfiguration.class,
+        MongoDataAutoConfiguration.class,
+        MongoRepositoriesAutoConfiguration.class
+})
+@EnableConfigurationProperties(BotMongoProperties.class)
 @EnableScheduling
 public class BotjavaApplication {
 

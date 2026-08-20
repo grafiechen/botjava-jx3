@@ -16,6 +16,9 @@ import java.util.regex.Pattern;
  * @since 2025/1/22  15:36
  */
 public enum REGEX {
+    CommandList("^指令$", CommandListAction.class, null,
+            CommandGroup.BASIC, "指令列表", "查看所有已注册指令", "指令",
+            CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
     Help("^(?:帮助|菜单|查询帮助)$", HelpAction.class, null,
             CommandGroup.BASIC, "帮助菜单", "查看当前可用指令", "帮助",
             CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
@@ -28,21 +31,27 @@ public enum REGEX {
     UnbindSchool("^解绑门派$", UserBindingAction.class, null,
             CommandGroup.BASIC, "解绑门派", "清除个人默认门派", "解绑门派",
             CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
-    BindRole("^绑定角色 (?<server>\\S+) (?<roleName>\\S+)$", UserBindingAction.class, null,
-            CommandGroup.BASIC, "绑定角色", "设置个人默认区服和角色", "绑定角色 乾坤一掷 角色名",
+    BindRole("^绑定角色 (?<server>\\S+) (?<roleName>\\S+)(?: (?<school>\\S+))?$", UserBindingAction.class, null,
+            CommandGroup.BASIC, "绑定角色", "设置个人默认角色，门派可选", "绑定角色 乾坤一掷 角色名",
             CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
-    AddRole("^添加角色 (?<server>\\S+) (?<roleName>\\S+)$", UserBindingAction.class, null,
-            CommandGroup.BASIC, "添加角色", "保存个人常用角色", "添加角色 梦江南 角色名",
+    AddRole("^添加角色 (?<server>\\S+) (?<roleName>\\S+)(?: (?<school>\\S+))?$", UserBindingAction.class, null,
+            CommandGroup.BASIC, "添加角色", "保存个人常用角色，门派可选", "添加角色 梦江南 角色名",
             CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
-    SwitchRole("^切换角色 (?<server>\\S+) (?<roleName>\\S+)$", UserBindingAction.class, null,
-            CommandGroup.BASIC, "切换角色", "切换个人默认角色", "切换角色 梦江南 角色名",
+    ModifyRole("^修改角色 (?<server>\\S+) (?<roleName>\\S+) (?<school>\\S+)$", UserBindingAction.class, null,
+            CommandGroup.BASIC, "修改角色门派", "修改个人角色的门派，区服和角色名需要删除后重新添加", "修改角色 梦江南 角色名 万花",
             CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
     ShowRoleBinding("^(?:我的绑定|查看绑定|我的角色)$", UserBindingAction.class, null,
             CommandGroup.BASIC, "查看角色", "查看个人常用角色和默认角色", "我的角色",
             CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
-    UnbindRole("^解绑角色(?: (?<server>\\S+) (?<roleName>\\S+))?$", UserBindingAction.class, null,
-            CommandGroup.BASIC, "解绑角色", "删除单个角色或清除全部绑定", "解绑角色 梦江南 角色名",
+    UnbindRole("^(?:删除角色|解绑角色) (?<server>\\S+) (?<roleName>\\S+)$", UserBindingAction.class, null,
+            CommandGroup.BASIC, "删除角色", "删除个人角色，必须提供区服和角色名", "删除角色 梦江南 角色名",
             CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
+    ScriptStatus("^脚本状态(?: (?<server>\\S+) (?<roleName>\\S+))?$", ScriptStatusAction.class, null,
+            CommandGroup.BASIC, "脚本状态", "查看自己已绑定角色的脚本状态", "脚本状态 乾坤一掷 角色名",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION, 30),
+    ScriptStatusUpdate("^脚本设置(?: (?<server>\\S+) (?<roleName>\\S+))? (?<name>\\S{1,100}) (?<text>[\\s\\S]{1,500})$", ScriptStatusAction.class, null,
+            CommandGroup.BASIC, "脚本设置", "修改自己已绑定角色允许写入的脚本字段", "脚本设置 秘籍 完成",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION, 30),
     GroupSettings("^群设置 (?<value>查询|实验|主动消息) (?<value1>开启|关闭)$", GroupSettingsAction.class, null,
             CommandGroup.BASIC, "群功能设置", "开启或关闭群查询、实验与主动消息功能", "群设置 主动消息 开启",
             CommandAccess.GROUP_ADMIN, CommandAvailability.SYSTEM),
@@ -52,6 +61,50 @@ public enum REGEX {
     GroupStatistics("^群统计(?: (?<num>\\d+))?$", GroupStatisticsAction.class, null,
             CommandGroup.BASIC, "群调用统计", "查看本群近期指令调用统计", "群统计 7",
             CommandAccess.GROUP_ADMIN, CommandAvailability.SYSTEM),
+    SystemStatus("^状态检查$", SystemStatusAction.class, null,
+            CommandGroup.BASIC, "状态检查", "查看应用健康、监控接口和 JX3API WS 状态", "状态检查",
+            CommandAccess.GROUP_ADMIN, CommandAvailability.SYSTEM),
+    GroupPushList("^(?:推送列表|查看推送)$", GroupPushSubscriptionAction.class, null,
+            CommandGroup.BASIC, "推送列表", "查看本群所有实时与定时推送任务", "推送列表",
+            CommandAccess.GROUP_ADMIN, CommandAvailability.SYSTEM),
+    GroupPushEnable("^开启推送 (?<name>[\\s\\S]{1,100})$", GroupPushSubscriptionAction.class, null,
+            CommandGroup.BASIC, "开启推送", "开启本群指定的主动推送任务", "开启推送 开服状态",
+            CommandAccess.GROUP_ADMIN, CommandAvailability.SYSTEM),
+    GroupPushDisable("^关闭推送 (?<name>[\\s\\S]{1,100})$", GroupPushSubscriptionAction.class, null,
+            CommandGroup.BASIC, "关闭推送", "关闭本群指定的主动推送任务", "关闭推送 开服状态",
+            CommandAccess.GROUP_ADMIN, CommandAvailability.SYSTEM),    DailyPushFieldList("^日常推送字段$", DailyPushFieldAction.class, null,
+            CommandGroup.BASIC, "日常推送字段", "查看本群日常进度图片的动态字段", "日常推送字段",
+            CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
+    DailyPushFieldAdd("^日常推送字段添加 (?<name>\\S{1,100}) (?<name1>\\S{1,100})(?: (?<type>TEXT|INTEGER|DECIMAL|BOOLEAN|DATETIME))?(?: (?<num>\\d{1,5}))?$", DailyPushFieldAction.class, null,
+            CommandGroup.BASIC, "添加日常推送字段", "添加或修改本群日常进度图片字段", "日常推送字段添加 每日签到任务 上次日常完成 DATETIME 10",
+            CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
+    DailyPushFieldDelete("^日常推送字段删除 (?<name>\\S{1,100})$", DailyPushFieldAction.class, null,
+            CommandGroup.BASIC, "删除日常推送字段", "从本群日常进度图片移除字段", "日常推送字段删除 精力",
+            CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
+    GroupRequirementList("^(?:查看需求列表|需求列表)$", GroupRequirementAction.class, null,
+            CommandGroup.BASIC, "需求列表", "查看本群创建的需求列表", "需求列表",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION),
+    GroupRequirementCreate("^创建需求 (?<name>\\S{1,80})$", GroupRequirementAction.class, null,
+            CommandGroup.BASIC, "创建需求", "创建一个群需求主题", "创建需求 奶花配装",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION),
+    GroupRequirementRename("^修改需求 (?<name>\\S{1,80}) (?<name1>\\S{1,80})$", GroupRequirementAction.class, null,
+            CommandGroup.BASIC, "修改需求", "修改自己创建的需求名称", "修改需求 奶花配装 奶秀配装",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION),
+    GroupRequirementStatus("^需求状态 (?<name>\\S{1,80}) (?<item>[\\s\\S]{1,1000}) (?<status>\\S{1,100})$", GroupRequirementAction.class, null,
+            CommandGroup.BASIC, "需求状态", "修改需求下某条追加内容的状态", "需求状态 奶花配装 acb 完成",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION),
+    GroupRequirementAppend("^追加需求 (?<name>\\S{1,80})(?: (?<text>[\\s\\S]{0,1000}))?$", GroupRequirementAction.class, null,
+            CommandGroup.BASIC, "追加需求", "给需求追加自己的描述", "追加需求 奶花配装 我可以做",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION),
+    GroupRequirementCancel("^取消需求 (?<name>\\S{1,80}) (?<num>\\d+)$", GroupRequirementAction.class, null,
+            CommandGroup.BASIC, "取消需求", "按序号删除自己在需求下追加的内容", "取消需求 奶花配装 1",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION),
+    GroupRequirementDelete("^删除需求 (?<name>\\S{1,80})$", GroupRequirementAction.class, null,
+            CommandGroup.BASIC, "删除需求", "删除自己创建的需求", "删除需求 奶花配装",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION),
+    GroupRequirementDetail("^需求详情 (?<name>\\S{1,80})$", GroupRequirementAction.class, null,
+            CommandGroup.BASIC, "需求详情", "查看需求标题、追加人和描述", "需求详情 奶花配装",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION),
     GroupAnnouncement("^群公告 (?<text>[\\s\\S]{1,500})$", GroupAnnouncementAction.class, null,
             CommandGroup.BASIC, "群公告", "通过群主动消息发布管理员公告", "群公告 今晚八点开团",
             CommandAccess.GROUP_ADMIN, CommandAvailability.PRODUCTION),
@@ -83,6 +136,24 @@ public enum REGEX {
             CommandGroup.MEMBER, "金币价格", "查询服务器金币价格", "金价 乾坤一掷"),
     TradeRecord("^物价 (?<value>\\S+)$", TradeRecordAction.class, MethodEnum.DATA_TRADE_RECORD,
             CommandGroup.MEMBER, "物品价格", "查询物品价格趋势", "物价 五行石"),
+    AppearanceNameAliasAdd("^外观名称追加 (?<name>\\S{1,100}) (?<text>[\\s\\S]{1,500})$", AppearanceNameAliasAction.class, null,
+            CommandGroup.MEMBER, "外观名称追加", "给外观正式名称追加别名", "外观名称追加 金发·因陀罗 猴金 后进",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION),
+    AppearanceNameAliasList("^外观名称列表$", AppearanceNameAliasAction.class, null,
+            CommandGroup.MEMBER, "外观名称列表", "查看本群外观名称别名", "外观名称列表",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION),
+    AppearanceNameAliasQuery("^外观名称查询 (?<name>\\S{1,100})$", AppearanceNameAliasAction.class, null,
+            CommandGroup.MEMBER, "外观名称查询", "通过外观正式名称或别名查询映射", "外观名称查询 猴金",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION),
+    AppearanceNameAliasPendingList("^外观名称待审核列表$", AppearanceNameAliasAction.class, null,
+            CommandGroup.MEMBER, "外观名称待审核列表", "查看本群待审核的外观名称别名", "外观名称待审核列表",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION),
+    AppearanceNameAliasApprove("^外观名称审核 (?<name>\\S{1,100})(?: (?<text>[\\s\\S]{1,500}))?$", AppearanceNameAliasAction.class, null,
+            CommandGroup.MEMBER, "外观名称审核", "审核通过整组外观名称或指定别名", "外观名称审核 金发·因陀罗 猴金",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION),
+    AppearanceNameAliasDelete("^外观名称删除 (?<name>\\S{1,100})(?: (?<text>[\\s\\S]{1,500}))?$", AppearanceNameAliasAction.class, null,
+            CommandGroup.MEMBER, "外观名称删除", "删除整组外观名称或指定别名", "外观名称删除 金发·因陀罗 猴金",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION),
     SaohuaRandom("^骚话$", SaohuaRandomAction.class, MethodEnum.DATA_SAOHUA_RANDOM,
             CommandGroup.OTHER, "世界骚话", "随机返回一句趣味内容", "骚话"),
     NewsAnnounce("^更新$|^公告$|^更新公告$", NewsAnnounceAction.class, MethodEnum.DATA_WEB_NEWS_ANNOUNCE,
@@ -153,6 +224,44 @@ public enum REGEX {
             CommandGroup.MEMBER, "黑市物价", "查询物品黑市价格", "黑市物价 乾坤一掷 狐金"),
     TradeItemSearch("^搜索物品 (?<name>.+)$", TradeItemSearchAction.class, MethodEnum.DATA_TRADE_ITEM_SEARCH,
             CommandGroup.MEMBER, "搜索物品", "模糊搜索物品", "搜索物品 十五"),
+    Wanbaolou("^(?:编号搜索|万宝楼) (?<value>\\d{6,30})$", WanbaolouAction.class, MethodEnum.DATA_TRADE_WANBAOLOU,
+            CommandGroup.MEMBER, "万宝楼编号搜索", "按角色编号查询万宝楼账号详情", "编号搜索 1405435120446099456"),
+    RoleAchievement("^成就查询 (?<server>\\S+) (?<roleName>\\S+) (?<name>\\S+)$", RoleAchievementAction.class, MethodEnum.DATA_ROLE_ACHIEVEMENT,
+            CommandGroup.MEMBER, "成就查询", "查询角色是否完成指定成就", "成就查询 乾坤一掷 角色名 阴阳两界"),
+    CardPreset("^名片预设 (?<server>\\S+) (?<roleName>\\S+)$", CardPresetAction.class, MethodEnum.DATA_CARD_PRESET,
+            CommandGroup.MEMBER, "名片预设", "查询角色名片预设", "名片预设 乾坤一掷 角色名"),
+    ChatRecords("^角色聊天 (?<server>\\S+) (?<roleName>\\S+)(?: (?<limit>\\d+))?(?: (?<page>\\d+))?$", ChatRecordsAction.class, MethodEnum.DATA_CHAT_RECORDS,
+            CommandGroup.MEMBER, "角色聊天", "查询角色聊天记录", "角色聊天 乾坤一掷 角色名 20 1"),
+    EventStrategy("^奇遇攻略 (?<name>\\S+)$", EventStrategyAction.class, MethodEnum.DATA_EVENT_STRATEGY,
+            CommandGroup.MEMBER, "奇遇攻略", "查询指定奇遇攻略", "奇遇攻略 阴阳两界"),
+    RankArena("^跨服名剑(?: (?<server>\\S+))?(?: (?<mode>0|1|2))?$", RankArenaAction.class, MethodEnum.DATA_RANK_ARENA,
+            CommandGroup.MEMBER, "跨服名剑", "查询跨服名剑榜", "跨服名剑 乾坤一掷 0"),
+    RankChampionship("^武林争霸(?: (?<server>\\S+))?(?: (?<camp>1|2))?$", RankChampionshipAction.class, MethodEnum.DATA_RANK_CHAMPIONSHIP,
+            CommandGroup.MEMBER, "武林争霸", "查询武林争霸榜", "武林争霸 乾坤一掷 1"),
+    RankConstable("^捕快荣誉(?: (?<server>\\S+))?$", RankConstableAction.class, MethodEnum.DATA_RANK_CONSTABLE,
+            CommandGroup.MEMBER, "捕快荣誉", "查询捕快荣誉榜", "捕快荣誉 乾坤一掷"),
+    RankOutlaw("^江湖浪客(?: (?<server>\\S+))?$", RankOutlawAction.class, MethodEnum.DATA_RANK_OUTLAW,
+            CommandGroup.MEMBER, "江湖浪客", "查询江湖浪客榜", "江湖浪客 乾坤一掷"),
+    RankWanted("^决斗挑战(?: (?<server>\\S+))?(?: (?<mode>1|2))?$", RankWantedAction.class, MethodEnum.DATA_RANK_WANTED,
+            CommandGroup.MEMBER, "决斗挑战", "查询决斗挑战榜", "决斗挑战 乾坤一掷 1"),
+    SaohuaAnswer("^答案之书$", SaohuaAnswerAction.class, MethodEnum.DATA_SAOHUA_ANSWER,
+            CommandGroup.OTHER, "答案之书", "随机获取一个答案", "答案之书"),
+    SaohuaContext("^分类语录 (?<name>疯狂星期四|彩虹屁|毒鸡汤|朋友圈)$", SaohuaContextAction.class, MethodEnum.DATA_SAOHUA_CONTEXT,
+            CommandGroup.OTHER, "分类语录", "获取指定分类语录", "分类语录 疯狂星期四"),
+    SaohuaDrink("^喝什么$", SaohuaDrinkAction.class, MethodEnum.DATA_SAOHUA_DRINK,
+            CommandGroup.OTHER, "喝什么", "随机推荐饮品", "喝什么"),
+    SaohuaEat("^吃什么$", SaohuaEatAction.class, MethodEnum.DATA_SAOHUA_EAT,
+            CommandGroup.OTHER, "吃什么", "随机推荐食物", "吃什么"),
+    SaohuaZhanan("^渣男语录$", SaohuaZhananAction.class, MethodEnum.DATA_SAOHUA_ZHANAN,
+            CommandGroup.OTHER, "渣男语录", "随机返回一条语录", "渣男语录"),
+    SchoolSearch("^配装搜索 (?<name>\\S+)(?: (?<mode>\\S+))?$", SchoolSearchAction.class, MethodEnum.DATA_SCHOOL_SEARCH,
+            CommandGroup.MEMBER, "配装搜索", "按门派和玩法搜索配装", "配装搜索 万花 PVE"),
+    SkillCalculate("^急速计算(?: (?<cooldown>\\d+(?:\\.\\d+)?))?$", SkillCalculateAction.class, MethodEnum.DATA_SKILL_CALCULATE,
+            CommandGroup.MEMBER, "急速计算", "按技能 CD 计算急速档位", "急速计算 1.5"),
+    TradeManufacture("^成本计算 (?<server>\\S+) (?<name>\\S+)(?: (?<source>0|1))?$", TradeManufactureAction.class, MethodEnum.DATA_TRADE_MANUFACTURE,
+            CommandGroup.MEMBER, "成本计算", "查询成品制作成本", "成本计算 乾坤一掷 成品名 0"),
+    TuilanAchievement("^资历分布 (?<server>\\S+) (?<roleName>\\S+)(?: (?<category>[1-3]))?(?: (?<subclass>\\S+))?$", TuilanAchievementAction.class, MethodEnum.DATA_TUILAN_ACHIEVEMENT,
+            CommandGroup.MEMBER, "资历分布", "查询角色资历分类分布", "资历分布 乾坤一掷 角色名 1"),
     BattleRecords("^帮战(?: (?<server>\\S+))?$", BattleRecordsAction.class, MethodEnum.DATA_BATTLE_RECORDS,
             CommandGroup.MEMBER, "帮战记录", "查询服务器帮战记录", "帮战 乾坤一掷"),
     MechCalculator("^副本解密$", MechCalculatorAction.class, MethodEnum.DATA_MECH_CALCULATOR,
@@ -192,6 +301,8 @@ public enum REGEX {
     ChiGua("^吃瓜 (?<value>\\S+)$", ChiGuaAction.class, null,
             CommandGroup.OTHER, "吃瓜查询", "查询相关趣闻", "吃瓜 关键词",
             CommandAccess.PUBLIC, CommandAvailability.EXPERIMENTAL);
+
+    private static final Pattern NAMED_GROUP_PATTERN = Pattern.compile("\\(\\?<([A-Za-z][A-Za-z0-9]*)>");
 
     private final Pattern pattern;
     private final Class<? extends Jx3BaseAction> baseAction;
@@ -315,6 +426,53 @@ public enum REGEX {
         return commandAvailability;
     }
 
+    public CommandListGroup getCommandListGroup() {
+        return switch (this) {
+            case CommandList, Help -> CommandListGroup.BASIC_HELP;
+            case BindServerCalendar, GroupSettings, GroupCommandSettings,
+                    GroupStatistics, SystemStatus, GroupPushList, GroupPushEnable, GroupPushDisable,
+                    DailyPushFieldList, DailyPushFieldAdd, DailyPushFieldDelete,
+                    GroupAnnouncement -> CommandListGroup.GROUP_CONFIG;
+            case GroupRequirementList, GroupRequirementCreate, GroupRequirementRename,
+                    GroupRequirementStatus, GroupRequirementAppend, GroupRequirementCancel,
+                    GroupRequirementDelete, GroupRequirementDetail -> CommandListGroup.GROUP_REQUIREMENT;
+            case BindSchool, UnbindSchool, BindRole, AddRole, ModifyRole,
+                    ShowRoleBinding, UnbindRole -> CommandListGroup.USER_BINDING;
+            case ActiveCurrent, ActiveListCalendar, ActiveCelebrities, NewsAllNews,
+                    NewsAnnounce, ServerCheck, ServerMaster, SkillRework, SchoolFoods -> CommandListGroup.DAILY_NEWS;
+            case HomeFlower, HomeFurniture, HomeTravel, ExamAnswer, SchoolMatrix,
+                    SchoolSkills, SchoolForce, MechCalculator, SchoolSearch, SkillCalculate -> CommandListGroup.HOME_WIKI;
+            case RoleDetailed, RoleMonster, RoleShowCard, RoleShowCards, RoleShowRandom,
+                    RoleShowCached, RoleAttribute, DungeonRecord, DpsCompute, ScriptStatus, ScriptStatusUpdate,
+                    WatchRecord, FraudDetail, CardPreset, ChatRecords, TuilanAchievement,
+                    RoleAchievement -> CommandListGroup.ROLE_QUERY;
+            case MemberTeacher, MemberRecruit -> CommandListGroup.RECRUIT_SOCIAL;
+            case LuckAdventure, LuckStatistical, LuckUnfinished, LuckRecent,
+                    LuckCollect, EventStrategy -> CommandListGroup.LUCK_QUERY;
+            case MatchAwesome, MatchSchools, MatchRecent, RankStatistical,
+                    RankTrials, SchoolSeniority, RankArena, RankChampionship,
+                    RankConstable, RankOutlaw, RankWanted -> CommandListGroup.RANK_MATCH;
+            case TradeDemon, TradeRecord, AppearanceNameAliasAdd, AppearanceNameAliasList,
+                    AppearanceNameAliasQuery, AppearanceNameAliasPendingList, AppearanceNameAliasApprove,
+                    AppearanceNameAliasDelete, TradeRecords, TradeItemSearch, Wanbaolou,
+                    TiebaItemRecords, ValuablesStatistical, TradeManufacture -> CommandListGroup.TRADE_PRICE;
+            case AuctionRecords, HorseRecords, ActiveNextEvent, ServerEvent,
+                    ServerAntivice, MineCart, ChituRecords, ChituWeekRecords,
+                    HorseEvent, BattleRecords, ServerSand, ActiveMonster,
+                    DuowanStatistics -> CommandListGroup.CAMP_EVENT;
+            case SaohuaRandom, SaohuaContent, TiebaRandom, SoundConverter,
+                    LuckAdventurePs, ChiGua, SaohuaAnswer, SaohuaContext,
+                    SaohuaDrink, SaohuaEat, SaohuaZhanan -> CommandListGroup.FUN_OTHER;
+        };
+    }
+
+    public boolean isShownInCommandList() {
+        return switch (this) {
+            case BindSchool, UnbindSchool -> false;
+            default -> true;
+        };
+    }
+
     public int getDefaultCooldownSeconds() {
         return defaultCooldownSeconds;
     }
@@ -323,13 +481,13 @@ public enum REGEX {
         return switch (this) {
             case LuckAdventure, LuckUnfinished, RoleDetailed, RoleMonster,
                     RoleShowCard, RoleShowCards, RoleShowCached, MatchRecent,
-                    RoleAttribute, WatchRecord, DungeonRecord, DpsCompute -> true;
+                    RoleAttribute, WatchRecord, DungeonRecord, DpsCompute, ScriptStatus, ScriptStatusUpdate -> true;
             default -> false;
         };
     }
 
     public boolean usesExternalCall() {
-        return methodEnum != null || this == DpsCompute;
+        return methodEnum != null || this == DpsCompute || this == ScriptStatus || this == ScriptStatusUpdate;
     }
 
     public static String buildHelpText() {
@@ -364,28 +522,11 @@ public enum REGEX {
         Matcher m = this.getPattern().matcher(normalizeCommand(input));
         Map<String, String> resultMap = new HashMap<>();
         if (m.matches()) {
-            resultMap.put("value", safeGroup(m, "value"));
-            resultMap.put("value1", safeGroup(m, "value1"));
-            resultMap.put("server", safeGroup(m, "server"));
-            resultMap.put("server1", safeGroup(m, "server1"));
-            resultMap.put("roleName", safeGroup(m, "roleName"));
-            resultMap.put("loop", safeGroup(m, "loop"));
-            resultMap.put("num", safeGroup(m, "num"));
-            resultMap.put("limit", safeGroup(m, "limit"));
-            resultMap.put("map", safeGroup(m, "map"));
-            resultMap.put("subject", safeGroup(m, "subject"));
-            resultMap.put("name", safeGroup(m, "name"));
-            resultMap.put("mode", safeGroup(m, "mode"));
-            resultMap.put("uid", safeGroup(m, "uid"));
-            resultMap.put("type", safeGroup(m, "type"));
-            resultMap.put("keyword", safeGroup(m, "keyword"));
-            resultMap.put("name1", safeGroup(m, "name1"));
-            resultMap.put("body", safeGroup(m, "body"));
-            resultMap.put("force", safeGroup(m, "force"));
-            resultMap.put("school", safeGroup(m, "school"));
-            resultMap.put("tags", safeGroup(m, "tags"));
-            resultMap.put("text", safeGroup(m, "text"));
-            return resultMap;
+            Matcher groupMatcher = NAMED_GROUP_PATTERN.matcher(this.getPattern().pattern());
+            while (groupMatcher.find()) {
+                String groupName = groupMatcher.group(1);
+                resultMap.putIfAbsent(groupName, safeGroup(m, groupName));
+            }            return resultMap;
         }
         return resultMap;
     }
@@ -410,6 +551,32 @@ public enum REGEX {
         private final String displayName;
 
         CommandGroup(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+    }
+
+    public enum CommandListGroup {
+        BASIC_HELP("基础与帮助"),
+        GROUP_CONFIG("群配置"),
+        GROUP_REQUIREMENT("群需求"),
+        USER_BINDING("个人绑定"),
+        DAILY_NEWS("日常资讯"),
+        HOME_WIKI("家园百科"),
+        ROLE_QUERY("角色查询"),
+        RECRUIT_SOCIAL("招募社交"),
+        LUCK_QUERY("奇遇查询"),
+        RANK_MATCH("排行战绩"),
+        TRADE_PRICE("交易物价"),
+        CAMP_EVENT("阵营事件"),
+        FUN_OTHER("趣味其他");
+
+        private final String displayName;
+
+        CommandListGroup(String displayName) {
             this.displayName = displayName;
         }
 

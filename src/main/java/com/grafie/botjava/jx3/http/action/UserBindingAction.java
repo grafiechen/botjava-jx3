@@ -37,7 +37,7 @@ public class UserBindingAction extends Jx3BaseAction {
             case UnbindSchool -> unbindSchool();
             case BindRole -> bind();
             case AddRole -> add();
-            case SwitchRole -> switchRole();
+            case ModifyRole -> modify();
             case ShowRoleBinding -> show();
             case UnbindRole -> unbind();
             default -> BotResponse.text("不支持的用户绑定操作。");
@@ -56,37 +56,41 @@ public class UserBindingAction extends Jx3BaseAction {
 
     private BotResponse bind() {
         UserInfo userInfo = preferenceService.bind(
-                currentMessage(), currentArguments().get("server"), currentArguments().roleName());
-        return BotResponse.text("角色绑定成功：" + userInfo.getServer() + " " + userInfo.getRoleName());
+                currentMessage(), currentArguments().get("server"),
+                currentArguments().roleName(), currentArguments().school());
+        return BotResponse.text("默认角色已绑定："
+                + roleDisplay(userInfo.getServer(), userInfo.getRoleName(), userInfo.getSchool()));
     }
 
     private BotResponse add() {
         UserRoleBinding binding = preferenceService.addRole(
-                currentMessage(), currentArguments().get("server"), currentArguments().roleName());
-        return BotResponse.text("常用角色已添加：" + binding.getServer() + " " + binding.getRoleName());
+                currentMessage(), currentArguments().get("server"),
+                currentArguments().roleName(), currentArguments().school());
+        return BotResponse.text("常用角色已添加："
+                + roleDisplay(binding.getServer(), binding.getRoleName(), binding.getSchool()));
     }
 
-    private BotResponse switchRole() {
-        UserInfo userInfo = preferenceService.switchRole(
-                currentMessage(), currentArguments().get("server"), currentArguments().roleName());
-        return BotResponse.text("默认角色已切换：" + userInfo.getServer() + " " + userInfo.getRoleName());
+    private BotResponse modify() {
+        UserRoleBinding binding = preferenceService.updateRoleSchool(
+                currentMessage(), currentArguments().get("server"),
+                currentArguments().roleName(), currentArguments().school());
+        return BotResponse.text("角色门派已修改："
+                + binding.getServer() + " " + binding.getRoleName() + " " + binding.getSchool());
     }
 
     private BotResponse show() {
         UserCommandPreferenceService.BindingSnapshot snapshot = preferenceService.findBindings(currentMessage());
-        String school = snapshot.defaultRole() == null ? null : snapshot.defaultRole().getSchool();
-        if (snapshot.roles().isEmpty() && school == null) {
+        if (snapshot.roles().isEmpty()) {
             return BotResponse.text("暂未设置个人绑定。");
         }
         StringBuilder content = new StringBuilder("我的绑定：");
-        if (school != null) {
-            content.append("\n默认门派：").append(school);
-        }
         for (UserRoleBinding role : snapshot.roles()) {
             boolean selected = sameRole(role, snapshot.defaultRole());
             content.append("\n")
                     .append(selected ? "【默认】" : "- ")
-                    .append(role.getServer()).append(" ").append(role.getRoleName());
+                    .append(role.getServer()).append(" ")
+                    .append(role.getRoleName()).append(" ")
+                    .append(role.getSchool() == null ? "门派未设置" : role.getSchool());
         }
         return BotResponse.text(content.toString());
     }
@@ -95,15 +99,18 @@ public class UserBindingAction extends Jx3BaseAction {
         String server = currentArguments().get("server");
         String roleName = currentArguments().roleName();
         if (server != null && roleName != null) {
-            boolean removed = preferenceService.unbindRole(currentMessage(), server, roleName);
+            boolean removed = preferenceService.deleteRole(currentMessage(), server, roleName);
             return BotResponse.text(removed
                     ? "角色绑定已解除：" + server + " " + roleName
                     : "未找到该角色绑定。");
         }
-        return BotResponse.text(preferenceService.unbind(currentMessage())
-                ? "角色绑定已解除。" : "当前没有角色绑定。");
+        return BotResponse.text("删除角色必须提供区服和角色名。");
     }
 
+    private String roleDisplay(String server, String roleName, String school) {
+        String base = server + " " + roleName;
+        return school == null || school.isBlank() ? base + "（门派未设置）" : base + " " + school;
+    }
     private boolean sameRole(UserRoleBinding role, UserInfo defaultRole) {
         return role != null && defaultRole != null
                 && java.util.Objects.equals(role.getServer(), defaultRole.getServer())

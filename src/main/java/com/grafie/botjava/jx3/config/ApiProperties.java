@@ -2,10 +2,11 @@ package com.grafie.botjava.jx3.config;
 
 import jakarta.annotation.PostConstruct;
 import lombok.Data;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 /**
  * Api相关配置信息
@@ -16,16 +17,20 @@ import org.springframework.util.Assert;
 @Configuration
 @ConfigurationProperties(prefix = "jx3api.api")
 @Data
-@Conditional(OnEnableJX3ApiHttpCondition.class)
+@ConditionalOnProperty(prefix = "jx3api", name = {"enabled", "http.enabled"}, havingValue = "true", matchIfMissing = true)
 public class ApiProperties {
     /**
      * api访问地址, 如果为空，则默认 https://www.jx3api.com
      */
     private String apiUrl = "https://www.jx3api.com";
     /**
-     * api访问token，有些api接口，需要校验你的token
+     * api访问token。普通查询和 LV.1 接口使用该 token。
      */
     private String apiToken;
+    /**
+     * JX3API LV.2 接口 token。为空时回退使用 apiToken，兼容只配置高级 token 的老部署方式。
+     */
+    private String apiV2Token;
     /**
      * 配置的默认服务器
      */
@@ -65,5 +70,12 @@ public class ApiProperties {
         Assert.hasText(dpsServiceUrl, "jx3api.api.dps-service-url 不能为空");
         Assert.hasText(dpsServicePath, "jx3api.api.dps-service-path 不能为空");
         Assert.hasText(dpsModel, "jx3api.api.dps-model 不能为空");
+    }
+
+    public String resolveToken(int apiLevel) {
+        if (apiLevel >= 2 && StringUtils.hasText(apiV2Token)) {
+            return apiV2Token;
+        }
+        return apiToken;
     }
 }

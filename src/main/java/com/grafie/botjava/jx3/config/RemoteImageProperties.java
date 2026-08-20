@@ -2,8 +2,8 @@ package com.grafie.botjava.jx3.config;
 
 import jakarta.annotation.PostConstruct;
 import lombok.Data;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
@@ -12,7 +12,7 @@ import java.util.Set;
 
 @Configuration
 @ConfigurationProperties(prefix = "jx3api.remote-image")
-@Conditional(OnEnableJX3ApiHttpCondition.class)
+@ConditionalOnProperty(prefix = "jx3api", name = {"enabled", "http.enabled"}, havingValue = "true", matchIfMissing = true)
 @Data
 public class RemoteImageProperties {
 

@@ -35,8 +35,57 @@ my:
 
 # 可按 REGEX 枚举名单独覆盖群指令冷却秒数；0 表示关闭对应指令冷却。
 bot:
+  outbound-http:
+    rate-limit:
+      # 所有外部 HTTP 请求和 WebSocket 握手共享全局限速，最多只能配置为每秒 2 次。
+      enabled: ${BOT_OUTBOUND_HTTP_RATE_LIMIT_ENABLED:true}
+      max-requests-per-second: ${BOT_OUTBOUND_HTTP_MAX_REQUESTS_PER_SECOND:2}
   qq:
+    # WS：通过 QQ v2 WebSocket 获取消息；HOOK/WEBHOOK：通过 /bot/message webhook 获取消息。
+    message-ingress-mode: ${BOT_QQ_MESSAGE_INGRESS_MODE:WS}
+    # Hook 签名时间戳允许的最大偏差，防止旧的合法请求被长期重放。
+    webhook-max-signature-age-seconds: ${BOT_QQ_WEBHOOK_MAX_SIGNATURE_AGE_SECONDS:300}
+    webhook-max-body-bytes: ${BOT_QQ_WEBHOOK_MAX_BODY_BYTES:1048576}
     active-message-min-interval-seconds: ${BOT_QQ_ACTIVE_MESSAGE_MIN_INTERVAL_SECONDS:60}
+    verify-platform-state-before-active-send: ${BOT_QQ_VERIFY_PLATFORM_STATE_BEFORE_ACTIVE_SEND:false}
+    admin:
+      # 允许通过 QQ 私聊执行运行时配置管理的主号 OpenID，多个值用英文逗号分隔。
+      master-openids: ${BOT_QQ_ADMIN_MASTER_OPENIDS:}
+    websocket:
+      intents: ${BOT_QQ_WEBSOCKET_INTENTS:33554432}
+      shard-id: ${BOT_QQ_WEBSOCKET_SHARD_ID:0}
+      shard-count: ${BOT_QQ_WEBSOCKET_SHARD_COUNT:1}
+      use-gateway-bot: ${BOT_QQ_WEBSOCKET_USE_GATEWAY_BOT:true}
+      reconnect-delay-seconds: ${BOT_QQ_WEBSOCKET_RECONNECT_DELAY_SECONDS:5}
+      handshake-check-seconds: ${BOT_QQ_WEBSOCKET_HANDSHAKE_CHECK_SECONDS:10}
+    media:
+      # CHUNK：使用 QQ v2 富媒体本地分片上传；MINIO：先上传自有对象存储，再把公网 URL 提交给 QQ。
+      image-upload-mode: ${BOT_QQ_IMAGE_UPLOAD_MODE:CHUNK}
+  push:
+    # WS 实时事件与自定义定时任务共用的有界主动推送线程池。
+    delivery:
+      core-pool-size: ${BOT_PUSH_CORE_POOL_SIZE:2}
+      max-pool-size: ${BOT_PUSH_MAX_POOL_SIZE:4}
+      queue-capacity: ${BOT_PUSH_QUEUE_CAPACITY:200}
+    # WS 原始帧指纹的持久化去重保留时间；重复帧不会再次进入发送队列。
+    ws-dedup-retention-days: ${BOT_PUSH_WS_DEDUP_RETENTION_DAYS:7}
+    ws-dedup-cleanup-cron: ${BOT_PUSH_WS_DEDUP_CLEANUP_CRON:0 30 3 * * *}
+    mongo-daily:
+      # 默认按日本时区每天 10:00 生成日常进度图片；仅向已开启 Mongo日常进度 且存在角色绑定的群发送。
+      cron: ${BOT_PUSH_MONGO_DAILY_CRON:0 0 10 * * *}
+      zone: ${BOT_PUSH_MONGO_DAILY_ZONE:Asia/Tokyo}
+  mongodb:
+    # PostgreSQL/JPA 始终保留；开启后额外启用 MongoDB 文档存储。
+    enabled: ${BOT_MONGODB_ENABLED:false}
+    uri: ${BOT_MONGODB_URI:}
+    database: ${BOT_MONGODB_DATABASE:botjava}
+    max-document-bytes: ${BOT_MONGODB_MAX_DOCUMENT_BYTES:1048576}
+    role-status:
+      # Lua 维护的既有平铺集合；应用不会创建/修改索引或新增角色文档。
+      collection: ${BOT_MONGODB_ROLE_STATUS_COLLECTION:roles}
+      server-field: ${BOT_MONGODB_ROLE_STATUS_SERVER_FIELD:服务器}
+      role-name-field: ${BOT_MONGODB_ROLE_STATUS_ROLE_NAME_FIELD:角色名}
+      max-matches: ${BOT_MONGODB_ROLE_STATUS_MAX_MATCHES:20}
   command:
     runtime-mode: ${BOT_COMMAND_RUNTIME_MODE:PRODUCTION}
     cooldown-in-flight-timeout-seconds: ${BOT_COMMAND_COOLDOWN_IN_FLIGHT_TIMEOUT_SECONDS:300}
@@ -48,6 +97,11 @@ bot:
       statistics-max-days: ${BOT_COMMAND_STATISTICS_MAX_DAYS:90}
 
 jx3api:
+  # 总开关：false 时不加载 JX3API HTTP 指令和 JX3API WS 推送。
+  enabled: ${JX3API_ENABLED:true}
+  http:
+    # HTTP 查询指令开关，默认跟随项目当前能力启用。
+    enabled: ${JX3API_HTTP_ENABLED:true}
   cache:
     cleanup-cron: ${JX3API_CACHE_CLEANUP_CRON:0 45 3 * * *}
   remote-image:
@@ -59,6 +113,7 @@ jx3api:
   api:
     api-url: ${JX3API_API_URL:https://www.jx3api.com}
     api-token: ${JX3API_API_TOKEN:}
+    api-v2-token: ${JX3API_API_V2_TOKEN:}
     ticket: ${JX3API_TICKET:}
     default-server: ${JX3API_DEFAULT_SERVER:乾坤一掷}
     name: ${JX3API_BOT_NAME:botjava-jx3}
@@ -66,6 +121,13 @@ jx3api:
     dps-service-url: ${JX3API_DPS_SERVICE_URL:https://www.jx3hps.com}
     dps-service-path: ${JX3API_DPS_SERVICE_PATH:/dps}
     dps-model: ${JX3API_DPS_MODEL:旗舰}
+  ws:
+    # JX3API 游戏事件 WebSocket 推送开关；和 QQ 消息入口 WS 不是同一个配置。
+    enabled: ${JX3API_WS_ENABLED:false}
+    ws-token: ${JX3API_WS_TOKEN:}
+    ws-url: ${JX3API_WS_URL:}
+    re-connect-max-times: ${JX3API_WS_RECONNECT_MAX_TIMES:5000}
+    re-connect-delay-seconds: ${JX3API_WS_RECONNECT_DELAY_SECONDS:30}
   sound:
     enabled: ${JX3_SOUND_ENABLED:false}
     appkey: ${JX3_SOUND_APPKEY:}
@@ -87,8 +149,8 @@ spring:
     # 连接地址：localhost 改为你腾讯云服务器的内网 IP（如果在同台机器上则保持 localhost）
     url: jdbc:postgresql://localhost:5432/postgres?currentSchema=public&useSSL=false
     # 数据库账号与密码
-    username: ${DB_USERNAME:pgsql}
-    password: ${DB_PASSWORD:12345}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:123456}
 
   jpa:
     # 自动根据 Entity 实体类更新/创建数据库表结构（开发环境建议 update，生产环境建议 none）

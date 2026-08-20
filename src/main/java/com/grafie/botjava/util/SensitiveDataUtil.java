@@ -17,8 +17,11 @@ public final class SensitiveDataUtil {
     private static final Set<String> SENSITIVE_KEY_PARTS = Set.of(
             "token", "secret", "ticket", "password", "authorization", "accesskey", "privatekey", "appkey"
     );
+    private static final Pattern SENSITIVE_JSON_VALUE = Pattern.compile(
+            "(?i)(\\\"(?:token|ticket|secret|password|authorization|access[_-]?key|appkey)\\\"\\s*:\\s*\\\")[^\\\"]*(\\\")"
+    );
     private static final Pattern SENSITIVE_TEXT_VALUE = Pattern.compile(
-            "(?i)(token|ticket|secret|password|authorization|access[_-]?key|appkey)\\s*[=:]\\s*[^\\s,;]+"
+            "(?i)((?:token|ticket|secret|password|authorization|access[_-]?key|appkey)\\s*)[=:：]\\s*[^\\s,;}]+"
     );
 
     private SensitiveDataUtil() {
@@ -40,7 +43,8 @@ public final class SensitiveDataUtil {
         if (source == null) {
             return null;
         }
-        return SENSITIVE_TEXT_VALUE.matcher(source).replaceAll("$1=******");
+        String redacted = SENSITIVE_JSON_VALUE.matcher(source).replaceAll("$1******$2");
+        return SENSITIVE_TEXT_VALUE.matcher(redacted).replaceAll("$1=******");
     }
 
     public static String summarize(Throwable throwable) {

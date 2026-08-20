@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>指令列表</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body {
+            margin: 0;
+            min-width: 1080px;
+            background: #edf1f3;
+            color: #20282d;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            letter-spacing: 0;
+        }
+        #main { min-height: 720px; padding: 34px 52px; }
+        .board {
+            width: 100%;
+            max-width: 1176px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #fff;
+            border: 1px solid #ccd4d8;
+            border-radius: 8px;
+            box-shadow: 0 18px 42px rgba(31, 42, 48, .12);
+        }
+        .header {
+            min-height: 122px;
+            padding: 24px 34px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 28px;
+            border-top: 8px solid #496c72;
+            border-bottom: 1px solid #dbe1e4;
+        }
+        .eyebrow { margin: 0 0 7px; color: #6d7a80; font-size: 15px; }
+        h1 { margin: 0; font-size: 35px; line-height: 1.2; }
+        .count { color: #496c72; font-size: 18px; font-weight: 800; text-align: right; }
+        .count span { display: block; margin-top: 6px; color: #7a858b; font-size: 13px; font-weight: 400; }
+        .group { border-bottom: 1px solid #dbe1e4; }
+        .group:last-child { border-bottom: 0; }
+        .group-title {
+            margin: 0;
+            padding: 16px 34px;
+            color: #354a50;
+            background: #f4f7f8;
+            border-bottom: 1px solid #dbe1e4;
+            font-size: 18px;
+            line-height: 1.35;
+        }
+        .commands {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .command {
+            min-height: 108px;
+            padding: 18px 24px;
+            border-right: 1px solid #e1e6e8;
+            border-bottom: 1px solid #e1e6e8;
+        }
+        .command:nth-child(2n) { border-right: 0; }
+        .command:nth-last-child(-n+2) { border-bottom: 0; }
+        .command-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 27px;
+        }
+        .name {
+            min-width: 0;
+            color: #1f2b30;
+            font-size: 18px;
+            font-weight: 800;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+        .badges {
+            flex: 0 0 auto;
+            display: flex;
+            gap: 6px;
+        }
+        .badge {
+            padding: 3px 7px;
+            color: #496c72;
+            background: #eef4f5;
+            border-left: 3px solid #6d8a91;
+            font-size: 12px;
+            line-height: 1.3;
+            white-space: nowrap;
+        }
+        .desc {
+            margin: 9px 0 0;
+            color: #58666c;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+        .example {
+            margin-top: 10px;
+            padding: 7px 9px;
+            color: #2d3a40;
+            background: #f7f9f9;
+            border-left: 3px solid #8b5947;
+            font-size: 14px;
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+        }
+        .empty {
+            min-height: 430px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #78848a;
+            font-size: 22px;
+        }
+        .footer { padding: 15px 34px 18px; color: #7b878d; background: #fafbfb; font-size: 13px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header">
+            <div>
+                <p class="eyebrow">支持发送 /指令 或 指令</p>
+                <h1>{{ title || '指令列表' }}</h1>
+            </div>
+            <div class="count">{{ total || 0 }} 条指令<span>仅展示名称、说明和示例</span></div>
+        </header>
+        <template v-if="groups && groups.length">
+            <section class="group" v-for="group in groups" :key="group.name">
+                <h2 class="group-title">{{ group.name }}</h2>
+                <div class="commands">
+                    <article class="command" v-for="command in group.commands" :key="group.name + '-' + command.name">
+                        <div class="command-head">
+                            <div class="name">{{ command.name }}</div>
+                            <div class="badges">
+                                <span class="badge">{{ command.access }}</span>
+                                <span class="badge">{{ command.availability }}</span>
+                            </div>
+                        </div>
+                        <p class="desc">{{ command.description || '暂无说明' }}</p>
+                        <div class="example">{{ command.example || command.name }}</div>
+                    </article>
+                </div>
+            </section>
+        </template>
+        <div class="empty" v-else>暂无指令数据</div>
+        <footer class="footer">指令列表来自当前机器人注册信息，不展示正则规则</footer>
+    </article>
+</main>
+</body>
+</html>

@@ -6,13 +6,8 @@ import com.grafie.botjava.entity.UserRoleBinding;
 import com.grafie.botjava.service.GroupConfigurationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
         "jx3api.api.api-token=test-token",
         "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect"
 })
-@ContextConfiguration(classes = GroupInfoMapperTest.TestApplication.class)
 @Import(GroupConfigurationService.class)
 class GroupInfoMapperTest {
 
@@ -44,13 +38,6 @@ class GroupInfoMapperTest {
 
     @Autowired
     private GroupConfigurationService groupConfigurationService;
-
-    @SpringBootConfiguration
-    @EnableAutoConfiguration
-    @EntityScan(basePackageClasses = GroupInfo.class)
-    @EnableJpaRepositories(basePackageClasses = GroupInfoMapper.class)
-    static class TestApplication {
-    }
 
     @Test
     void shouldReserveWindowAtomicallyAndRollbackOnlyMatchingReservation() {
@@ -115,6 +102,7 @@ class GroupInfoMapperTest {
         userInfoMapper.save(account);
 
         UserRoleBinding role = new UserRoleBinding();
+        role.setGroupOpenId("group-1");
         role.setMemberOpenId("account-1");
         role.setServer("唯我独尊");
         role.setRoleName("加菲");
@@ -123,7 +111,7 @@ class GroupInfoMapperTest {
         assertEquals("乾坤一掷", groupInfoMapper.findByOpenGroupId("group-1").getServer());
         assertEquals("梦江南", groupInfoMapper.findByOpenGroupId("group-2").getServer());
         assertEquals("加菲", userInfoMapper.findByMemberOpenId("account-1").getRoleName());
-        assertEquals(1, userRoleBindingMapper.findByMemberOpenIdOrderByIdAsc("account-1").size());
+        assertEquals(1, userRoleBindingMapper.findByGroupOpenIdAndMemberOpenIdOrderByIdAsc("group-1", "account-1").size());
     }
 
     @Test

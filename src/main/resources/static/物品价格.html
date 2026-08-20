@@ -9,284 +9,436 @@
         [v-cloak] { display: none; }
         body {
             margin: 0;
-            min-width: 1080px;
-            background: #eef1f2;
-            color: #22282d;
+            min-width: 1180px;
+            background: #f4f4f4;
+            color: #363636;
             font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
             letter-spacing: 0;
         }
-        #main { min-height: 720px; padding: 46px 60px; }
-        .board {
-            width: 100%;
-            max-width: 1160px;
-            margin: 0 auto;
-            overflow: hidden;
-            background: #ffffff;
-            border: 1px solid #cfd5d8;
+        #main { min-height: 720px; padding: 26px; }
+        .page { width: 100%; max-width: 1136px; margin: 0 auto; }
+        .panel {
+            background: #fff;
+            border: 1px solid #e2e2e2;
             border-radius: 8px;
-            box-shadow: 0 18px 42px rgba(31, 38, 43, 0.12);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+            overflow: hidden;
         }
-        .header {
-            padding: 28px 36px 24px;
-            border-top: 8px solid #297067;
-            border-bottom: 1px solid #dce1e4;
+        .hero { position: relative; margin-bottom: 18px; }
+        .hero-label,
+        .hero-badge {
+            position: absolute;
+            top: 18px;
+            z-index: 2;
+            height: 26px;
+            padding: 0 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            background: rgba(125, 125, 125, .45);
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 7px;
+            text-transform: uppercase;
         }
-        .eyebrow { margin: 0 0 8px; color: #68747c; font-size: 17px; }
-        h1 { margin: 0; color: #20262b; font-size: 36px; line-height: 1.25; overflow-wrap: anywhere; }
-        .meta { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; }
-        .tag {
-            padding: 6px 11px;
-            color: #394249;
-            background: #edf2f1;
-            border: 1px solid #d4dedb;
-            border-radius: 4px;
-            font-size: 14px;
-            font-weight: 700;
-        }
-        .tag.price { color: #9a561f; background: #fff3e5; border-color: #ecd5b7; }
-        .description {
-            margin: 16px 0 0;
-            max-width: 1040px;
-            color: #5e6971;
-            font-size: 15px;
-            line-height: 1.65;
-            overflow-wrap: anywhere;
-        }
-        .chart-section { padding: 24px 36px 12px; border-bottom: 1px solid #dce1e4; }
-        .section-title { margin: 0 0 12px; color: #293137; font-size: 20px; }
-        .chart { width: 100%; height: 330px; display: block; background: #fafcfc; border: 1px solid #e0e6e8; }
-        .axis { stroke: #aeb9be; stroke-width: 1; }
-        .grid { stroke: #e2e8ea; stroke-width: 1; }
-        .line { fill: none; stroke: #28786c; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
-        .point { fill: #b76824; stroke: #ffffff; stroke-width: 2; }
-        .chart-label { fill: #69757c; font-size: 13px; }
-        .point-label { fill: #9a561f; font-size: 13px; font-weight: 700; }
-        .chart-empty {
-            height: 180px;
+        .hero-label { left: 22px; }
+        .hero-badge { right: 22px; letter-spacing: 1px; }
+        .preview {
+            height: 620px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #7a858c;
-            background: #fafcfc;
-            border: 1px solid #e0e6e8;
-            font-size: 18px;
+            overflow: hidden;
+            background: #fafafa;
         }
-        .records { padding: 22px 36px 8px; }
-        .table-head,
-        .row {
-            display: grid;
-            grid-template-columns: 150px minmax(210px, 1.2fr) minmax(150px, .8fr) 150px 120px;
-            gap: 18px;
-            align-items: center;
+        .preview img { width: 100%; height: 100%; object-fit: contain; }
+        .preview-empty { color: #aaa; font-size: 22px; }
+        .summary {
+            padding: 19px 28px 21px;
+            text-align: center;
+            border-top: 1px solid #ececec;
         }
-        .table-head {
-            min-height: 48px;
-            padding: 0 18px;
-            color: #68747c;
-            background: #f4f6f7;
-            border: 1px solid #dce1e4;
-            font-size: 13px;
-            font-weight: 700;
-        }
-        .row { min-height: 62px; padding: 10px 18px; border: 1px solid #e3e7e9; border-top: 0; }
-        .date { color: #5d6870; font-size: 15px; }
-        .server { color: #273037; font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
-        .zone { color: #68747c; font-size: 15px; overflow-wrap: anywhere; }
-        .record-price { color: #9a561f; font-size: 18px; font-weight: 800; }
-        .sale { color: #28786c; font-size: 15px; font-weight: 700; }
-        .records-empty { padding: 70px 0; color: #7a858c; text-align: center; font-size: 19px; }
-        .footer {
-            padding: 18px 36px 21px;
+        h1 { margin: 0; font-size: 28px; line-height: 1.25; color: #333; overflow-wrap: anywhere; }
+        .meta { margin-top: 8px; display: flex; justify-content: center; flex-wrap: wrap; gap: 7px 16px; color: #666; font-size: 14px; font-weight: 700; }
+        .desc { margin: 8px auto 0; max-width: 980px; color: #666; font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; }
+        .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 18px; }
+        .card { min-height: 430px; }
+        .card-title {
+            height: 52px;
             display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            color: #7a858c;
-            background: #fafbfb;
-            border-top: 1px solid #dce1e4;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #ececec;
+            color: #3d3d3d;
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 4px;
+        }
+        .rows { padding: 19px 28px 22px; }
+        .price-row {
+            min-height: 32px;
+            display: grid;
+            grid-template-columns: 92px minmax(0, 1fr) 70px 54px;
+            gap: 11px;
+            align-items: center;
             font-size: 14px;
+            font-weight: 800;
+        }
+        .date { color: var(--card-color); opacity: .78; }
+        .server { color: var(--card-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .price { color: var(--card-color); text-align: right; }
+        .type { color: var(--card-color); text-align: right; }
+        .empty {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b0b0b0;
+            font-size: 15px;
+        }
+        .history { padding: 22px 38px 28px; }
+        .history-title {
+            margin: 0 0 18px;
+            color: #9b9b9b;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 900;
+            letter-spacing: 7px;
+        }
+        .chart { width: 100%; height: 430px; display: block; }
+        .axis-label { fill: #999; font-size: 12px; }
+        .grid-line { stroke: #ededed; stroke-width: 1; }
+        .trend-fill { fill: rgba(219, 93, 126, .13); }
+        .trend-line { fill: none; stroke: #df6388; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+        .trend-point { fill: #fff; stroke: #df6388; stroke-width: 3; }
+        .trend-marker { fill: #cf5e7b; }
+        .marker-text { fill: #fff; font-size: 11px; font-weight: 900; }
+        .avg-line { stroke: #e7a2b5; stroke-width: 1; stroke-dasharray: 4 3; }
+        .chart-empty { height: 260px; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 18px; }
+        .footer {
+            margin-top: 18px;
+            height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            color: #888;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 5px;
         }
     </style>
 </head>
 <body>
-    <main id="main" v-cloak>
-        <article class="board">
-            <header class="header">
-                <p class="eyebrow">{{ mode || '物品价格' }} · {{ server || '全区服' }}</p>
+<main id="main" v-cloak>
+    <div class="page">
+        <section class="panel hero">
+            <div class="hero-label">APPEARANCE PREVIEW</div>
+            <div class="hero-badge">外观预览</div>
+            <div class="preview">
+                <img v-if="previewImage" :src="previewImage" alt="外观预览" @error="previewImage = ''">
+                <div class="preview-empty" v-else>暂无外观预览</div>
+            </div>
+            <div class="summary">
                 <h1>{{ itemTitle }}</h1>
                 <div class="meta">
-                    <span class="tag" v-if="item.classType || item['class']">分类：{{ item.classType || item['class'] }}</span>
-                    <span class="tag" v-if="item.subclass">子类：{{ item.subclass }}</span>
-                    <span class="tag" v-if="item.level != null">等级：{{ item.level }}</span>
-                    <span class="tag price" v-if="item.value">官方售价：{{ item.value }}</span>
-                    <span class="tag" v-if="item.date">上架日期：{{ item.date }}</span>
+                    <span>{{ itemCategory }}</span>
+                    <span v-if="retailPrice">原价 {{ retailPrice }} 元</span>
+                    <span v-if="item.date">{{ item.date }}</span>
+                    <span v-if="server">{{ server }}</span>
                 </div>
-                <p class="description">{{ item.desc || '暂无物品描述' }}</p>
-            </header>
+                <p class="desc">{{ item.desc || '暂无物品描述' }}</p>
+            </div>
+        </section>
 
-            <section class="chart-section">
-                <h2 class="section-title">近期价格走势</h2>
-                <svg class="chart" viewBox="0 0 1080 330" v-if="trendRecords.length >= 2">
-                    <line x1="84" y1="260" x2="1030" y2="260" class="axis"></line>
-                    <line x1="84" y1="52" x2="84" y2="260" class="axis"></line>
-                    <g v-for="gridLine in chartGridLines">
-                        <line x1="84" :y1="gridLine.y" x2="1030" :y2="gridLine.y" class="grid"></line>
-                        <text x="18" :y="gridLine.y + 5" class="chart-label">{{ gridLine.value }}</text>
-                    </g>
-                    <polyline :points="chartLinePoints" class="line"></polyline>
-                    <g v-for="point in chartPoints">
-                        <circle :cx="point.x" :cy="point.y" r="6" class="point"></circle>
-                        <text :x="point.x" :y="point.y - 13" text-anchor="middle" class="point-label">{{ point.value }}</text>
-                        <text :x="point.x" y="292" text-anchor="middle" class="chart-label">{{ point.label }}</text>
-                    </g>
-                </svg>
-                <div class="chart-empty" v-else>价格记录不足，暂不生成趋势线</div>
-            </section>
-
-            <section class="records">
-                <h2 class="section-title">近期价格记录</h2>
-                <template v-if="recentRecords.length">
-                    <div class="table-head">
-                        <span>日期</span>
-                        <span>服务器</span>
-                        <span>大区</span>
-                        <span>价格</span>
-                        <span>类型</span>
+        <section class="grid">
+            <article class="panel card" v-for="group in displayGroups" :key="group.name" :style="{'--card-color': group.color}">
+                <h2 class="card-title">{{ group.name }}</h2>
+                <div class="rows" v-if="group.rows.length">
+                    <div class="price-row" v-for="(record, index) in group.rows" :key="index">
+                        <span class="date">{{ record.date || shortDate(record.datetime) || '-' }}</span>
+                        <span class="server">{{ record.server || '未知' }}</span>
+                        <span class="price">{{ formatPrice(record.value) }}</span>
+                        <span class="type">{{ saleText(record.sales == null ? record.sale : record.sales) }}</span>
                     </div>
-                    <div class="row" v-for="(record, index) in recentRecords" :key="index">
-                        <span class="date">{{ record.date || record.datetime || '日期未知' }}</span>
-                        <strong class="server">{{ record.server || '未知服务器' }}</strong>
-                        <span class="zone">{{ record.zone || '未知大区' }}</span>
-                        <span class="record-price">{{ formatPrice(record.value) }}</span>
-                        <span class="sale">{{ saleText(record.sales == null ? record.sale : record.sales) }}</span>
-                    </div>
-                </template>
-                <div class="records-empty" v-else>暂无价格记录</div>
-            </section>
+                </div>
+                <div class="empty" v-else>暂无记录</div>
+            </article>
+        </section>
 
-            <footer class="footer">
-                <span>趋势图最多展示最近 8 条有效记录</span>
-                <span>数据来源：www.jx3api.com</span>
-            </footer>
-        </article>
-    </main>
+        <section class="panel history">
+            <h2 class="history-title">PRICE HISTORY · 历史走势</h2>
+            <svg class="chart" viewBox="0 0 1040 430" v-if="chartPoints.length >= 2">
+                <g v-for="gridLine in chartGridLines">
+                    <line x1="62" :y1="gridLine.y" x2="1002" :y2="gridLine.y" class="grid-line"></line>
+                    <text x="16" :y="gridLine.y + 5" class="axis-label">{{ gridLine.label }}</text>
+                </g>
+                <polygon :points="chartAreaPoints" class="trend-fill"></polygon>
+                <polyline :points="chartLinePoints" class="trend-line"></polyline>
+                <line x1="62" :y1="averageY" x2="1002" :y2="averageY" class="avg-line"></line>
+                <text x="1008" :y="averageY + 4" class="axis-label">{{ averagePrice }}</text>
+                <g v-for="point in chartPoints">
+                    <circle :cx="point.x" :cy="point.y" r="4" class="trend-point"></circle>
+                    <text :x="point.x" y="404" text-anchor="middle" class="axis-label">{{ point.label }}</text>
+                </g>
+                <g v-if="minPoint">
+                    <circle :cx="minPoint.x" :cy="minPoint.y" r="16" class="trend-marker"></circle>
+                    <text :x="minPoint.x" :y="minPoint.y + 4" text-anchor="middle" class="marker-text">{{ minPoint.value }}</text>
+                </g>
+                <g v-if="maxPoint">
+                    <circle :cx="maxPoint.x" :cy="maxPoint.y" r="16" class="trend-marker"></circle>
+                    <text :x="maxPoint.x" :y="maxPoint.y + 4" text-anchor="middle" class="marker-text">{{ maxPoint.value }}</text>
+                </g>
+            </svg>
+            <div class="chart-empty" v-else>价格记录不足，暂不生成趋势线</div>
+        </section>
 
-    <script>
-        (function () {
-            var raw = window.__BOT_DATA__ || {};
-            var item = raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data)
-                ? raw.data : {};
+        <footer class="panel footer">
+            <span>一物一价，皆有行情</span>
+            <span>小猫饼 · 万宝楼行情</span>
+        </footer>
+    </div>
+</main>
 
-            function asArray(value) {
-                return Array.isArray(value) ? value : [];
+<script>
+    (function () {
+        var raw = window.__BOT_DATA__ || {};
+        var item = raw.data && typeof raw.data === 'object' && !Array.isArray(raw.data) ? raw.data : {};
+        var fallbackGroupNames = ['电信区', '双线区', '无界区', raw.server || '当前服', '公示期', '在售期'];
+        var palette = ['#db7191', '#65b987', '#7a8ccf', '#68a9d4', '#718ac8', '#9c9c9c'];
+
+        function asArray(value) {
+            return Array.isArray(value) ? value : [];
+        }
+
+        function isRecord(value) {
+            return value && typeof value === 'object' && !Array.isArray(value)
+                && (value.value != null || value.date || value.server);
+        }
+
+        function rowsOf(value) {
+            if (!Array.isArray(value)) {
+                return [];
             }
-
-            function flatten(groups) {
-                return asArray(groups).reduce(function (result, group) {
-                    return result.concat(asArray(group));
-                }, []);
-            }
-
-            function dateValue(record) {
-                var text = record.datetime || record.date || '';
-                var parsed = Date.parse(String(text).replace(/\//g, '-'));
-                return Number.isNaN(parsed) ? 0 : parsed;
-            }
-
-            new Vue({
-                el: '#main',
-                data: function () {
-                    return {
-                        mode: raw.mode || '物品价格',
-                        server: raw.server || '',
-                        queryName: raw.name || '',
-                        item: item,
-                        saleCodeMapping: {
-                            1: '出售', 2: '收购', 3: '想出', 4: '想收',
-                            5: '成交', 6: '正出', 7: '公示'
-                        }
-                    };
-                },
-                computed: {
-                    itemTitle: function () {
-                        var title = this.item.name || this.queryName || '物品价格';
-                        return this.item.alias ? title + '（' + this.item.alias + '）' : title;
-                    },
-                    allRecords: function () {
-                        return flatten(this.item.data || this.item.list)
-                            .filter(function (record) { return record && record.value != null; });
-                    },
-                    trendRecords: function () {
-                        return this.allRecords.slice().sort(function (left, right) {
-                            return dateValue(left) - dateValue(right);
-                        }).slice(-8);
-                    },
-                    recentRecords: function () {
-                        return this.allRecords.slice().sort(function (left, right) {
-                            return dateValue(right) - dateValue(left);
-                        }).slice(0, 6);
-                    },
-                    chartBounds: function () {
-                        var values = this.trendRecords.map(function (record) { return Number(record.value); });
-                        var min = Math.min.apply(null, values);
-                        var max = Math.max.apply(null, values);
-                        if (!Number.isFinite(min) || !Number.isFinite(max)) {
-                            return {min: 0, max: 1};
-                        }
-                        if (min === max) {
-                            return {min: Math.max(0, min - 1), max: max + 1};
-                        }
-                        return {min: min, max: max};
-                    },
-                    chartPoints: function () {
-                        var self = this;
-                        var records = this.trendRecords;
-                        var bounds = this.chartBounds;
-                        var width = 946;
-                        var height = 208;
-                        return records.map(function (record, index) {
-                            var ratio = (Number(record.value) - bounds.min) / (bounds.max - bounds.min);
-                            return {
-                                x: Math.round(84 + width * index / (records.length - 1)),
-                                y: Math.round(52 + height - ratio * height),
-                                value: self.formatPrice(record.value),
-                                label: self.shortDate(record.date || record.datetime)
-                            };
-                        });
-                    },
-                    chartLinePoints: function () {
-                        return this.chartPoints.map(function (point) {
-                            return point.x + ',' + point.y;
-                        }).join(' ');
-                    },
-                    chartGridLines: function () {
-                        var bounds = this.chartBounds;
-                        var self = this;
-                        return [0, 1, 2, 3].map(function (index) {
-                            var ratio = index / 3;
-                            return {
-                                y: Math.round(260 - ratio * 208),
-                                value: self.formatPrice(bounds.min + (bounds.max - bounds.min) * ratio)
-                            };
-                        });
-                    }
-                },
-                methods: {
-                    formatPrice: function (value) {
-                        return value == null ? '暂无' : Math.round(Number(value)).toLocaleString('zh-CN');
-                    },
-                    shortDate: function (value) {
-                        var text = String(value || '');
-                        return text.length >= 10 ? text.substring(5, 10) : text || '-';
-                    },
-                    saleText: function (code) {
-                        return this.saleCodeMapping[code] || '记录';
-                    }
-                },
-                mounted: function () {
-                    this.$nextTick(function () { window.__BOT_RENDERED__ = true; });
+            return value.reduce(function (result, item) {
+                if (Array.isArray(item)) {
+                    return result.concat(rowsOf(item));
                 }
+                if (isRecord(item)) {
+                    result.push(item);
+                }
+                return result;
+            }, []);
+        }
+
+        function normalizeGroups(item) {
+            var source = [];
+            if (Array.isArray(item.groups) && item.groups.length) {
+                source = item.groups;
+            } else if (Array.isArray(item.list) && item.list.length) {
+                source = item.list;
+            } else if (Array.isArray(item.data) && item.data.length && Array.isArray(item.data[0])) {
+                source = item.data;
+            } else if (Array.isArray(item.data) && item.data.length) {
+                source = [{name: raw.server || '价格记录', list: item.data}];
+            }
+            return source.map(function (group, index) {
+                if (Array.isArray(group)) {
+                    return {name: fallbackGroupNames[index] || ('记录 ' + (index + 1)), list: rowsOf(group)};
+                }
+                return {
+                    name: group.name || fallbackGroupNames[index] || ('记录 ' + (index + 1)),
+                    list: rowsOf(group.list || group.data || [])
+                };
             });
-        })();
-    </script>
+        }
+
+        function dateValue(record) {
+            var text = record.datetime || record.date || '';
+            var parsed = Date.parse(String(text).replace(/\//g, '-'));
+            return Number.isNaN(parsed) ? 0 : parsed;
+        }
+
+        new Vue({
+            el: '#main',
+            data: function () {
+                return {
+                    mode: raw.mode || '物品价格',
+                    server: raw.server || '',
+                    queryName: raw.name || '',
+                    item: item,
+                    previewImage: raw.previewImageDataUri || item.imageDataUri || '',
+                    saleCodeMapping: {
+                        1: '出售', 2: '收购', 3: '想出', 4: '想收',
+                        5: '成交', 6: '正出', 7: '公示'
+                    }
+                };
+            },
+            computed: {
+                itemTitle: function () {
+                    var title = this.item.name || this.queryName || '物品价格';
+                    return this.item.alias ? title + '（' + this.item.alias + '）' : title;
+                },
+                itemCategory: function () {
+                    return this.item.category || this.item.classType || this.item['class'] || this.item.subclass || '物品';
+                },
+                retailPrice: function () {
+                    return this.item.retail || this.item.value || '';
+                },
+                groups: function () {
+                    var groups = normalizeGroups(this.item);
+                    var self = this;
+                    return groups.map(function (group, index) {
+                        return {
+                            name: group.name || ('记录 ' + (index + 1)),
+                            color: self.groupColor(group.name, index),
+                            rows: asArray(group.list).filter(function (record) { return record && record.value != null; })
+                                .sort(function (left, right) { return dateValue(right) - dateValue(left); })
+                        };
+                    });
+                },
+                displayGroups: function () {
+                    var preferred = [];
+                    var names = ['公示期', '在售期'];
+                    if (this.server) {
+                        names.push(this.server);
+                    }
+                    names.push('电信区', '双线区', '无界区');
+                    names.forEach(function (name) {
+                        var group = this.groups.find(function (item) { return item.name === name; });
+                        if (group && !preferred.includes(group)) {
+                            preferred.push(group);
+                        }
+                    }, this);
+                    this.groups.forEach(function (group) {
+                        if (!preferred.includes(group)) {
+                            preferred.push(group);
+                        }
+                    });
+                    while (preferred.length < 6) {
+                        preferred.push({name: fallbackGroupNames[preferred.length] || '记录', color: palette[preferred.length % palette.length], rows: []});
+                    }
+                    return preferred.slice(0, 6).map(function (group) {
+                        return Object.assign({}, group, {rows: group.rows.slice(0, 10)});
+                    });
+                },
+                allRecords: function () {
+                    return this.groups.reduce(function (result, group) {
+                        return result.concat(group.rows);
+                    }, []);
+                },
+                chartRecords: function () {
+                    var serverGroup = this.server ? this.groups.find(function (group) { return group.name === this.server; }, this) : null;
+                    var records = serverGroup && serverGroup.rows.length ? serverGroup.rows : this.allRecords;
+                    return records.slice().sort(function (left, right) {
+                        return dateValue(left) - dateValue(right);
+                    }).slice(-18);
+                },
+                chartBounds: function () {
+                    var values = this.chartRecords.map(function (record) { return Number(record.value); })
+                        .filter(function (value) { return Number.isFinite(value); });
+                    var min = Math.min.apply(null, values);
+                    var max = Math.max.apply(null, values);
+                    if (!Number.isFinite(min) || !Number.isFinite(max)) {
+                        return {min: 0, max: 1};
+                    }
+                    if (min === max) {
+                        return {min: Math.max(0, min - 100), max: max + 100};
+                    }
+                    var padding = Math.max(100, Math.round((max - min) * .12));
+                    return {min: Math.max(0, min - padding), max: max + padding};
+                },
+                chartPoints: function () {
+                    var self = this;
+                    var bounds = this.chartBounds;
+                    var width = 940;
+                    var height = 300;
+                    return this.chartRecords.map(function (record, index, records) {
+                        var ratio = (Number(record.value) - bounds.min) / (bounds.max - bounds.min);
+                        return {
+                            x: Math.round(62 + width * (records.length === 1 ? 0 : index / (records.length - 1))),
+                            y: Math.round(42 + height - ratio * height),
+                            value: self.formatPrice(record.value),
+                            rawValue: Number(record.value),
+                            label: self.shortDate(record.date || record.datetime)
+                        };
+                    });
+                },
+                chartLinePoints: function () {
+                    return this.chartPoints.map(function (point) { return point.x + ',' + point.y; }).join(' ');
+                },
+                chartAreaPoints: function () {
+                    if (!this.chartPoints.length) {
+                        return '';
+                    }
+                    var first = this.chartPoints[0];
+                    var last = this.chartPoints[this.chartPoints.length - 1];
+                    return first.x + ',354 ' + this.chartLinePoints + ' ' + last.x + ',354';
+                },
+                chartGridLines: function () {
+                    var bounds = this.chartBounds;
+                    var self = this;
+                    return [0, 1, 2, 3, 4].map(function (index) {
+                        var ratio = index / 4;
+                        var value = bounds.min + (bounds.max - bounds.min) * (1 - ratio);
+                        return {y: Math.round(42 + 300 * ratio), label: self.formatPrice(value)};
+                    });
+                },
+                averageValue: function () {
+                    if (!this.chartRecords.length) {
+                        return 0;
+                    }
+                    var sum = this.chartRecords.reduce(function (total, record) { return total + Number(record.value || 0); }, 0);
+                    return Math.round(sum / this.chartRecords.length);
+                },
+                averagePrice: function () {
+                    return this.formatPrice(this.averageValue);
+                },
+                averageY: function () {
+                    var bounds = this.chartBounds;
+                    var ratio = (this.averageValue - bounds.min) / (bounds.max - bounds.min);
+                    return Math.round(42 + 300 - ratio * 300);
+                },
+                minPoint: function () {
+                    return this.chartPoints.reduce(function (selected, point) {
+                        return !selected || point.rawValue < selected.rawValue ? point : selected;
+                    }, null);
+                },
+                maxPoint: function () {
+                    return this.chartPoints.reduce(function (selected, point) {
+                        return !selected || point.rawValue > selected.rawValue ? point : selected;
+                    }, null);
+                }
+            },
+            methods: {
+                formatPrice: function (value) {
+                    if (value == null || value === '') {
+                        return '-';
+                    }
+                    return Math.round(Number(value)).toLocaleString('zh-CN');
+                },
+                shortDate: function (value) {
+                    var text = String(value || '');
+                    return text.length >= 10 ? text.substring(0, 10) : text;
+                },
+                saleText: function (code) {
+                    return this.saleCodeMapping[code] || '记录';
+                },
+                groupColor: function (name, index) {
+                    if (name === '公示期') return '#df7390';
+                    if (name === '在售期') return '#58ae79';
+                    if (name === '无界区') return '#9d9d9d';
+                    if (name === this.server) return '#7187cf';
+                    return palette[index % palette.length];
+                }
+            },
+            mounted: function () {
+                this.$nextTick(function () { window.__BOT_RENDERED__ = true; });
+            }
+        });
+    })();
+</script>
 </body>
 </html>

@@ -15,12 +15,16 @@ public class AuthorDto {
     private String id;
     private String username;
     private Boolean bot;
+    @JsonProperty(value = "user_openid")
+    private String userOpenid;
     @JsonProperty(value = "member_openid")
     private String memberOpenid;
     @JsonProperty(value = "member_role")
     private String memberRole;
     @JsonProperty(value = "union_openid")
     private String unionOpenid;
+    @JsonProperty(value = "union_user_account")
+    private String unionUserAccount;
 
     public boolean isGroupOwner() {
         return hasMemberRole(ROLE_OWNER);

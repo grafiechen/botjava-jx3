@@ -40,6 +40,7 @@ class Jx3ApiLiveSmokeIT {
         Assumptions.assumeTrue("true".equalsIgnoreCase(environment("JX3API_LIVE_SMOKE")),
                 "Set JX3API_LIVE_SMOKE=true to run online requests");
         String token = requiredEnvironment("JX3API_API_TOKEN");
+        String apiV2Token = optionalEnvironment("JX3API_API_V2_TOKEN", token);
         String ticket = requiredEnvironment("JX3API_TICKET");
         String server = requiredEnvironment("JX3API_SMOKE_SERVER");
         String roleName = requiredEnvironment("JX3API_SMOKE_ROLE");
@@ -50,6 +51,7 @@ class Jx3ApiLiveSmokeIT {
         ApiProperties properties = new ApiProperties();
         properties.setApiUrl(apiUrl);
         properties.setApiToken(token);
+        properties.setApiV2Token(apiV2Token);
         properties.setTicket(ticket);
         properties.setDefaultServer(server);
 
@@ -209,6 +211,17 @@ class Jx3ApiLiveSmokeIT {
         public RequestResult doPostRequest(String path, Map<String, Object> params) {
             try {
                 lastResult = super.doPostRequest(path, params);
+                return lastResult;
+            }
+            catch (RuntimeException exception) {
+                lastFailure = exception;
+                throw exception;
+            }
+        }
+        @Override
+        public RequestResult doGetRequest(MethodEnum methodEnum, Map<String, Object> params) {
+            try {
+                lastResult = super.doGetRequest(methodEnum, params);
                 return lastResult;
             }
             catch (RuntimeException exception) {

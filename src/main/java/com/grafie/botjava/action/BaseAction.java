@@ -18,7 +18,7 @@ public abstract class BaseAction {
             return deal(payload);
         } catch (Exception e) {
             log.error("处理消息事件失败，op=>{}，t=>{}，reason=>{}",
-                    payload.getOp(), payload.getT(), SensitiveDataUtil.summarize(e));
+                    payload.getOp(), payload.getT(), SensitiveDataUtil.summarize(e), e);
         }
         return null;
     }

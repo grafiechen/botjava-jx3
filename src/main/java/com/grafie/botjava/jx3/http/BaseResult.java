@@ -20,4 +20,9 @@ public class BaseResult<T> {
      * 转换后的值
      */
     private T data;
+
+    /**
+     * JX3API 外层返回时间戳
+     */
+    private Long time;
 }

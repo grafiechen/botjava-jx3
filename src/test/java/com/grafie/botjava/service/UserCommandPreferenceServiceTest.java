@@ -30,72 +30,80 @@ class UserCommandPreferenceServiceTest {
     void shouldPersistRoleAndDefaultByMemberOpenId() {
         Fixture fixture = fixture();
 
-        UserInfo saved = fixture.service.bind(message("account-1"), " 乾坤一掷 ", " 加菲 ");
+        UserInfo saved = fixture.service.bind(message("account-1"), " 乾坤一掷 ", " 加菲 ", " 万花 ");
 
         ArgumentCaptor<UserRoleBinding> roleCaptor = ArgumentCaptor.forClass(UserRoleBinding.class);
         verify(fixture.roles).save(roleCaptor.capture());
+        assertEquals("group-1", roleCaptor.getValue().getGroupOpenId());
         assertEquals("account-1", roleCaptor.getValue().getMemberOpenId());
         assertEquals("乾坤一掷", roleCaptor.getValue().getServer());
         assertEquals("加菲", roleCaptor.getValue().getRoleName());
+        assertEquals("万花", roleCaptor.getValue().getSchool());
         assertEquals("乾坤一掷", saved.getServer());
         assertEquals("加菲", saved.getRoleName());
+        assertEquals("万花", saved.getSchool());
     }
 
     @Test
     void shouldAddAnotherRoleWithoutReplacingExistingDefault() {
         Fixture fixture = fixture();
-        when(fixture.users.findByMemberOpenId("account-1")).thenReturn(userInfo("乾坤一掷", "加菲"));
+        when(fixture.users.findByMemberOpenId("account-1")).thenReturn(userInfo("乾坤一掷", "加菲", "万花"));
 
-        fixture.service.addRole(message("account-1"), "梦江南", "乔峰");
+        fixture.service.addRole(message("account-1"), "梦江南", "乔峰", "丐帮");
 
         verify(fixture.roles).save(any(UserRoleBinding.class));
         verify(fixture.users, never()).save(any(UserInfo.class));
     }
 
     @Test
-    void shouldSwitchOnlyToSavedRole() {
+    void shouldUpdateSavedRoleSchoolByServerAndRoleName() {
         Fixture fixture = fixture();
-        UserRoleBinding role = role("account-1", "梦江南", "乔峰");
-        when(fixture.roles.findByMemberOpenIdAndServerAndRoleName("account-1", "梦江南", "乔峰"))
+        UserRoleBinding role = role("account-1", "梦江南", "乔峰", "丐帮");
+        role.setId(7L);
+        when(fixture.roles.findByGroupOpenIdAndMemberOpenIdAndServerAndRoleName("group-1", "account-1", "梦江南", "乔峰"))
                 .thenReturn(role);
 
-        UserInfo selected = fixture.service.switchRole(message("account-1"), "梦江南", "乔峰");
-        assertEquals("梦江南", selected.getServer());
-        assertEquals("乔峰", selected.getRoleName());
+        UserRoleBinding updated = fixture.service.updateRoleSchool(
+                message("account-1"), "梦江南", "乔峰", "万花");
+        assertEquals("梦江南", updated.getServer());
+        assertEquals("乔峰", updated.getRoleName());
+        assertEquals("万花", updated.getSchool());
 
         assertThrows(IllegalArgumentException.class,
-                () -> fixture.service.switchRole(message("account-2"), "梦江南", "乔峰"));
+                () -> fixture.service.updateRoleSchool(
+                        message("account-2"), "梦江南", "乔峰", "万花"));
     }
 
     @Test
     void shouldPromoteOldestRemainingRoleWhenDefaultIsRemoved() {
         Fixture fixture = fixture();
-        UserInfo current = userInfo("乾坤一掷", "加菲");
-        UserRoleBinding removed = role("account-1", "乾坤一掷", "加菲");
-        UserRoleBinding remaining = role("account-1", "梦江南", "乔峰");
+        UserInfo current = userInfo("乾坤一掷", "加菲", "万花");
+        UserRoleBinding removed = role("account-1", "乾坤一掷", "加菲", "万花");
+        removed.setId(1L);
+        UserRoleBinding remaining = role("account-1", "梦江南", "乔峰", "丐帮");
+        remaining.setId(2L);
         when(fixture.users.findByMemberOpenId("account-1")).thenReturn(current);
-        when(fixture.roles.findByMemberOpenIdAndServerAndRoleName("account-1", "乾坤一掷", "加菲"))
+        when(fixture.roles.findByGroupOpenIdAndMemberOpenIdAndServerAndRoleName("group-1", "account-1", "乾坤一掷", "加菲"))
                 .thenReturn(removed);
-        when(fixture.roles.findByMemberOpenIdOrderByIdAsc("account-1")).thenReturn(List.of(remaining));
+        when(fixture.roles.findByGroupOpenIdAndMemberOpenIdOrderByIdAsc("group-1", "account-1")).thenReturn(List.of(remaining));
 
-        assertTrue(fixture.service.unbindRole(message("account-1"), "乾坤一掷", "加菲"));
+        assertTrue(fixture.service.deleteRole(message("account-1"), "乾坤一掷", "加菲"));
         verify(fixture.roles).delete(removed);
         ArgumentCaptor<UserInfo> defaultCaptor = ArgumentCaptor.forClass(UserInfo.class);
         verify(fixture.users).save(defaultCaptor.capture());
         assertEquals("梦江南", defaultCaptor.getValue().getServer());
         assertEquals("乔峰", defaultCaptor.getValue().getRoleName());
+        assertEquals("丐帮", defaultCaptor.getValue().getSchool());
     }
 
     @Test
-    void shouldExposeLegacyDefaultAsRoleWithoutChangingAnotherAccount() {
+    void shouldNotExposeDefaultRoleWithoutGroupBinding() {
         Fixture fixture = fixture();
-        when(fixture.users.findByMemberOpenId("account-1")).thenReturn(userInfo("乾坤一掷", "加菲"));
-        when(fixture.roles.findByMemberOpenIdOrderByIdAsc("account-1")).thenReturn(List.of());
+        when(fixture.users.findByMemberOpenId("account-1")).thenReturn(userInfo("乾坤一掷", "加菲", "万花"));
+        when(fixture.roles.findByGroupOpenIdAndMemberOpenIdOrderByIdAsc("group-1", "account-1")).thenReturn(List.of());
 
         UserCommandPreferenceService.BindingSnapshot snapshot = fixture.service.findBindings(message("account-1"));
-
-        assertEquals(1, snapshot.roles().size());
-        assertEquals("加菲", snapshot.roles().get(0).getRoleName());
+        assertTrue(snapshot.roles().isEmpty());
         verify(fixture.users).findByMemberOpenId("account-1");
         verify(fixture.users, never()).findByMemberOpenId("account-2");
     }
@@ -103,8 +111,7 @@ class UserCommandPreferenceServiceTest {
     @Test
     void shouldApplyPersonalDefaultsAndKeepExplicitCommandValues() {
         Fixture fixture = fixture();
-        UserInfo preferences = userInfo("乾坤一掷", "绑定角色");
-        preferences.setSchool("万花");
+        UserInfo preferences = userInfo("乾坤一掷", "绑定角色", "万花");
         when(fixture.users.findByMemberOpenId("account-1")).thenReturn(preferences);
 
         CommandArguments defaults = fixture.service.applyDefaults(message("account-1"), CommandArguments.of(Map.of()));
@@ -120,48 +127,15 @@ class UserCommandPreferenceServiceTest {
     }
 
     @Test
-    void shouldBindAndUnbindSchoolWithoutChangingRole() {
-        Fixture fixture = fixture();
-        UserInfo preferences = userInfo("乾坤一掷", "加菲");
-        preferences.setMemberOpenId("account-1");
-        when(fixture.users.findByMemberOpenId("account-1")).thenReturn(preferences);
-
-        UserInfo saved = fixture.service.bindSchool(message("account-1"), " 万花 ");
-        assertEquals("万花", saved.getSchool());
-
-        assertTrue(fixture.service.unbindSchool(message("account-1")));
-        assertEquals(null, preferences.getSchool());
-        verify(fixture.users, org.mockito.Mockito.atLeastOnce()).save(preferences);
-        verify(fixture.users, never()).delete(preferences);
-    }
-
-    @Test
-    void shouldKeepSchoolWhenAllRolesAreRemoved() {
-        Fixture fixture = fixture();
-        UserInfo preferences = userInfo("乾坤一掷", "加菲");
-        preferences.setSchool("万花");
-        when(fixture.users.findByMemberOpenId("account-1")).thenReturn(preferences);
-        when(fixture.roles.deleteByMemberOpenId("account-1")).thenReturn(2L);
-
-        assertTrue(fixture.service.unbind(message("account-1")));
-
-        assertEquals(null, preferences.getServer());
-        assertEquals(null, preferences.getRoleName());
-        assertEquals("万花", preferences.getSchool());
-        verify(fixture.users).save(preferences);
-        verify(fixture.users, never()).delete(preferences);
-    }
-
-    @Test
     void shouldDeleteAllRolesOnlyForCurrentAccount() {
         Fixture fixture = fixture();
         UserInfo userInfo = userInfo("乾坤一掷", "加菲");
         when(fixture.users.findByMemberOpenId("account-1")).thenReturn(userInfo);
-        when(fixture.roles.deleteByMemberOpenId("account-1")).thenReturn(2L);
+        when(fixture.roles.deleteByGroupOpenIdAndMemberOpenId("group-1", "account-1")).thenReturn(2L);
 
         assertTrue(fixture.service.unbind(message("account-1")));
         verify(fixture.users).delete(userInfo);
-        verify(fixture.roles).deleteByMemberOpenId("account-1");
+        verify(fixture.roles).deleteByGroupOpenIdAndMemberOpenId("group-1", "account-1");
 
         when(fixture.users.findByMemberOpenId("account-2")).thenReturn(null);
         assertFalse(fixture.service.unbind(message("account-2")));
@@ -184,17 +158,28 @@ class UserCommandPreferenceServiceTest {
     }
 
     private static UserInfo userInfo(String server, String roleName) {
+        return userInfo(server, roleName, null);
+    }
+
+    private static UserInfo userInfo(String server, String roleName, String school) {
         UserInfo userInfo = new UserInfo();
         userInfo.setServer(server);
         userInfo.setRoleName(roleName);
+        userInfo.setSchool(school);
         return userInfo;
     }
 
     private static UserRoleBinding role(String account, String server, String roleName) {
+        return role(account, server, roleName, null);
+    }
+
+    private static UserRoleBinding role(String account, String server, String roleName, String school) {
         UserRoleBinding role = new UserRoleBinding();
+        role.setGroupOpenId("group-1");
         role.setMemberOpenId(account);
         role.setServer(server);
         role.setRoleName(roleName);
+        role.setSchool(school);
         return role;
     }
 
@@ -203,6 +188,7 @@ class UserCommandPreferenceServiceTest {
         author.setMemberOpenid(memberOpenId);
         GroupAtMessageCreateDto message = new GroupAtMessageCreateDto();
         message.setAuthor(author);
+        message.setGroupOpenid("group-1");
         return message;
     }
 

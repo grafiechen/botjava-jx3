@@ -1,4 +1,129 @@
-﻿# botjava-jx3 变更历史
+# botjava-jx3 变更历史
+
+### 2026-08-12 群指令权限接口预留
+
+调整内容：
+
+- 新增 `GroupCommandPermissionConfiguration`，作为后续数据库权限配置的扩展点，用于声明哪些群指令属于权限接口，以及指定群内哪些成员可操作。
+- 新增默认空实现 `NoopGroupCommandPermissionConfiguration`，暂不接管任何指令，保证当前线上行为仍由 `REGEX.CommandAccess` 的公开/群管理规则控制。
+- `GroupCommandExecutionService` 在静态 `CommandAccess` 之前查询权限配置；被动态权限接管的指令按 `groupOpenId + memberOpenId + REGEX` 授权结果放行或拒绝，未接管指令保持原逻辑。
+- 本次只预留服务接口和执行链路，不新增权限表、不新增配置指令，也不默认配置任何权限接口。
+
+验证范围：
+
+- `mvn "-Dtest=GroupCommandExecutionServiceTest,ProjectDocumentationContractTest" test` 通过，共 22 项测试。
+
+### 2026-08-12 JX3API 模块配置化开关
+
+调整内容：
+
+- 移除启动类上的 `@EnableJX3ApiHttp` 依赖，JX3API 能力改为通过配置文件控制。
+- 新增 `jx3api.enabled` 总开关，默认 `true`；关闭后不加载 JX3API HTTP 指令 Action、请求工具和 JX3API WS 推送配置。
+- 新增 `jx3api.http.enabled`，默认 `true`，用于单独关闭 JX3API HTTP 查询指令链路。
+- 新增 `jx3api.ws.enabled`，默认 `false`，用于显式开启 JX3API 游戏事件 WebSocket 推送；该配置与 QQ v2 WebSocket 消息入口相互独立。
+- 当用户触发已知 JX3 指令但 JX3API HTTP 指令链路未启用时，群聊返回 `该功能未开启。`。
+
+验证范围：
+
+- `mvn "-Dtest=BotjavaApplicationTests,ConfigurationValidationTest,GroupCommandExecutionServiceTest,ProjectDocumentationContractTest" test` 通过，共 36 项测试。
+### 2026-08-12 QQ token 使用前刷新边界
+
+调整内容：
+
+- `QqOpenApiClient` 明确保存 QQ token 的实际过期时间；HTTP OpenAPI 请求和 QQ v2 WebSocket `Identify`/`Resume` 每次取 `Authorization` 前都会判断剩余有效期，剩余 `60` 秒及以内会重新获取 token。
+- QQ WS 继续复用统一 QQ OpenAPI 鉴权客户端，不单独维护第二份 token 状态，避免 HTTP 与 WS 刷新窗口不一致。
+
+验证范围：
+
+- `mvn "-Dtest=QqOpenApiClientTest,QqWebSocketGatewayServiceTest" test` 通过，共 9 项测试。
+### 2026-08-11 QQ v2 WebSocket 默认消息入口
+
+### 2026-08-11 QQ v2 全量客户端与主号私聊配置
+
+调整内容：
+
+- 对照 QQ v2 autogen 服务端 API 列表补齐底层客户端：C2C 消息、流式消息、单聊富媒体、URL Link、Interaction ACK、频道/子频道基础管理，并继续保留群管理和群消息客户端。
+- `TxMessageInfo` 补充 C2C `input_notify`，支持官方输入中状态消息结构。
+- 新增 `C2C_MESSAGE_CREATE` 私聊入口，只有 `bot.qq.admin.master-openids` 配置的 QQ 主号可以执行运行时配置管理命令。
+- 私聊配置列表只展示 key；显式查看配置时对 token、secret、password、credential、authorization、accesskey、privatekey、appkey、ticket 等敏感 key 自动打码，配置操作和越权尝试继续写入 `bot_admin_audit_log`。
+- 新增 `bot_runtime_config` 和 `bot_admin_audit_log`，配置值入库，配置/审核类操作审计入库；审计日志不保存配置值或原始私聊内容。
+- QQ 分片上传外部 PUT 日志保留 method/host/partIndex/耗时/状态等排障字段，但不再明文输出临时 `uploadId`，错误响应体继续走敏感信息脱敏。
+- 新增 `docs/database/bot-runtime-config.sql`，部署文档补充主号 OpenID 配置和 SQL 执行说明。
+
+验证范围：
+
+- `mvn -DskipTests compile` 通过。
+- `mvn "-Dtest=QqUserMessageClientTest,QqGuildClientTest,QqUtilityClientTest,QqGroupManagementClientTest,C2cAdminConfigServiceTest,QqOpenApiClientTest" test` 通过，共 20 项测试。
+### 2026-08-11 QQ v2 群管理 OpenAPI 对齐
+
+调整内容：
+
+- 对照 QQ v2 官方左侧“群聊管理”导航，补齐入群申请列表拉取、入群申请审批、查询群禁言状态、设置群成员禁言和入群自动审批策略相关底层客户端方法。
+- `QqOpenApiClient` 新增 `PATCH` 传输方法，用于官方“修改入群自动审批策略”接口。
+- 新增群管理 DTO，覆盖 `join_request_id`、`verify_info`、禁言全局规则、成员禁言状态、自动审批策略、策略关联群、白名单和策略执行结果等官方字段。
+- 当前变更只实现可复用 OpenAPI 客户端能力，不默认开放聊天指令；后续接业务时必须继续走现有权限、冷却、审计和日志脱敏链路。
+- `QQ_CAPABILITY_POLICY.md` 增加群管理接口边界，明确审批、禁言、自动审批策略等高风险操作的权限要求。
+
+验证范围：
+
+- `mvn -DskipTests compile` 通过。
+- `mvn "-Dtest=QqGroupManagementClientTest,QqGroupMessageClientTest,QqOpenApiClientTest,ProjectDocumentationContractTest,QqCapabilityPolicyDocumentTest" test` 通过，共 28 项测试。
+调整内容：
+
+- 新增 `bot.qq.message-ingress-mode`，默认 `WS` 使用 QQ v2 WebSocket 获取消息；配置为 `HOOK` 或 `WEBHOOK` 时关闭 WS，启用 `/bot/message` webhook。
+- 新增 `bot.qq.websocket.*` 配置，覆盖 intents、shard、`/gateway/bot` 选择、重连延迟和握手检查时间；默认 intents 为 `33554432`。
+- 新增 `QqGatewayClient` 和 `QqGatewayDto`，封装 `/gateway` 与 `/gateway/bot`。
+- 新增 `QqWebSocketGatewayService`，处理 Hello、Identify、Heartbeat、Resume、Reconnect、Invalid Session 和 Dispatch 转发；业务事件继续复用 `BotMessageService`。
+- `BotMessageController` 在 WS 模式下不处理 webhook 请求，避免同一机器人同时通过 WS 和 webhook 重复消费事件。
+- 架构、部署、QQ 能力边界和文档契约同步记录 WS 默认入口与 webhook 回退模式。
+
+验证范围：
+
+- `mvn "-Dtest=ConfigurationValidationTest,BotMessageControllerTest,QqOpenApiClientTest,QqGatewayClientTest,QqWebSocketGatewayServiceTest,ProjectDocumentationContractTest" test` 通过，共 34 项测试。
+- `tools/verify-utf8.ps1` 通过，共覆盖 595 个文本文件；`git diff --check` 通过，仅保留 Windows 工作区 CRLF 提示。
+### 2026-08-11 QQ v2 本地分片媒体上传
+
+调整内容：
+
+- `QqGroupMessageClient` 补齐本地文件分片上传闭环：计算文件 `md5`、`sha1`、`md5_10m`，调用 `/upload_prepare`，按返回的预签名 URL 串行 PUT 分片，逐片调用 `/upload_part_finish`，最后通过 `/files` 提交 `upload_id` 获取 `file_info`。
+- `GroupMessageSender` 的模板图片发送支持 `bot.qq.media.image-upload-mode`，默认 `CHUNK` 走 QQ v2 分片上传；显式配置 `MINIO` 时继续兼容旧的 MinIO 公网 URL 上传链路。
+- `application.yml` 增加 `BOT_QQ_IMAGE_UPLOAD_MODE` 环境变量映射，默认值为 `CHUNK`。
+- 架构、部署和 QQ 能力文档补充默认分片上传、MinIO 兼容模式、URL 上传适用范围以及当前暂未实现并发/断点重试的边界。
+
+验证范围：
+
+- `mvn "-Dtest=QqGroupMessageClientTest,GroupMessageSenderTest,ProjectDocumentationContractTest" test` 通过，共 33 项测试。
+- `tools/verify-utf8.ps1` 通过，共覆盖 588 个文本文件；`git diff --check` 通过，仅保留 Windows 工作区 CRLF 提示。
+### 2026-07-28 QQ OpenAPI v2 群能力更新
+
+调整内容：
+
+- QQ OpenAPI 默认域名同步到 v2 文档的 `https://api.bot.qq.com`，同时保留 `TX_BOT_OPENAPI_URL` 和 `TX_BOT_ACCESS_TOKEN_URL` 覆盖能力。
+- `QqGroupMessageClient` 新增群基础信息、机器人群内状态、群消息撤回、富媒体分片预上传和分片完成入口；群消息发送结果改为 `QqGroupMessageSendResultDto`，保留官方返回的消息 `id`、`timestamp` 和 `ext_info.ref_idx`。
+- 群消息发送模型补充 `is_wakeup`；`GroupMessageSender` 统一校验互动召回消息不能与 `msg_id` 或 `event_id` 混用。
+- 接收侧群消息 DTO 补充 `attachments`、`mentions`、`ark_data` 和 `msg_elements`，后续可扩展图片、语音、引用消息和卡片消息业务。
+- 新增 `bot.qq.verify-platform-state-before-active-send` 开关。默认关闭；开启后主动消息前查询 `GET /v2/groups/{group_openid}/bot_state`，仅当 `allow_proactive_msg=true` 时继续发送。
+- `TxFileUploadResultDto` 补充 `raw_url`，兼容官方富媒体分片上传完成后的返回结构。
+- `QQ_CAPABILITY_POLICY.md` 同步记录新官文能力边界、默认域名、内邀状态查询限制和分片上传未完整封装事项。
+
+验证范围：
+
+- `mvn "-Dtest=QqGroupMessageClientTest,GroupMessageSenderTest,QqMessageDtoTest,ConfigurationValidationTest,QqOpenApiClientTest,QqGroupLiveSmokePlanTest,ProjectDocumentationContractTest" test` 通过，共 57 项测试。
+
+### 2026-07-23 QQ webhook 事件推送验签
+
+调整内容：
+
+- `BotMessageController` 改为接收原始 `byte[]` 请求体，并读取 `X-Signature-Ed25519`、`X-Signature-Timestamp`。
+- 除 `op=13` 回调地址验证外，所有 QQ 事件推送在进入 `BotMessageService` 前必须使用 `X-Signature-Timestamp + 原始 body` 完成 Ed25519 验签；失败返回 `401`，不再进入 Action、数据库或 QQ OpenAPI 链路。
+- `CallbackValidAction` 改为复用统一 `QqCallbackSignatureUtil`，`op=13` 继续按官方要求对 `event_ts + plain_token` 签名。
+- 验签逻辑补齐签名 hex 解码、64 字节长度和 Ed25519 签名最高位约束，降低畸形签名进入验证器的概率。
+- `tools/replay-payload.ps1` 支持 `-Timestamp` 与 `-Signature` 参数，用于本地或预发布环境透传 QQ 签名头；无签名 `op=0` 回放会被入口拒绝。
+- 部署指南和架构文档补充反向代理必须原样转发 body 和两个 QQ 签名头，明确本地回放脚本的签名要求。
+
+验证范围：
+
+- `mvn "-Dtest=QqCallbackSignatureUtilTest,BotMessageControllerTest,BotMessageServiceTest" test` 通过，共 7 项测试。
 
 ### 2026-07-16 Docker 镜像与 Java 21 运行基线
 
@@ -1757,3 +1882,409 @@ mvn test
 - `GroupMessageSenderTest`：2 个测试通过。
 - `Jx3ApiHttpCheckDocumentTest`：4 个测试通过。
 - `HtmlToImageUtlTest`：3 个测试通过，覆盖 Vue HTML 模板截图链路。
+
+### 2026-08-12 JX3API 官方 OpenAPI 路径、LV.2 token 与 WS 事件清单同步
+
+目标：
+
+- 根据 `https://www.jx3api.com/openapi` 同步当前 HTTP 路径和 `x-level`。
+- 区分 JX3API 普通 HTTP token、LV.2 HTTP token 和 JX3API WS token。
+- 根据 `https://www.jx3api.com/openapi.socket.json` 记录 WS 推送事件，并为未类型化事件提供安全兜底。
+
+涉及文件：
+
+- `docs/JX3API_HTTP_API_INVENTORY.md`
+- `docs/JX3API_WS_API_INVENTORY.md`
+- `src/main/java/com/grafie/botjava/jx3/config/ApiProperties.java`
+- `src/main/java/com/grafie/botjava/jx3/config/JX3ApiWsAutoConfiguration.java`
+- `src/main/java/com/grafie/botjava/jx3/http/MethodEnum.java`
+- `src/main/java/com/grafie/botjava/jx3/http/util/Jx3RequestUtil.java`
+- `src/main/java/com/grafie/botjava/jx3/ws/action/WsActionHandler.java`
+- `src/main/java/com/grafie/botjava/jx3/ws/data/Jx3WsEventEnum.java`
+- `src/main/java/com/grafie/botjava/jx3/ws/data/GenericWsData.java`
+
+调整内容：
+
+- 官方 HTTP 文档当前解析到 78 个接口；`MethodEnum` 中已接入能力的旧 `/data/...` 路径同步为当前路径。
+- `MethodEnum.getApiLevel()` 按官方 `x-level` 标注现有接口等级，`Jx3RequestUtil` 根据等级选择 token。
+- `jx3api.api.api-v2-token` 专用于 LV.2 HTTP 接口，未配置时回退 `jx3api.api.api-token`。
+- `jx3api.ws.ws-token` 是 JX3API 游戏事件 WebSocket 的独立 token，启用 WS 时和 `ws-url` 一起强制校验。
+- 官方 WS 文档当前解析到 39 个事件；未类型化事件不再返回 null，而是转换为 `GenericWsData` 后继续进入推送服务。
+- JX3API WS 默认数据类扫描包修正为 `com.grafie.botjava.jx3.ws.data`。
+
+待补事项：
+
+- 官方 HTTP 新增接口如 `trade.manufacture`、`trade.wanbaolou`、`school.search`、`skill.calculate`、`event.strategy`、`chat.records`、`card.preset` 和新增骚话类接口，需要后续逐个补 DTO、Action、REGEX、模板/文本返回和 contract。
+- 官方 WS 新增事件如 `1014`、`1015`、`1017`、`1018`、`1111` 至 `1122`、`1201` 当前仅有事件清单和兜底数据，尚未接入群订阅、权限和推送文案。
+### 2026-08-12 群指令冷却剩余时间回复
+
+目标：
+
+- 群指令命中冷却时，不再静默丢弃请求，而是回复剩余 CD 秒数。
+
+涉及文件：
+
+- `src/main/java/com/grafie/botjava/service/GroupCommandExecutionService.java`
+- `src/test/java/com/grafie/botjava/service/GroupCommandExecutionServiceTest.java`
+
+调整内容：
+
+- `GroupCommandExecutionService` 在 `GroupCommandCooldownService.Decision.deny` 时返回 `指令冷却中，请在 X 秒后重试。`。
+- 冷却命中仍记录为 `CommandInvocationStatus.COOLDOWN`，响应类型记录为 `TEXT`。
+- 冷却分支不执行 Action，也不占用新的冷却预约。
+### 2026-08-12 JX3API 可读业务失败返回
+
+目标：
+
+- JX3API 返回“参数错误、未找到、暂无数据”等用户可自行修正的业务失败时，直接把可读原因返回给群消息。
+
+涉及文件：
+
+- `src/main/java/com/grafie/botjava/jx3/http/action/base/Jx3ApiFailureMapper.java`
+- `src/test/java/com/grafie/botjava/jx3/http/action/base/Jx3ApiFailureMapperTest.java`
+
+调整内容：
+
+- `400`、`404` 或包含“没有、木有、未找到、不存在、暂无、为空、换个名字、参数”等提示的 JX3API 失败，会返回脱敏后的上游 `message`，并保留请求编号。
+- 认证失败、权限失败、限流、超时和未知异常继续使用固定安全文案，避免把 token、凭证或内部异常暴露到群聊。
+
+### 2026-08-12 JX3API 原始响应日志
+
+目标：
+
+- JX3API HTTP 调用先接收原始响应字符串并记录，再解析为 `RequestResult` 和具体业务 DTO，避免 DTO 结构不匹配时缺少上游返回结构。
+
+涉及文件：
+
+- `src/main/java/com/grafie/botjava/jx3/http/util/Jx3RequestUtil.java`
+- `src/main/java/com/grafie/botjava/jx3/http/RequestResult.java`
+
+调整内容：
+
+- `doPostRequest` 改为 `bodyToMono(String.class)`，先打印脱敏且最长 4000 字符的 `responseBody`，再解析成 `RequestResult`。
+- `RequestResult` 增加 `rawResponseBody`，只用于本次日志排障，并通过 `@JsonIgnore` 避免进入缓存或序列化输出。
+- 原始响应 JSON 解析失败、列表 DTO 转换失败、对象 DTO 转换失败都会在同一条错误日志里打印 `method/path`、脱敏原始响应和完整堆栈。
+### 2026-08-12 物价查询物品别名解析预留
+
+目标：
+
+- 物价类查询支持后续通过配置别名匹配到 JX3API 原始物品名。
+
+涉及文件：
+
+- `src/main/java/com/grafie/botjava/jx3/http/action/base/Jx3BaseAction.java`
+- `src/main/java/com/grafie/botjava/jx3/http/action/TradeRecordAction.java`
+- `src/main/java/com/grafie/botjava/jx3/http/action/TradeRecordsAction.java`
+
+调整内容：
+
+- 新增 `resolveTradeItemNameAlias(itemName)` 作为物价查询别名解析入口。
+- 当前未接入配置，直接返回传入物品名；后续可在该入口接数据库或群配置别名。
+- `物品价格` 和 `黑市物价` 的请求参数与图片模板展示名都先经过该入口。
+
+### 2026-08-12 物品价格返回结构修正
+
+目标：
+
+- 适配 `trade.item.records` 当前 `data.list` 一维成交记录数组，避免成功响应在 DTO 转换阶段失败。
+
+涉及文件：
+
+- `src/main/java/com/grafie/botjava/jx3/http/data/trade/record/TradeRecordData.java`
+- `src/test/java/com/grafie/botjava/jx3/http/Jx3ApiHttpContractTest.java`
+- `docs/testing/jx3api-http-check.json`
+
+调整内容：
+
+- `TradeRecordData.data/list` 从 `List<List<SaleData>>` 调整为 `List<SaleData>`。
+- 黑市物价 `trade.records` 继续使用 `OfficialQueryData.TradeRecords.list` 的二维结构，两类接口分开建模。
+- Vue 模板 `物品价格.html` 已通过扁平化逻辑兼容一维和二维记录数组。
+### 2026-08-12 QQ WebSocket Gateway 限流退避
+
+目标：
+
+- 避免 WebSocket 启动或重连时频繁调用 QQ `/gateway/bot`，触发业务码 `100017` 的接口频率限制。
+
+涉及文件：
+
+- `src/main/java/com/grafie/botjava/qq/QqOpenApiErrorMapper.java`
+- `src/main/java/com/grafie/botjava/service/QqGatewayClient.java`
+- `src/main/java/com/grafie/botjava/service/QqWebSocketGatewayService.java`
+- `src/test/java/com/grafie/botjava/qq/QqOpenApiErrorMapperTest.java`
+- `src/test/java/com/grafie/botjava/service/QqGatewayClientTest.java`
+
+调整内容：
+
+- QQ OpenAPI HTTP 400 且响应 `code=100017` 时归类为 `RATE_LIMIT`，并标记为可重试错误。
+- `QqGatewayClient` 对 `/gateway` 和 `/gateway/bot` 响应做 10 分钟本地缓存，缓存有效期内不重复请求网关地址。
+- WebSocket 连接前获取 gateway 失败且分类为限流时，重连退避固定为 60 秒，避免短周期重连继续打满 QQ 限流。
+
+### 2026-08-12 外观名称别名配置
+
+目标：
+
+- 支持群内维护物价查询使用的外观名称别名，让用户可用常用简称查询 JX3API 原始物品名。
+
+涉及文件：
+
+- `src/main/java/com/grafie/botjava/entity/AppearanceNameAlias.java`
+- `src/main/java/com/grafie/botjava/mapper/AppearanceNameAliasMapper.java`
+- `src/main/java/com/grafie/botjava/service/AppearanceNameAliasService.java`
+- `src/main/java/com/grafie/botjava/service/AppearanceNamePermissionConfiguration.java`
+- `src/main/java/com/grafie/botjava/jx3/http/action/AppearanceNameAliasAction.java`
+- `src/main/java/com/grafie/botjava/jx3/http/action/TradeRecordAction.java`
+- `src/main/java/com/grafie/botjava/jx3/http/action/TradeRecordsAction.java`
+- `src/main/java/com/grafie/botjava/jx3/http/util/REGEX.java`
+- `docs/database/appearance-name-alias.sql`
+
+调整内容：
+
+- 新增 `外观名称追加 原始名 别名1 别名2`、`外观名称列表`、`外观名称查询 名字`、`外观名称待审核列表`、`外观名称审核 名字 [别名]`、`外观名称删除 名字 [别名]` 六类指令，支持 `/指令` 前缀；追加指令中别名按空格、逗号、顿号和分号拆分。
+- 数据按 `group_open_id` 隔离；同一个群内 `normalized_alias_name` 唯一，不同群可以维护不同映射。
+- 名称规范化会忽略空白、`·`、点号、横线、括号等分隔符，因此 `金发因陀罗` 可以匹配 `金发·因陀罗`。
+- `外观名称追加` 对群员公开，但新增别名默认写入 `PENDING`；`外观名称列表`、`外观名称查询`、`物价` 和 `黑市物价` 只读取 `APPROVED` 别名，未审核内容不会被查询到。
+- `外观名称待审核列表`、`外观名称审核 名字 [别名]` 和 `外观名称删除 名字 [别名]` 不使用群主/群管理员权限，当前仅 `bot.qq.admin.master-openids` 配置的 QQ 主号或 `GroupCommandPermissionConfiguration` 数据库授权成员可操作。
+- `物价` 和 `黑市物价` 请求 JX3API 前先调用当前群的已审核别名解析，未命中时保持原始输入。
+- 权限前置预留为 `AppearanceNamePermissionConfiguration`；当前默认实现对新增/列表/查询公开，对待审核/审核/删除先匹配 QQ 主号 openid，再读取 `GroupCommandPermissionConfiguration` 的数据库授权结果，群主和群管理员不会天然获得外观名称审核权限。
+### 2026-08-12 QQ Gateway Client 构造注入修正
+
+目标：
+
+- 修复 Spring 启动时 `QqGatewayClient` 因存在业务构造器和测试构造器而回退查找无参构造器的问题。
+
+涉及文件：
+
+- `src/main/java/com/grafie/botjava/service/QqGatewayClient.java`
+
+调整内容：
+
+- 在 `QqGatewayClient(QqOpenApiClient openApiClient)` 上显式标记 `@Autowired`。
+- 保留包内可见的 `Clock` 测试构造器，用于网关缓存测试。
+- 启动相关测试已覆盖该 bean 构造路径。
+### 2026-08-12 物品价格分组返回与长图模板适配
+
+目标：
+
+- 适配 JX3API `/trade/item/records` 当前按业务分组返回的 `data.list` 结构，修复物价图片无价格记录的问题。
+- 让 JX3API 原始响应日志在不泄露 token/ticket 的前提下完整可追踪，避免长响应被截断后排障困难。
+
+涉及文件：
+
+- `src/main/java/com/grafie/botjava/jx3/http/data/trade/record/TradeRecordData.java`
+- `src/main/java/com/grafie/botjava/jx3/http/data/trade/record/SaleData.java`
+- `src/main/java/com/grafie/botjava/jx3/http/data/official/OfficialQueryData.java`
+- `src/main/java/com/grafie/botjava/jx3/http/action/TradeRecordAction.java`
+- `src/main/java/com/grafie/botjava/jx3/http/action/TradeRecordsAction.java`
+- `src/main/java/com/grafie/botjava/jx3/http/util/Jx3RequestUtil.java`
+- `src/main/java/com/grafie/botjava/util/SensitiveDataUtil.java`
+- `src/main/resources/static/物品价格.html`
+- `src/test/java/com/grafie/botjava/jx3/http/Jx3ApiHttpContractTest.java`
+- `src/test/java/com/grafie/botjava/util/HtmlToImageUtlTest.java`
+
+调整内容：
+
+- `TradeRecordData` 支持新的 `list: [{name, list:[...]}]` 分组结构，保留 `groups` 给模板渲染，同时把有效价格记录扁平化到 `data` 兼容旧处理。
+- `SaleData.index` 和黑市物价 `TradeListing.index` 改为 `String`，兼容 JX3API 返回的十六进制/字符串编号。
+- `TradeRecordData.value` 改为 `String`，兼容旧文档里物品原价可能返回 `"280.00"`，新接口优先读取 `retail`。
+- `物品价格.html` 改为外观预览、分组价格卡片和历史趋势长图布局，优先展示 `公示期`、`在售期`、当前服务器、电信区、双线区、无界区；趋势图优先使用当前服务器分组，没有时回退全部记录。
+- `TradeRecordAction` 和 `TradeRecordsAction` 会把远程预览图转成 `previewImageDataUri` 后再交给 HTML 模板，避免截图浏览器直接访问外部图片导致渲染不稳定。
+- `Jx3RequestUtil` 先接收原始响应字符串并记录；响应过长时按 3000 字符分段打印同一次请求的响应内容，反序列化失败时也带上脱敏后的原始响应和堆栈。
+- `SensitiveDataUtil` 同时兼容自由文本 `token=...`、`ticket:...` 和 JSON `"token":"..."` 的脱敏格式。
+- 新增 `JX3API_TRADE_ITEM_RECORDS_GROUPED_LIST_JSON` 契约测试和 `物品价格-金发因陀罗.png` 渲染预览测试，预览文件输出到 `target/test-output/html-image/物品价格-金发因陀罗.png`。
+
+验证记录：
+
+- 已通过 `mvn -Dtest=HtmlToImageUtlTest#shouldRenderTradeRecordPreviewWithGroupedJx3ApiData test`。
+- 已通过 `mvn -Dtest=SensitiveDataUtilTest,CommandInvocationRecorderTest test`。
+- 当前工作区没有配置 `JX3API_API_TOKEN`、`JX3API_API_V2_TOKEN`、`JX3API_TICKET`、`JX3API_WS_TOKEN` 环境变量，未直接调用真实 JX3API token；本次以用户日志中的真实返回结构和文档索引信息做契约适配，含 ticket 的接口继续跳过。
+- 物品价格接口返回的 `data.view` 是外观预览图地址。图片模板按 `previewImageDataUri -> data.imageDataUri -> data.view` 的顺序取图；服务端优先下载 `data.view` 并转换为 data URI，下载失败时模板仍可直接使用原始 URL。
+### 2026-08-12 JX3API 外观别名自动沉淀
+
+- /trade/item/records 与黑市物价接口成功返回后，读取 data.name 作为正式名称，读取 data.alias 作为别名集合。
+- data.alias 支持按 /、／、空格、逗号、顿号和分号拆分，例如 猴金/金发因陀罗 会保存为两个独立别名。
+- JX3API 返回的数据视为可信来源，自动写入 appearance_name_alias 并标记为 APPROVED，创建者和审核者标记为 JX3API。
+- 外观名称配置使用 __GLOBAL__ 数据库作用域，不再按 QQ 群隔离；任意群查询时都可复用已审核别名。
+- 自动导入不会覆盖已指向其他正式名称的同名别名，冲突项只记录日志，原映射保持不变。人工追加当前通过审核策略直接进入 APPROVED；审核状态、待审核列表、审核指令和删除权限入口仍保留。
+- 物品价格模板的预览图映射为 data.view，页脚品牌文字统一为“小猫饼”。
+### 2026-08-12 外观名称临时免审核
+
+- AppearanceNamePermissionConfiguration 保留 isAppearanceNameReviewPassed 审核策略方法，当前实现固定返回 true。
+- 人工执行“外观名称追加”后直接写入 APPROVED 并立即参与别名查询，不再产生新的待审核记录。
+- 返回文案根据审核策略动态显示“已新增”或“已提交审核”，未来恢复审核时无需修改指令层。
+- 待审核列表、审核指令、PENDING 状态及其管理权限均保留；删除权限没有放宽。
+### 2026-08-12 PostgreSQL + MongoDB 双数据库基础设施
+
+- PostgreSQL/JPA 继续作为关系型权威数据源，MongoDB 作为可选的第二数据库同时运行，不做数据源切换。
+- 增加 bot.mongodb.enabled/uri/database/max-document-bytes 配置；默认关闭，开启时 URI 必填且必须使用 MongoDB 协议。
+- 排除 Spring Boot Mongo 自动配置，改为显式创建 botMongoClient 与 botMongoTemplate，避免未启用时自动连接 localhost。
+- 增加 MongoDocumentStore，提供结构化 JSON object 的原子单文档 upsert、find、exists 和 delete，并校验集合名、文档 ID 与 payload 大小。
+- MongoDB 不接管现有 JPA Repository，也不注册 Mongo 事务管理器；跨 PostgreSQL/MongoDB 写入需要由具体业务通过 outbox、幂等和补偿实现。
+- 部署和开发说明见 docs/MONGODB.md。
+
+### 2026-08-12 Lua 角色状态绑定边界修正
+
+- Lua 维护的 MongoDB `roles` 类平铺集合按外部既有结构接入；Java 不改变索引、不新增或删除角色文档，只更新 PostgreSQL 白名单中明确标记为可写的顶层字段。
+- QQ 用户绑定只接受“区服 + 角色名”，不要求账号、MongoDB `_id`、`全局ID` 等用户无法获知的内部标识。
+- PostgreSQL 保存 `member_openid + 区服 + 角色名` 关系；后续状态查询按该业务键读取 MongoDB 全部精确匹配记录，不依赖唯一索引。
+- 兼容同一区服、同一角色名命中多条 MongoDB 文档：0 条提示无状态，1 条正常展示，多条按记录分块展示，禁止默认选择第一条。
+- 多结果默认不展示账号、`_id` 和 `全局ID`；读取、渲染与更新设置固定上限，超过上限时明确拒绝并记录脱敏告警。
+
+### 2026-08-12 脚本状态查询与受控字段更新
+
+- `绑定角色`、`添加角色` 调整为“区服 + 角色名必填，门派可选”，旧的带门派格式继续兼容；修改门派仍使用 `修改角色 区服 角色名 门派`。
+- 新增 `脚本状态 [区服 角色名]`，省略参数时使用个人默认角色；只允许查询当前消息 `member_openid` 已绑定的区服角色。
+- 新增 `脚本设置 [区服 角色名] 字段 值`，只允许修改当前成员已绑定角色且管理员标记为可写的字段。
+- 新增 `LuaRoleStatusStore`，按“服务器字段 + 角色名字段”精确读取全部 MongoDB 文档；多条结果全部渲染，更新时按候选 `_id` 全部更新，不使用 `first()`。
+- 新增 PostgreSQL `script_status_field` 表，保存 Mongo 字段、显示名、分组、类型、读写属性和排序；内部标识及凭证字段禁止配置。
+- 主号 C2C 增加 `脚本字段列表/设置/删除`，字段配置和群内脚本更新继续写入 `bot_admin_audit_log`，不记录字段值或消息原文。
+- 新增 Vue 模板 `脚本状态.html`，稳定数据为 `{server, roleName, matchCount, records:[{index, sections:[{name, values:[{name,value}]}]}]}`。
+- QQ 官方唯一身份机制确认：相同 bot 在不同群为同一用户分配不同 `member_openid`，C2C 使用独立 `user_openid`；当前个人绑定按群隔离，不能自动跨群或私聊关联。`author.member_role=owner` 仅代表群主，不代表机器人拥有者。
+### 2026-08-12 群主动推送任务与 WS 事件去重
+
+- 主动推送明确拆分为 `WS_EVENT` 实时事件和 `SCHEDULED` 自定义定时任务，删除原 `WsDataPushService` 的星期过滤；所有 JX3API WS 事件收到后立即进入统一推送链路。
+- 新增 `PushTaskRegistry`，为 39 个 JX3API WS 事件注册独立任务，并预留 `MONGO_DAILY_PROGRESS`（Mongo日常进度）定时推送任务。
+- 新增群管理员指令 `推送列表`、`开启推送 任务名`、`关闭推送 任务名`；订阅按群和任务持久化，不存在记录时默认关闭，修改写入 `GROUP_PUSH` 审计日志。
+- 新增 `GroupPushDispatcher` 有界线程池统一出口；WS 收包线程和未来定时任务均不直接调用 QQ，最终继续复用 `GroupMessageSender.sendActive` 的本地总开关、平台授权和共享频控。
+- WS 事件 JSON 递归按字段名排序后计算 SHA-256 指纹，PostgreSQL `push_event_receipt` 使用 `task_code + event_fingerprint` 唯一键原子去重；重复帧、应用重启和多实例同时消费均不会重复推送。默认保留 7 天，定时清理。
+- 新增 `ScheduledGroupPushTask` 扩展点，后续 Mongo 日常任务只负责按群拼装 `BotResponse`，订阅和投递由模板统一处理。
+- Mongo 状态白名单额外保护实际配置的服务器字段和角色名字段，避免用户更新文档定位键。
+- 数据库脚本：`docs/database/group-push-subscription.sql`、`docs/database/push-event-receipt.sql`。
+- 聚焦测试 22 项通过，覆盖任务注册、默认关闭、群隔离、WS 重复事件拦截、投递目标和 Mongo 定位字段保护。
+- 最终完整回归 mvn test 共 582 项通过，失败 0、错误 0；包含 17 项 Playwright HTML/Vue 图片渲染测试。
+
+## 2026-08-13 群日常进度、全局外部限速与 QQ WS 稳定性
+
+- 导入并核验 `D:/Download/roles.js`：384 条角色、13 个区服、317 个不同角色名、6 组重复“服务器 + 角色名”，单组最多 56 条；补充真实字段与时间格式回归样本。
+- 所有外部 HTTP、MinIO、远程图片、富媒体分片和 WS 握手统一限制为每秒最多 2 次。
+- 角色绑定加入群级隔离键；新增每天 10:00 的 `Mongo日常进度` 图片任务，无订阅、无绑定或无 Mongo 记录均不发送。
+- 新增可配置推送字段及数据库授权 `DAILY_PUSH_FIELD_CONFIG`，配置操作写入现有管理员审计日志。
+- 新增 Vue 模板 `日常进度.html`，采用物价页面的白底、青绿与粉色配色，使用动态表格且不显示外观图片。
+- 修复 QQ WebSocket 旧 session 回调干扰新连接导致的 4902 Resume 重连风暴；新增 generation 隔离和重连合并。
+- 数据库脚本：`docs/database/user-info.sql`、`docs/database/group-command-permission-grant.sql`、`docs/database/group-daily-push-field.sql`。
+
+
+### 2026-08-13 最终稳定性与安全加固
+
+- QQ WebSocket 重连增加 connection generation，旧 session 的关闭、传输错误、心跳与握手回调不能影响新连接；重复重连合并为一个任务，停机时作废代际并取消待执行任务，`RESUMED` 作为正常恢复确认。
+- 日常推送字段仅添加/删除需要 PostgreSQL `DAILY_PUSH_FIELD_CONFIG` 授权，字段列表允许公开查看；权限主体在 `member_openid` 缺失时回退到 `author.id`。
+- QQ Hook/Webhook 增加默认 300 秒签名时间窗和 1 MiB 请求体上限，分别由 `BOT_QQ_WEBHOOK_MAX_SIGNATURE_AGE_SECONDS`、`BOT_QQ_WEBHOOK_MAX_BODY_BYTES` 配置。
+- HTML 模板数据改为 Base64 UTF-8 JSON 注入，阻断模板 Chromium 对公网 HTTP/HTTPS 的访问；图片上传完成后清理临时 PNG。
+- 三轮人工安全检查覆盖入站鉴权、权限/群隔离、SQL/MongoDB、外部网络、HTML 渲染、文件与反序列化边界，确认并修复防重放、模板脚本逃逸、未认证请求体资源消耗和临时文件积累问题。
+- Codex Security 标准扫描插件启动时，其自带 Python 运行时因 `_sqlite3` DLL 加载失败而未创建扫描任务；准确阻塞信息记录在 `docs/SECURITY_AUDIT_2026-08-13.md`。
+- 最终 `mvn test`：596 项测试通过，失败 0、错误 0、跳过 0；UTF-8 校验覆盖 709 个文件，`git diff --check` 通过。
+
+
+### 2026-08-13 权限配置 Bean 唯一性修复
+
+- 修复 `DatabaseGroupCommandPermissionConfiguration` 与 `NoopGroupCommandPermissionConfiguration` 同时注册为 Spring Bean 导致 `GroupCommandExecutionService` 启动注入失败。
+- 数据库权限实现是生产环境唯一组件；Noop 保留为隔离测试或非 Spring 场景的手动 fallback，不参与组件扫描。
+- PostgreSQL/JPA 与 MongoDB/MongoTemplate 的双数据库架构保持不变；本问题属于业务策略 Bean 冲突，不引入面向多 JDBC 数据源路由的动态数据源依赖。
+- 新增 Spring classpath 候选扫描回归测试，保证 `GroupCommandPermissionConfiguration` 在生产包中只有一个可注入实现。
+### 2026-08-13 WSL MongoDB 与双数据库实测
+
+- 在本机 Ubuntu WSL2 中部署官方 `mongo:8.0` 容器 `botjava-mongodb`，使用 `botjava-mongodb-data` 持久化卷和 `unless-stopped` 重启策略；端口仅绑定 `127.0.0.1:27017`。
+- 将 `D:/Download/roles.js` 导入 `toy2.roles`，实测 384 条记录、13 个区服、317 个不同角色名；按“服务器 + 角色名”存在 6 组重复键，单组最多 56 条。
+- 新增环境变量门控的 `DualDatabaseLiveSmokeIT`：在同一 Spring 上下文中执行 PostgreSQL `select 1`、MongoDB `ping`、集合数量断言和 `LuaRoleStatusStore` 多结果查询。
+- 修复启用 MongoDB 后 `BotMongoProperties` 被组件扫描和配置属性机制重复注册的问题；配置属性改为由应用入口全局注册一次，MongoClient/MongoTemplate 仍只在 `bot.mongodb.enabled=true` 时创建。
+- 修复 Noop 权限 fallback 被错误注册为生产 Bean、`jx3api.enabled=false` 时 `Jx3RequestUtil` 未随 HTTP 模块关闭的问题。
+- 移除应用入口中与 `@SpringBootApplication` 重复的显式 `@ComponentScan`，恢复 `@DataJpaTest` 切片隔离；三个 Mapper 测试不再自建重复 JPA 启动配置。
+- 最终 JAR 使用本机 PostgreSQL 与 WSL MongoDB 启动成功，Actuator 健康状态为 `UP`；全量 `mvn test` 共 597 项通过，失败 0、错误 0、跳过 0。
+### 2026-08-13 JX3API WebSocket 防重连风暴
+
+- `jx3api.enabled=true` 且 `jx3api.ws.enabled=true` 时继续接入独立的 JX3API 游戏事件 WebSocket，使用 `jx3api.ws.ws-url` 与专用 `jx3api.ws.ws-token`，不与 QQ WS token 混用。
+- 新增 `jx3api.ws.re-connect-delay-seconds` / `JX3API_WS_RECONNECT_DELAY_SECONDS`，默认 30 秒，启动校验禁止配置为小于 30 秒。
+- 移除无效的自调用 `@Async` 和无等待 while 重试，改为单线程定时调度；首次立即连接一次，失败或断线后的重试至少间隔 30 秒。
+- 断线、传输异常、Ping 失败和连接未就绪统一进入同一调度入口；原子标记合并重复回调，同一时间最多存在一个待执行连接任务。
+- 连接成功后重置重试计数；每次建立连接前清理旧连接状态，每次断线清理旧 Ping 线程，应用停机时取消重连和 Ping 任务。
+- 新增聚焦测试，覆盖 29 秒配置拒绝、30 秒调度和连续重连请求合并。
+- 最终全量 `mvn test` 共 599 项通过，失败 0、错误 0、跳过 0。
+- 补齐连接调度、握手开始、连接确认、远端断开、传输异常、Ping 失败和应用主动停止日志；断开日志包含 closeCode、reason 与 nextRetrySeconds，所有日志均不输出 WS token。
+### 2026-08-14 QQ 群消息内容排障日志
+
+- `GroupCommandExecutionService` 在正则匹配前记录收到的群消息内容；未命中任何处理器时，未匹配日志同时携带同一份内容，继续复用外层 QQ WS 创建的 MDC `invocationId`。
+- 消息内容先转为单行，连续空白和控制字符压缩为空格，再通过 `SensitiveDataUtil` 脱敏；日志上限为 1000 个字符，超长内容明确标记原长度。
+- 遵循现有日志隐私约束，不在新增日志中打印群 openid、成员 openid 或消息 id。
+- 新增日志回归测试，覆盖收到消息、未匹配消息、换行压平以及 `token` 字段脱敏。
+- 最终全量 `mvn test` 共 600 项通过，失败 0、错误 0、跳过 0；UTF-8 校验覆盖 711 个文件，`git diff --check` 通过。
+### 2026-08-14 JX3API WebSocket 启停状态可观测性
+
+- 确认本地外置 `config/application.yml` 原先配置为 `jx3api.ws.enabled=false` 且 WS URL 为空，因此 JX3API WS 自动配置没有加载，日志完全静默；日志中已有的连接信息均来自 QQ WS。
+- 新增常驻 `Jx3ApiWebSocketStatusReporter`，应用启动完成后始终输出 JX3API WS 的有效开关状态；关闭时给出具体配置原因，开启时只记录 endpoint 主机、token 是否已配置和重连间隔。
+- 状态摘要禁止输出 WS token、URL 路径及查询参数；原连接调度、握手、连接成功、断开和退避重连日志继续由 WS 连接组件输出。
+- 被 Git 忽略的本地外置配置已启用 JX3API WS，endpoint 设置为 `wss://socket.nicemoe.cn`，重连间隔保持 30 秒；仓库默认仍为安全的关闭状态，部署环境必须显式启用。
+- 新增两项聚焦测试，覆盖关闭原因、开启摘要、endpoint 主机提取以及 token/URL 查询参数不泄露。
+- 最终全量 `mvn test` 共 602 项通过，失败 0、错误 0、跳过 0。
+### 2026-08-14 JX3API WS detail 消息兼容
+
+- 根据真实 `action=2004` 八卦速报帧确认，线上事件正文位于根节点 `detail`，旧解析器只读取 `data`，导致 Jackson 返回空 DTO 后调用 `setAction` 触发 `NullPointerException`。
+- `WsActionHandler` 现在依次兼容 `data` 与 `detail`；正文缺失或转换结果为空时记录 action 并安全忽略，不再影响后续 WS 收包。
+- `WsDataAction2004` 补充线上实际字段 `tags` 与 `tieba`；推送字段映射为“分类”和“贴吧”，继续隐藏外部 URL。
+- 使用线上同结构 payload 增加解析回归测试，验证 action、分类、区服、服务器、贴吧、标题、日期和 SHA-256 去重指纹；另增加缺失正文以及最终 QQ 推送文字测试。
+- 最终全量 `mvn test` 共 605 项通过，失败 0、错误 0、跳过 0。
+
+### 2026-08-14 万宝楼编号搜索
+
+- 接入官方 LV.2 `GET /trade/wanbaolou`；群指令支持 `编号搜索 角色编号` 和 `万宝楼 角色编号`，请求 query 使用 `id`，不传上游内部字段 `zhanghaoId`。
+- `MethodEnum` 增加 HTTP method 元数据，历史接口默认 POST；`Jx3BaseAction` 统一按枚举选择 GET query 或 POST JSON，继续复用 token 选择、每秒 2 次全局限流、缓存、脱敏和分段响应日志。
+- 使用示例编号 `1405435120446099456` 和本地 LV.2 token 实测：POST 会返回成功但字段为空，按官方 OpenAPI 改为 GET 后获得完整账号详情。
+- 新增类型化 `WanbaolouData` 与独立 `WanbaolouAction`；`replyContent` 按 `<br>` 与 `【标签】` 转换为有序明细，未带标签的行并入上一项，模板不使用 `v-html`。
+- 新增 Vue 模板 `万宝楼.html`，展示区服、交易状态、时间、角色编号、角色等级、门派体型、阵营、价格、装分、资历、关注、奇遇和账号收集详情。
+- HTTP 机器契约增加真实脱敏样例，指令覆盖矩阵同步 `Wanbaolou -> DATA_TRADE_WANBAOLOU`；专测覆盖 GET 参数、LV.2、明细解析和 Playwright 截图。
+### 2026-08-14 JX3API 官方 HTTP 全量覆盖
+
+- 重新下载并解析官网 `https://www.jx3api.com/openapi`：当前共有 78 条唯一路径；逐项对比 `MethodEnum` 后补齐 18 条缺失路径，并为先前只有枚举定义的 `/role/achievement` 补上 Action 与群指令。
+- 新增独立 Action 与指令：成就查询、名片预设、角色聊天、奇遇攻略、跨服名剑、武林争霸、捕快荣誉、江湖浪客、决斗挑战、答案之书、分类语录、喝什么、吃什么、渣男语录、配装搜索、急速计算、成本计算和资历分布。
+- `MethodEnum` 支持按接口声明 GET/POST；新增官方扩展接口使用 GET query。`Jx3BaseAction` 仍统一负责 token 等级选择、限流、原始响应日志、反序列化和错误返回。
+- 修复 `REGEX.handleEncounter` 固定参数名单造成新命名组静默丢失的问题；改为从表达式自动发现命名组，已验证 `page`、`camp`、`source`、`category` 和 `subclass` 能完整进入 Action。
+- HTTP 检查文档现有 80 个可执行 contract，覆盖官方 78 条唯一路径、活动日历的两种契约以及旧版搜索区服；元测试改为按唯一路径强制官方清单零遗漏。
+- live smoke runner 增加 GET 结果记录，并独立读取 `JX3API_API_V2_TOKEN`（未配置时回退普通 token）；79 个非语音 contract 可由同一 runner 顺序验收。
+- 使用本地凭证对无需 ticket 的新增接口做低频抽测，请求间隔至少 750ms；需要 ticket 的接口仅完成离线参数和返回契约，保留为待真实环境验收项。
+- 最终全量 `mvn test` 共 646 项通过，失败 0、错误 0、跳过 0；其中 19 项为 HTML/Vue 浏览器渲染测试。
+### 2026-08-14 万宝楼可空反序列化与图片降级
+
+- 根据线上响应修复 `WanbaolouData.updatePrices`：上游实际为价格变更对象数组，不再错误声明为 `List<Integer>`；内部字段全部使用包装类型并允许缺失、`null` 与未知扩展字段。
+- 新增统一 `JacksonConfiguration`，Spring ObjectMapper 与 `ObjectMapperUtil` 同步接受缺字段、未知字段、null creator/primitive、空字符串/空数组和单值数组；序列化默认忽略 null，空 Bean 不再直接失败。
+- 宽松配置只处理“可选值”，不会把对象强行转换成整数等不兼容结构；此类上游 schema 变化仍必须修正 DTO，并保留原始响应和完整异常日志。
+- 修复物品价格模板在预览图内嵌失败后回退访问原始外链的问题；浏览器不再直接请求外部 `view` URL，预览图不可用时显示占位，价格表与走势图继续生成。
+- HTML 资源校验异常现在携带脱敏后的失败图片/样式地址；data URI 只显示媒体类型，不输出完整内容。
+### 2026-08-14 搜索物品改为逐行文本
+
+- `TradeItemSearchAction` 显式声明 `TEXT`，不再生成 `搜索物品.html` 图片响应；请求路径、token、参数匹配、限流和错误映射保持不变。
+- 搜索结果最多展示 8 条，每件物品独占一行，只输出序号、名称和别名；分类、参考值、日期和说明不再进入回复内容。
+- 上游 `view` 图片地址不再下载、转换或发送，避免搜索列表进入 HTML 渲染和 QQ 富媒体上传链路。
+- 同步调整 Action 返回类型、文本内容和图片响应清单测试；原 `搜索物品.html` 暂时保留为可复用历史模板，但指令运行时不再引用。
+- 最终全量 `mvn test` 共 650 项通过，失败 0、错误 0、跳过 0；其中 HTML/Vue 浏览器渲染测试 21 项。
+### 2026-08-14 角色聊天真实列表适配
+
+- 根据线上响应将 `/chat/records` 根 DTO 从通用 `FlexibleOfficialData` 改为专用 `ChatRecordsData`，稳定承接 `total` 和 `list`；列表项支持区服、服务器、角色名、角色编号、全局编号、频道、聊天内容及时间。
+- `ChatRecordsAction` 显式返回 `IMAGE`，保留现有 LV.2 token、GET query、每秒 2 次限流和页码参数；单张图片最多展示当前页前 20 条，标题区同时展示本页数量和官方总数。
+- 新增 Vue 模板 `角色聊天.html`，每行展示角色及区服、频道、聊天内容和北京时间；重复聊天记录按上游顺序保留，不做去重。
+- `roleId` 与 `globalId` 只用于兼容反序列化，不进入稳定视图或 Vue 数据；外层响应时间同样不展示。
+- HTTP 契约样例更新为线上真实字段，并新增真实 JSON 反序列化、GET 参数、图片返回、字段隔离和浏览器渲染测试。
+- 最终全量 `mvn test` 共 653 项通过，失败 0、错误 0、跳过 0；其中 HTML/Vue 浏览器渲染测试 22 项。20 行角色聊天截图尺寸为 `1280×2182`，完整覆盖列表中下部。
+### 2026-08-14 群 WS 推送开关表格与 QQ/JX3API 来源拆分
+
+- `推送列表` 从纯文本改为 `推送列表.html` Vue 表格图片，按来源、分类、内容和本群状态列出任务注册表的全部项目；数据库没有记录时明确显示“未开启”。
+- 推送来源从笼统的 `WS_EVENT` 拆为 `QQ_WS`、`JX3API_WS` 和 `SCHEDULED`。当前注册 QQ 的 4 类群生命周期/主动消息授权事件、JX3API 的全部 39 类实时事件及 Mongo 日常定时任务。
+- 新增 `QqGroupLifecyclePushHandler`：QQ WS 群状态事件只进入事件所属群的投递路径；队列内再次读取 `group_open_id + task_code`，关闭时不占用去重记录、不调用 QQ。
+- JX3API WS 继续通过 `findEnabledGroupOpenIds(task)` 只投递到开启对应任务的群。普通 QQ 群消息保持指令入口语义，不注册为推送任务，避免回显循环。
+- QQ 与 JX3API WS 事件继续共用 SHA-256 持久化去重、有界线程池、主动消息策略和 QQ 发送器。群任务开关之外仍需满足本群主动消息总开关及 QQ 平台授权。
+- 新增任务注册、Action 图片数据、群隔离、QQ WS 开关投递和 44 项长表 Playwright 渲染测试；完整表格输出尺寸为 `1280 × 2380`。
+- 最终全量 `mvn test` 共 659 项通过，失败 0、错误 0、跳过 0；其中 HTML/Vue 浏览器渲染测试 23 项。
+### 2026-08-16 状态检查与 JX3API WS 监控
+
+- 新增独立系统指令 `状态检查`，同时兼容 `/状态检查`；与游戏服务器的 `开服/开服状态` 指令完全分离。
+- 指令归入“群配置”分组，仅群主和群管理员可执行，返回 `/actuator/health`、`/actuator/prometheus` 的应用内可用状态与 JX3API WS 当前连接状态。
+- 新增 `Jx3ApiWebSocketStatus` 作为脱敏状态快照；关闭 JX3API 或 WS 时显示未启用，启用后区分已连接、初始化中和已断开等待重连。
+- 新增 Actuator `jx3ApiWebSocket` 健康项：显式启用但未连接时为 `DOWN`，配置关闭不影响应用整体健康。
+- 新增 Prometheus Gauge `bot_jx3_websocket_connected`，连接为 1，断开或关闭为 0；状态指令、健康端点与指标共用同一状态来源。
+- 状态读取不发起自 HTTP 或公网请求，不返回 token、WS URL、数据库连接或用户标识。
+- 最终全量 `mvn test` 共 665 项通过，失败 0、错误 0、跳过 0；其中 HTML/Vue 浏览器渲染测试 23 项。
+### 2026-08-19 活动日历数组字段适配
+
+- 根据 `/active/calendar` 真实响应修复 `ActiveCurrentData.draw`：上游由字符串变为字符串数组，本地改为 `List<String>`，并继续接受历史单值响应。
+- 上游宠物奇缘字段现为 `lucky`，DTO 同时兼容历史字段 `luck`，统一进入模板的 `luck` 展示列表。
+- 新增 `weekly.conn` 与 `weekly.raid` 类型化 DTO；活动日历图片分别以“公共任务”和“团队秘境”前缀合并展示，同时保留旧 `team` 数据兼容。
+- 活动日历 Vue 模板改用 `draws` 数组，以顿号连接多项美人图内容；空数组继续展示“今日暂无”。
+- HTTP 契约和 Action 测试使用 2026-08-19 真实结构，覆盖 5 项美人图、3 项宠物奇缘、世界首领及 5 项周常任务；Playwright 样例同步使用新字段。
+- 最终全量 `mvn test` 共 666 项通过，失败 0、错误 0、跳过 0；其中 HTML/Vue 浏览器渲染测试 23 项。

@@ -11,37 +11,40 @@
 - 调用 JX3API 或项目内部逻辑获取数据。
 - 根据业务需要返回纯文本消息或基于 HTML/Vue 模板渲染后的图片消息。
 
-当前项目不以频道能力为主要目标，优先围绕群聊 webhook、群消息回复、群富媒体图片发送和 JX3 查询能力演进。
+当前项目不以频道能力为主要目标，优先围绕 QQ v2 WebSocket 群消息入口、可选 webhook、群消息回复、群富媒体图片发送和 JX3 查询能力演进。
 
 ## 2. Feature 与未实现清单
 
 ### 2.1 已具备基础能力
 
-- QQ 群聊 webhook 消息接收。
-- QQ 回调校验。
+- QQ v2 WebSocket 群消息接收，默认作为消息入口。
+- QQ webhook 消息接收和回调验签作为可选兼容入口。
 - `GROUP_AT_MESSAGE_CREATE` 与 `GROUP_MESSAGE_CREATE` 统一进入群消息处理链路。
 - `GROUP_ADD_ROBOT`、`GROUP_DEL_ROBOT`、`GROUP_MSG_RECEIVE` 和 `GROUP_MSG_REJECT` 统一进入类型化群生命周期处理链路。
 - 基于 `REGEX` 的 JX3 指令识别。
 - 基于 `MethodEnum` 的 JX3API HTTP 接口映射。
-- 官方文档 61 个 HTTP 接口的离线反序列化契约测试。
+- 官方 OpenAPI 当前 78 个 HTTP 接口的离线反序列化契约测试。
 - JX3API WebSocket 事件接入基础结构。
 - 文本消息回复。
 - 群聊富媒体图片消息基础链路。
 - HTML/Vue 模板截图能力。
-- MinIO 图片上传能力。
+- MinIO 图片上传能力作为可选兼容链路。
 - 群默认服务器查询和保存基础能力。
 - 业务返回 `BotResponse` 与 QQ 消息发送 `GroupMessageSender` 分层。
-- 当前 `REGEX` 注册的 79 条指令均显式接管业务返回，不再以 `null` 结束已匹配指令。
+- 当前 `REGEX` 注册的 102 条指令均显式接管业务返回，不再以 `null` 结束已匹配指令。
 - `Jx3CommandRegistry` 统一完成指令规范化、正则匹配、处理器定位和启动完整性校验。
 - 指令定义具备展示名称、分类、用途和示例元数据，`帮助`、`菜单`、`查询帮助` 自动生成分组菜单。
 - 支持 `/指令`、直接指令和显式别名，例如 `开服`、`开服状态` 指向同一处理器。
 - 指令定义具备访问级别；当前绑定区服仅允许群主或管理员执行，查询指令默认公开。
-- `QqGroupMessageClient` 统一封装群消息发送与图片上传路径。
+- 群指令权限配置预留 `GroupCommandPermissionConfiguration`，后续可由数据库标记哪些指令属于权限接口，并按群和成员配置授权；默认空实现不接管任何指令，现有权限行为不变。
+- `QqGroupMessageClient` 统一封装群消息发送、URL 富媒体上传和本地文件分片上传路径。
+- `QqGroupMessageClient` 已按 QQ v2 群聊管理导航补齐群基础信息、机器人群内状态、入群申请列表/审批、禁言查询/设置、入群自动审批策略、白名单、执行、删除等底层 OpenAPI 方法；当前仅封装客户端能力，具体群管理业务指令按权限需求另行接入。
+- QQ v2 官方 autogen 服务端 API 已补齐底层客户端覆盖：C2C 消息/流式消息/撤回/富媒体、群消息/群管理/富媒体、URL Link、Interaction ACK、频道和子频道基础管理。高风险能力默认不开放为聊天指令。
 - `PayloadActionRegistry` 统一管理 QQ dispatch 事件处理器，业务代码不使用静态 Spring Bean 查找。
-- 已具备离线 webhook 路由、指令注册、JX3API contract、QQ 消息拼装和 Vue 截图测试。
+- 已具备离线 WebSocket gateway 帧、webhook 路由、指令注册、JX3API contract、QQ 消息拼装和 Vue 截图测试。
 - QQ/JX3 必需配置启动校验、敏感日志字段脱敏和数据库密码环境变量配置。
 - QQ、数据库和阿里语音凭证均使用环境变量引用，应用配置文件不保存明文凭证。
-- 提供部署指南，覆盖 Java 21、Docker 镜像构建、PostgreSQL、Playwright Chromium、MinIO 自有域名、QQ webhook 和发布检查。
+- 提供部署指南，覆盖 Java 21、Docker 镜像构建、PostgreSQL、Playwright Chromium、QQ v2 WebSocket 消息入口、QQ v2 本地分片媒体上传、可选 MinIO 自有域名、可选 QQ webhook 和发布检查。
 - 提供 GitHub Actions CI，在 Ubuntu 22.04 + Java 21 上执行 UTF-8 校验、安装 Chromium 并运行完整 Maven 测试。
 - JX3API 选择性数据库共享缓存，按接口设置 30 秒至 5 分钟 TTL，token 不进入缓存键，实时角色接口不缓存。
 - 提供 UTF-8 群消息 payload 样例与本地 webhook 回放脚本。
@@ -56,14 +59,16 @@
 - 群主动消息要求群管理员本地开关与 QQ 平台授权同时开启；两个状态独立保存，平台拒绝事件不会改写管理员设置。发送通过数据库原子占位实现跨实例的群级独立 60 秒频控，失败按 UUID 回滚本次占位，被动回复不受影响。
 - 群管理员可使用 `群公告 内容` 触发主动消息；Action 仅声明 `DeliveryMode.ACTIVE`，统一执行模板负责发送，并在未授权或频控时通过来源消息返回原因。
 - QQ OpenAPI 非 2xx 响应统一映射为类型化异常，保留 HTTP 状态、官方 code 和 trace id，不记录上游响应原文；401 刷新凭证后重试一次。
+- Spring HTTP/WebSocket 与静态 JSON 工具共用宽松 Jackson 策略：缺字段、`null`、未知字段、空字符串/空数组和单值数组可兼容读取，序列化默认省略 `null`；字段结构发生类型变化时仍通过类型化 DTO 修正，避免静默丢数据。
 - 指令发布阶段支持 `PRODUCTION`、`TEST`、`REVIEW` 三种运行模式，执行策略和帮助菜单共同过滤正式、实验与审核指令。
-- 官方 61 个 JX3API HTTP contract 均使用类型化返回 DTO，`MethodEnum` 不再以裸 `Map.class` 承接官方接口数据。
+- 官方 OpenAPI 当前 78 条唯一路径已全部接入；80 个可执行 HTTP contract（含活动日历的两种契约和旧版搜索区服）均使用类型化根 DTO，`MethodEnum` 不再以裸 `Map.class` 承接接口数据。
 - JX3API 查询统一处理空数据、限流、认证失效、超时和未知异常，并向用户返回可追踪的请求编号。
 - JX3API 外部调用日志统一记录请求编号、指令、接口路径和耗时，敏感上游错误不直接返回给用户。
 - 群指令 `invocation_id` 作为同步执行链路的统一追踪编号，贯穿 JX3API 用户错误提示、业务失败日志和 QQ OpenAPI 日志，并在请求结束后清理线程上下文。
 - Micrometer 统一采集群指令、JX3API 查询和 QQ OpenAPI 操作耗时，Prometheus 端点仅默认监听本机管理端口，指标不包含群、成员或消息内容。
 - `bot.jx3.cache.requests` 按固定接口路径记录数据库共享缓存的 hit/miss，可直接计算真实缓存命中率，非缓存接口不进入分母。
 - QQ 当前机器人身份使用官方 `GET /users/@me` 类型化资源客户端；可选 Actuator 健康指标通过该接口检查鉴权与连通性，默认关闭且不暴露机器人标识或凭证。
+- QQ 私聊 `C2C_MESSAGE_CREATE` 已接入主号配置管理入口；只有 `bot.qq.admin.master-openids` 配置的 QQ 主号可以执行 `配置列表/查看/设置/删除/日志`，配置值保存在 `bot_runtime_config`，配置与审核操作写入 `bot_admin_audit_log`。
 - QQ 消息入口、发送方式、返回类型、指令权限、项目频控和审核发布边界统一记录在 `QQ_CAPABILITY_POLICY.md`。
 - `INTERACTION_CREATE` 已接入独立 Action；稳定外层字段使用 Java Bean，类型相关的 `resolved` 保留 JSON，并通过 `QqInteractionHandler` 扩展按钮、菜单和表单业务。
 - `菜单` 已使用 Markdown + 自定义 Keyboard 返回四个帮助分类；点击后由只读帮助 handler 按 `event_id` 返回当前群可用指令，不执行任意回调文本。
@@ -75,14 +80,15 @@
 - 阵营拍卖、的卢记录、骗子查询、未做奇遇、名剑排行、名剑统计、角色信息、角色百战、心法阵眼和技能详情已接入会员群指令。
 - 技改、小药、扶摇、近期奇遇、奇遇汇总、师徒、本服榜单、掉落统计、角色名片和所有名片已接入统一查询链路。
 - 随机/缓存名片、资历排行、阵营与诛恶事件、关隘、赤兔、马场、试炼、贴吧/黑市物价、物品搜索、帮战、副本解密、统战、八卦和舔狗日记已接入扩展查询链路。
-- 官方 61 个 HTTP contract 均已注册为群指令；阿里语音使用独立凭证配置和 QQ 群语音上传链路，默认关闭。
+- 万宝楼编号搜索已接入官方 `GET /trade/wanbaolou` LV.2 接口；请求 query 只传角色编号 `id`，返回的概要字段和 `replyContent` 明细由独立 Action 转换为 `万宝楼.html` 图片。
+- 现有官方 HTTP contract 均已注册为群指令；阿里语音使用独立凭证配置和 QQ 群语音上传链路，默认关闭。
 
 ### 2.2 JX3 查询能力待完善
 
-- 当前文档中的 61 个 JX3API HTTP contract 已全部注册为群指令，并由覆盖矩阵做双向校验；官方新增接口时必须同步补充 contract、`MethodEnum`、`REGEX` 和返回处理。
-- 根据接口后续字段变化继续细化嵌套 DTO；当前 61 个官方 HTTP contract 已全部移除裸 `Map.class` 返回。
+- 当前官方 OpenAPI 的 78 条唯一路径均已实现 `MethodEnum`、独立 Action、`REGEX` 和可执行 contract；覆盖矩阵做双向校验，官方新增接口时必须同步更新这四层。
+- 根据接口后续字段变化继续细化嵌套 DTO；当前 80 个可执行 HTTP contract 已全部移除裸 `Map.class` 根返回。
 - 为每个查询明确返回类型：文本或图片。
-- 继续为其余高信息密度查询补齐 Vue 模板；活动日历、活动月历、行侠事件、科举答题、扶摇预测、家园鲜花、搜索区服、角色名片、所有名片、随机名片、缓存名片、新闻资讯、维护公告、骗子查询、搜索物品、角色信息、角色百战、角色奇遇、未做奇遇、近期奇遇、物品价格、黑市物价、贴吧物价、金币价格、角色装备、团队招募、师徒系统、奇遇统计/汇总、名剑排行/统计/战绩、本服榜单、掉落统计、资历排行、试炼排行、帮战记录、阵营拍卖、阵营沙盘、阵营事件、诛恶事件、百战首领、心法阵眼、技能详情、技改记录、小药推荐、家园装饰、器物图谱、关隘首领、本日赤兔、本周赤兔、马场刷新、的卢记录、烟花记录、奇穴详情、副本进度、副本解密和统战歪歪已接入图片返回；当前图片响应清单共 58 条。
+- 继续为其余高信息密度查询补齐 Vue 模板；活动日历、活动月历、行侠事件、科举答题、扶摇预测、家园鲜花、搜索区服、角色名片、所有名片、随机名片、缓存名片、新闻资讯、维护公告、骗子查询、角色聊天、角色信息、角色百战、角色奇遇、未做奇遇、近期奇遇、物品价格、黑市物价、贴吧物价、金币价格、角色装备、团队招募、师徒系统、奇遇统计/汇总、名剑排行/统计/战绩、本服榜单、掉落统计、资历排行、试炼排行、帮战记录、阵营拍卖、阵营沙盘、阵营事件、诛恶事件、百战首领、心法阵眼、技能详情、技改记录、小药推荐、家园装饰、器物图谱、关隘首领、本日赤兔、本周赤兔、马场刷新、的卢记录、烟花记录、奇穴详情、副本进度、副本解密和统战歪歪已接入图片返回；当前图片响应清单共 60 条。
 - 为“角色装备”和“副本进度”寻找语义等价的官方替代能力；替代明确前继续使用旧接口并在覆盖矩阵中保持 `LEGACY` 标记。
 - 使用真实阿里云凭证和 QQ 正式环境完成语音指令联调；当前离线测试已覆盖参数、音频 URL、`file_type=3` 上传和 media 消息拼装。
 - `水墨圈圈` 与 `吃瓜` 目前只有 `EXPERIMENTAL` 指令入口，分别缺少已确认的专用图片模板/数据源和语义明确的查询接口；两者不会在 `PRODUCTION` 模式的帮助菜单或执行链路中开放，补完前不得拿“角色奇遇”或“八卦帖子”等相近接口冒充实现。
@@ -96,7 +102,7 @@
 
 待实现方向：
 
-- `QqOpenApiClient` 已统一 QQ token 缓存、认证重试、错误映射以及 GET/POST/PUT/DELETE 传输；`QqGroupMessageClient` 维护群消息与群文件资源，`QqBotIdentityClient` 维护官方 `/users/@me` 身份资源，后续按实际业务继续增加类型化客户端。
+- `QqOpenApiClient` 已统一 QQ token 缓存、剩余 60 秒使用前刷新、认证重试、错误映射以及 GET/POST/PUT/PATCH/DELETE 传输；`QqGroupMessageClient` 维护群消息、群文件、群基础信息、群内机器人状态、入群申请、成员禁言、入群自动审批策略、消息撤回与富媒体分片上传入口，`QqUserMessageClient` 维护 C2C 消息、流式消息、撤回与单聊富媒体入口，`QqGuildClient` 维护频道/子频道基础接口，`QqInteractionClient` 维护 Interaction ACK，`QqUrlLinkClient` 维护分享链接生成，`QqBotIdentityClient` 维护官方 `/users/@me` 身份资源。
 - 继续增加 Ark 和其他 Markdown/Keyboard 业务并完成平台联调；当前 `菜单` 已形成首个 Markdown + Keyboard 业务闭环。
 - Embed 保留类型化模型供频道等场景扩展；QQ 群聊当前不支持，群发送器会明确拒绝。
 - `群公告 内容` 已形成首个群主动消息业务触发；后续事件订阅等业务继续复用统一发送封装、本地开关、QQ 平台授权和独立频控。
@@ -110,6 +116,7 @@
 ### 2.4 机器人指令系统待完善
 
 - 为统一指令注册表继续补充更细粒度权限元数据；当前已具备公开/群管理权限、发布阶段和群单项功能开关。
+- 为权限接口补充数据库实现和私聊/群管理配置指令；当前只预留 `GroupCommandPermissionConfiguration` 接口，尚未建立权限表和配置入口。
 - 根据运行情况调整各指令冷却覆盖值；当前支持按 `REGEX` 枚举名单独配置。
 - 继续扩展群维度配置，例如事件订阅；默认服务器、查询总开关、实验开关和单项指令开关已具备。
 - 继续按实际查询需要扩展用户维度偏好；当前已支持默认门派、多个常用角色、默认角色切换和单个/全部解绑。
@@ -120,7 +127,7 @@
 - 继续扩展现有群配置表；已保存群 openid、默认服务器、查询总开关、实验功能开关、主动消息本地开关、QQ 平台授权状态和共享频控占位。
 - 单项指令覆盖值保存在 `group_command_setting`，未配置时按开启处理，系统指令始终忽略单项覆盖。
 - 继续扩展用户配置；当前 `user_info` 按 `member_openid` 保存默认角色指针和默认门派，`user_role_binding` 保存该账号的常用角色集合。
-- WebSocket 订阅配置表属于未来 WS 专项，不纳入当前 HTTP 群指令完成口径；启动该专项时再设计群订阅事件表。
+- 群主动推送订阅已按 `group_open_id + task_code` 持久化；不存在记录时默认关闭。当前支持 JX3API WS 实时事件任务，Mongo 日常进度作为自定义定时任务扩展点预留。
 - 为调用记录设计外部归档介质；当前已具备可配置保留周期、每日定时清理和按群聚合统计。
 - 根据缓存命中率、数据库负载和实际吞吐评估是否将现有 PostgreSQL 共享缓存替换为 Redis。
 
@@ -144,8 +151,9 @@
 
 职责：
 
-- `BotMessageController` 接收 `/bot/message` 的 webhook 请求。
-- `BotMessageService` 根据 `op` 区分回调校验和 dispatch 消息。
+- `QqWebSocketGatewayService` 默认连接 QQ v2 WebSocket gateway，完成 Hello、Identify、Heartbeat、Resume、Reconnect 和 dispatch 转发；Identify/Resume 每次通过统一 `QqOpenApiClient` 获取 Authorization，复用剩余 60 秒使用前刷新逻辑。
+- `BotMessageController` 仅在 `bot.qq.message-ingress-mode=HOOK` 或 `WEBHOOK` 时接收 `/bot/message`；该模式保留原始 `byte[]` 请求体，除 `op=13` 回调地址验证外，所有事件推送必须先通过 QQ `X-Signature-Ed25519` 与 `X-Signature-Timestamp` 验签。
+- `BotMessageService` 只处理已经通过 WS 网关或 webhook 入口校验的 payload，并根据 `op` 区分回调校验和 dispatch 消息。
 - `PayloadTEnum` 根据 `t` 字段把事件路由到对应 action。
 - `PayloadActionRegistry` 在启动时验证每个 dispatch 事件都存在处理器。
 - 当前 `GROUP_AT_MESSAGE_CREATE` 和 `GROUP_MESSAGE_CREATE` 统一进入 `GroupAtMessageAction`。
@@ -154,6 +162,8 @@
 设计约束：
 
 - 群 at 消息和普通群消息需要兼容为同一套处理链路。
+- webhook 事件推送验签必须使用 `X-Signature-Timestamp + 原始 body`，不能对反序列化后的 `Payload` 重新序列化后再验签。
+- webhook 签名校验失败必须在 Controller 层返回 `401` 并阻断 Action、数据库和 QQ OpenAPI 调用；`op=13` 仅用于开放平台地址验证，继续返回 `plain_token/signature`。
 - 未识别事件类型应记录日志并安全返回。
 - 临时审批用写死返回属于过渡代码，不进入长期设计。
 
@@ -168,6 +178,7 @@
 - `jx3/http/command/CommandArguments.java`
 - `jx3/http/util/REGEX.java`
 - `service/GroupCommandPolicy.java`
+- `service/GroupCommandPermissionConfiguration.java`
 - `service/GroupCommandExecutionService.java`
 - `service/GroupCommandCooldownService.java`
 - `service/CommandInvocationRecorder.java`
@@ -182,11 +193,19 @@
 - 使用 `REGEX.matchEnum(content)` 识别具体 JX3 指令并一次性提取参数为只读 `CommandArguments`。
 - `CommandArguments` 兼容现有 `server/server1/value/value1/roleName` 命名组，统一读取服务器、角色、关键词和整数参数。
 - 注册表从 Spring Action 集合建立映射，并在启动时验证每条 `REGEX` 都有处理器；源码契约同时反向校验每个具体 `@Jx3Action` 都至少被一条 `REGEX` 引用，避免保留无法由指令到达的 Spring Action Bean。
+- `GroupCommandExecutionService` 先询问 `GroupCommandPermissionConfiguration` 是否接管当前指令权限；未接管时继续使用 `REGEX.CommandAccess` 的公开/群管理规则，已接管时按 `groupOpenId + memberOpenId + REGEX` 的授权结果放行或拒绝。
 - `GroupCommandExecutionService` 在权限和群功能策略通过后补齐个人默认参数，并按群与指令获取冷却执行权。
 - 统一执行对应 `Jx3BaseAction#doRequest(...)`，再将子类返回的 `BotResponse` 交给 `GroupMessageSender`。
 - `GroupMessageSender` 根据返回标识拼装 QQ 消息、补充 `msg_id`，并调用 `/v2/groups/{group_openid}/messages`。
 - 无返回、发送失败或业务异常均由执行模板统一完成冷却收尾和调用审计。
 
+QQ 身份作用域约束：
+
+- 同一个 bot 在不同群中收到同一用户消息时，官方会提供不同的 `member_openid`。
+- C2C 使用 `user_openid`，不能和群 `member_openid` 自动关联。
+- `author.member_role=owner` 表示群主，不表示机器人应用拥有者。
+- 官方文档尚未承诺消息中的 `union_openid` 可作为跨群、跨 C2C 权限主键；当前不使用该字段做权限或绑定关联。
+- 机器人主号通过 `bot.qq.admin.master-openids` 显式配置；若需要主号在群内拥有超级权限，必须另行登记该群场景下的 `member_openid`。
 默认参数优先级：
 
 1. 本次指令显式传入的区服和角色。
@@ -194,7 +213,7 @@
 3. `group_info` 中当前 `group_openid` 的群默认区服。
 4. `jx3api.api.default-server` 全局默认区服。
 
-`绑定 乾坤一掷` 是群管理员指令，只按当前 `group_openid` 修改 `group_info`，作用于整个群，不写入个人账号表。个人指令只按发送者 `member_openid` 操作，不附带 `group_openid`，因此同一个 QQ 账号在不同群中共用个人绑定：`绑定角色 区服 角色名` 添加并设为默认，`添加角色 区服 角色名` 只添加常用角色，`切换角色 区服 角色名` 切换默认角色，`我的角色` 列出全部角色，`解绑角色 区服 角色名` 删除单个角色，无参的 `解绑角色` 清空当前账号的全部角色；`绑定门派 门派名` 与 `解绑门派` 独立维护默认门派。依赖角色或门派的查询使用 `user_info` 中的个人默认值补齐参数，显式参数始终优先。
+`绑定 乾坤一掷` 是群管理员指令，只按当前 `group_openid` 修改 `group_info`，作用于整个群，不写入个人账号表。个人指令只按发送者 `member_openid` 操作，不附带 `group_openid`，由于 QQ 官方为同一用户在不同群分配不同的 `member_openid`，个人绑定按群成员身份隔离，不能跨群或 C2C 自动关联：`绑定角色 区服 角色名` 添加并设为默认，`添加角色 区服 角色名` 只添加常用角色，`切换角色 区服 角色名` 切换默认角色，`我的角色` 列出全部角色，`解绑角色 区服 角色名` 删除单个角色，无参的 `解绑角色` 清空当前账号的全部角色；`绑定门派 门派名` 与 `解绑门派` 独立维护默认门派。依赖角色或门派的查询使用 `user_info` 中的个人默认值补齐参数，显式参数始终优先。
 
 群指令冷却约定：
 
@@ -271,11 +290,12 @@ bot:
 
 - Action 只调用领域服务，不直接新增或修改 `GroupInfo`、`UserInfo` 和 `UserRoleBinding`。
 - 整群配置以 `group_openid` 为作用域，只能通过 `GroupConfigurationService` 读写；不同群的数据互不影响。
-- 个人角色、常用角色和门派以 `member_openid` 为作用域，只能通过 `UserCommandPreferenceService` 写入；同一账号在不同群中共用个人绑定。
+- 个人角色、常用角色和门派以 `member_openid` 为作用域，只能通过 `UserCommandPreferenceService` 写入；同一自然人在不同群会使用不同的 `member_openid`，因此不会自动共享绑定。
 - 群配置条件更新在 Mapper 方法内使用短事务；唯一键竞争失败后可在独立事务中重试，不在 QQ 或 JX3API 网络调用期间持有数据库事务。
 
 开发环境由 Hibernate `ddl-auto=update` 创建或更新表；生产环境关闭自动建表时，先执行 `docs/database/group-info.sql`、`docs/database/user-info.sql`、`docs/database/group-command-setting.sql`、`docs/database/group-command-cooldown.sql`、`docs/database/jx3-api-cache.sql` 和 `docs/database/command-invocation.sql`。
 - `service/GroupCommandPolicy.java`
+- `service/GroupCommandPermissionConfiguration.java`
 
 职责：
 
@@ -323,6 +343,10 @@ public BotResponse doRequest(GroupAtMessageCreateDto dto, String requestRegex, R
 - `service/QqGroupMessageClient.java`
 - `util/RequestUtil.java`
 - `entity/dto/qq/QqBotUserDto.java`
+- `entity/dto/qq/QqGroupInfoDto.java`
+- `entity/dto/qq/QqBotGroupStateDto.java`
+- `entity/dto/qq/QqGroupMessageSendResultDto.java`
+- `entity/dto/qq/QqMediaUploadPrepare*.java`
 - `entity/dto/common/MessageReferenceDto.java`
 
 当前支持：
@@ -331,6 +355,7 @@ public BotResponse doRequest(GroupAtMessageCreateDto dto, String requestRegex, R
 - `msg_type = 2`：Markdown 消息，支持自定义内容、模板参数和 Keyboard。
 - `msg_type = 3`：Ark 模板消息；被动消息是否可用取决于 QQ 平台准入权限。
 - `msg_type = 7`：群聊富媒体图片消息。
+- `is_wakeup`：互动召回消息标识，只能用于不携带 `msg_id` 和 `event_id` 的发送场景。
 
 `BotResponse.DeliveryMode` 声明最外层发送方式：默认 `REPLY` 使用来源消息被动回复，`ACTIVE` 通过群主动消息发送。Action 不直接调用 QQ 客户端。
 
@@ -344,8 +369,9 @@ public BotResponse doRequest(GroupAtMessageCreateDto dto, String requestRegex, R
 
 - 文本消息：设置 `content` 和 `msg_type=0`。
 - 图片消息：生成图片、上传文件、取得 `file_info`，设置 `msg_type=7` 和 `media.file_info`。
+- 发送群聊消息返回 `QqGroupMessageSendResultDto`，保留官方消息 `id`、`timestamp` 和 `ext_info.ref_idx`。
 - `QqOpenApiClient` 统一 token、401 单次认证重试、错误映射和 GET/POST/PUT/DELETE；具体资源客户端负责路径、查询参数、请求体和响应校验。
-- 群资源路径只由 `QqGroupMessageClient` 维护，底层 HTTP 只由 `QqOpenApiClient` 执行；业务 Action 和发送器不拼接 OpenAPI URL。
+- 群资源路径只由 `QqGroupMessageClient` 维护，底层 HTTP 只由 `QqOpenApiClient` 执行；业务 Action 和发送器不拼接 OpenAPI URL。当前路径覆盖 `/v2/groups/{group_openid}/messages`、`/files`、`/info`、`/bot_state`、`/upload_prepare`、`/upload_part_finish` 和撤回消息。
 - `QqBotIdentityClient` 使用官方 `GET /users/@me` 校验当前身份必须包含 id、username 且 `bot=true`；可选 HealthIndicator 只报告认证布尔值或安全错误分类。
 
 发送上下文由 `GroupMessageSender` 统一处理：
@@ -353,6 +379,7 @@ public BotResponse doRequest(GroupAtMessageCreateDto dto, String requestRegex, R
 - `send(sourceMessage, response)`：消息被动回复，自动使用来源消息 `id`，默认 `msg_seq=1`，允许业务返回指定 1 至 5 的序号。
 - `sendEventReply(groupOpenId, eventId, response)`：事件被动回复，只设置 `event_id`。
 - `sendActive(groupOpenId, response)`：群主动消息，不设置 `event_id`、`msg_id` 或 `msg_seq`。
+- `BotResponse.asWakeupMessage()`：声明互动召回消息，发送器设置 `is_wakeup=true`，并拒绝与被动回复字段混用。
 - `BotResponse.referenceSourceMessage()`：请求引用来源消息，由发送器生成 `message_reference`，Action 不直接填写消息 ID。
 - 主动消息和事件回复不能携带消息回复序号或引用来源消息；非法组合在调用 QQ 前直接拒绝。
 - 即使使用过渡 `RAW_MESSAGE`，其中的传输上下文字段也会先被清除，再由发送器按当前模式统一填写。
@@ -393,7 +420,7 @@ public BotResponse doRequest(GroupAtMessageCreateDto dto, String requestRegex, R
 - Vue 负责模板渲染。
 - Java 负责准备数据。
 - Playwright 负责截图。
-- MinIO 负责图片公网访问。
+- QQ v2 富媒体分片上传默认负责本地图片上传；MinIO 自有媒体域名保留为可选兼容链路。
 - QQ 群富媒体接口负责发送。
 
 ### 4.2 当前通用链路
@@ -413,10 +440,16 @@ JX3API 数据
 -> HtmlToImageUtl 注入 window.__BOT_DATA__
 -> Vue 模板渲染
 -> Playwright 截图为 PNG
--> MinIO 上传得到公网 URL
--> QqGroupMessageClient 上传图片得到 file_info
+-> QqGroupMessageClient 默认按 QQ v2 分片上传本地 PNG 得到 file_info
 -> 返回 msg_type=7 的群富媒体消息
 ```
+
+配置项 `bot.qq.media.image-upload-mode` 控制模板图片上传方式：
+
+- `CHUNK`：默认值。本地生成 PNG 后调用 `/upload_prepare`，按返回的 `presigned_url` 顺序 PUT 分片，再逐片调用 `/upload_part_finish`，最后向 `/files` 提交 `upload_id` 换取 `file_info`。
+- `MINIO`：兼容旧链路。先上传 MinIO 或兼容 S3 文件服务，再把公网 HTTPS URL 提交给 `/files` 换取 `file_info`。该模式要求 QQ 能匿名拉取最终 URL。
+
+`IMAGE_URL` 与 `AUDIO_URL` 仍然表示业务已经提供公网 URL，继续走 URL 上传；只有 `BotResponse.image(templateName, data)` 这类本地模板图默认走分片上传。
 
 子类需要明确声明返回类型：
 
@@ -478,7 +511,9 @@ JX3API 的秒级时间戳属于游戏业务时间，统一由 `TimeUtils.timeFor
 
 新闻资讯与维护公告的当前官方列表项为 `{id, catid, type, title, date, url}`，DTO 以 `catid/type` 为主字段，并使用 `@JsonAlias` 兼容旧 `token/class`。两个 Action 共享 `新闻资讯.html`，分别传入 `{title: "新闻资讯", data}` 和 `{title: "维护公告", data}`；稳定列表项仅保留 `{type, title, date}`，内部 `id/catid` 和外部详情 URL 不进入 Vue 数据。
 
-骗子查询把官方 `[{server, tieba, data: [{title, tid, text, time, url}]}]` 扁平化为 `{uid, data: [{server, tieba, title, text, time}]}`，帖子编号和帖子 URL 不进入模板。搜索物品把官方 `{class, subclass, name, alias, wblalias, value, desc, date, view}` 裁剪为 `{name, data: [{category, subclass, name, alias, value, description, date, imageDataUri}]}`，最多展示 8 条；`view` 只允许经 `RemoteImageDataUriLoader` 完成 HTTPS、白名单、地址、大小、类型、签名和像素校验后转换为 data URI，原始 URL 与 `wblalias` 不交给浏览器。
+骗子查询把官方 `[{server, tieba, data: [{title, tid, text, time, url}]}]` 扁平化为 `{uid, data: [{server, tieba, title, text, time}]}`，帖子编号和帖子 URL 不进入模板。搜索物品使用纯文本返回，最多展示 8 条，每条物品独占一行且只输出序号、名称和别名；分类、参考值、日期、说明及 `view` 图片地址均不下载也不返回。
+
+角色聊天使用专用 `ChatRecordsData` 承接官方 `{total, list: [{zone, server, roleName, roleId, globalId, channel, message, time}]}`；Action 转换为 `{server, roleName, page, total, data: [{zone, server, roleName, channel, message, time}]}` 并通过 `角色聊天.html` 生成列表图片，秒/毫秒时间戳统一转换为北京时间，`roleId/globalId` 不进入模板。单张图片最多展示当前页前 20 条，外层总数继续显示官方 `total`。
 
 贴吧物价把官方记录 `{id, zone, server, name, url, context, reply, token, floor, time}` 转换为 `{server, name, data: [{zone, server, name, context, reply, floor, time}]}`，只保留可读区服、物品、帖子内容、回复数、楼层和时间，内部 `id/token` 与外部帖子 URL 不进入 Vue 数据。金币价格把当前官方 `{zone, server, tieba, wanbaolou, dd373, date}` 转换为 `{server, data: [{zone, server, tieba, wanbaolou, dd373, date}]}`；旧响应中的 `uu898/5173/7881/time` 只保留反序列化兼容，不进入稳定图片视图。
 
@@ -535,7 +570,7 @@ String imagePath = HtmlToImageUtl.renderTemplateToImage("物品价格", data);
 
 ### 5.1 背景
 
-`REGEX`、`MethodEnum`、具体 action 之间保留三层映射：
+`REGEX`、`MethodEnum`、具体 action 之间保留三层映射。`MethodEnum.httpMethod` 声明官方 GET/POST，默认 POST；`Jx3BaseAction` 在统一模板中选择请求方式：
 
 - 输入指令通过 `REGEX` 匹配。
 - `REGEX` 绑定 action 和 `MethodEnum`。
@@ -619,10 +654,13 @@ JX3API 返回实体集中在：
 关键配置：
 
 - QQ bot openapi 地址、token 地址、appId、appSecret、1 至 60 秒请求超时，以及默认关闭的远程健康检查开关。
-- JX3API ticket/token/name/defaultServer。
+- `jx3api.enabled`：JX3API 总开关，默认 `true`；关闭时不加载 JX3API HTTP 指令和 JX3API WS 推送。
+- `jx3api.http.enabled`：JX3API HTTP 查询指令开关，默认 `true`；关闭后已知 JX3 指令返回“该功能未开启。”。
+- JX3API ticket、普通 HTTP token、LV.2 HTTP token、WS token、name 和 defaultServer；HTTP `x-level=2` 优先使用 `jx3api.api.api-v2-token`，为空时回退 `jx3api.api.api-token`，JX3API WS 使用独立 `jx3api.ws.ws-token`。
 - DPS 实验指令的 token、服务地址、请求路径和模型名均由 `jx3api.api.dps-*` 配置提供，默认保持现有第三方服务和“旗舰”模型。
-- MinIO endpoint、bucket、access-key、secret-key。
-- WebSocket 开关和连接参数。
+- `bot.qq.media.image-upload-mode`：模板图片上传模式，默认 `CHUNK` 使用 QQ v2 本地分片上传；显式设为 `MINIO` 时才需要 MinIO endpoint、bucket、access-key、secret-key 和公网媒体域名。
+- `bot.qq.message-ingress-mode`：QQ 消息入口模式，默认 `WS`；设置为 `HOOK` 或 `WEBHOOK` 时启用 `/bot/message` webhook。
+- bot.qq.websocket.*：QQ v2 WebSocket intents、shard、gateway/bot 选择、重连延迟和握手检查时间。
 - `bot.command.runtime-mode`：指令运行模式，允许 `PRODUCTION`、`TEST`、`REVIEW`。
 - `bot.command.audit.*`：调用记录保留天数、清理 cron、默认统计天数和最大统计天数。
 - `bot.qq.active-message-min-interval-seconds`：同一群两次主动消息之间的最小秒数，默认 60。
@@ -633,6 +671,10 @@ JX3API 返回实体集中在：
 
 相关代码：
 
+- `service/QqGatewayClient.java`
+- `service/QqWebSocketGatewayService.java`
+- `controller/BotMessageController.java`
+- `service/BotMessageService.java`
 - `jx3/ws/CustomWebSocketHandler.java`
 - `jx3/ws/WebSocketClientInitializer.java`
 - `jx3/ws/action/WsActionHandler.java`
@@ -641,17 +683,35 @@ JX3API 返回实体集中在：
 
 职责：
 
-- 接入 JX3API WebSocket 事件。
-- 根据事件 action 分发到数据模型。
-- 将事件推送到目标群或业务服务。
+- QQ v2 WebSocket 是默认消息入口：启动后通过 `/gateway/bot` 获取连接地址，收到 `op=10` 后发送 `op=2 Identify`，按服务端心跳间隔发送 `op=1 Heartbeat`，业务 `op=0 Dispatch` 复用 `BotMessageService`。
+- `bot.qq.message-ingress-mode=HOOK` 或 `WEBHOOK` 时关闭 WS 入口，改用 `/bot/message` webhook 与 Ed25519 验签。
+- `READY`、`RECONNECT`、`INVALID_SESSION`、`HEARTBEAT_ACK` 等网关控制帧由 `QqWebSocketGatewayService` 内部处理，不进入业务 Action。
+- JX3API WebSocket 仍是游戏事件推送基础结构，和 QQ 消息入口不是同一类能力；仅当 `jx3api.enabled=true` 且 `jx3api.ws.enabled=true` 时启动，启动时强制要求 `jx3api.ws.ws-url` 和 `jx3api.ws.ws-token`。
+- JX3API WS 首次只立即尝试一次；连接未就绪、断线、传输异常或 Ping 失败后的下一次尝试由单线程调度器执行，间隔由 `jx3api.ws.re-connect-delay-seconds` 控制且最小 30 秒。并发触发只保留一个待执行重连任务，连接成功后重置计数，停机时取消重连与 Ping 线程。
 
-当前 HTTP 查询和 WS 事件应保持独立：
+当前 HTTP 查询和事件推送应保持独立：
 
-- HTTP 查询：用户主动输入指令。
-- WS 事件：外部事件推送触发。
+- HTTP 查询：用户主动输入指令，可能从 QQ WS 或 webhook 进入同一套群消息处理链路。
+- QQ WS/webhook：负责接收用户消息和机器人群状态事件。
+- JX3API WS：负责外部游戏事件推送，由 `jx3api.ws.enabled` 显式开启；官方 39 个事件记录在 `docs/JX3API_WS_API_INVENTORY.md`，已有类型化 DTO 的事件按注解解析，未类型化事件由 `GenericWsData` 兜底。
 
-当前 `feature-jx3api` 的完成口径只覆盖 HTTP 群指令、QQ 消息发送、模板截图和相关持久化能力，不扩展 WebSocket 订阅配置表。后续重启 WS 专项时，需要另行补充订阅表、事件授权、推送频控和真实事件验收。
+### 7.1 群主动推送任务
 
+主动推送按来源分成两类：
+
+- `QQ_WS`：QQ WebSocket 收到机器人群生命周期或主动消息授权事件后，只按事件所属群的订阅状态决定是否回推；普通群聊消息不进入推送注册表。
+- `JX3API_WS`：JX3API WebSocket 收到游戏事件后立即生成消息，并投递到所有开启对应任务的群；不再使用星期过滤。
+- `SCHEDULED`：项目自定义定时任务按群生成内容，例如后续 Mongo 日常进度图片。
+
+统一链路为：
+
+1. `PushTaskRegistry` 注册稳定 `task_code`、群指令显示名、来源和分类；QQ 的 4 类群状态事件注册为 `QQ_WS`，所有 `Jx3WsEventEnum` 注册为 `JX3API_WS`。
+2. 群主或群管理员通过 `开启推送 任务名`、`关闭推送 任务名` 和 `推送列表` 管理当前群订阅；不存在订阅记录时默认关闭。列表使用 Vue 表格图片，同时显示 QQ WS、JX3API WS 和定时任务的已开启/未开启状态。
+3. WS 事件 JSON 递归按字段名排序后计算 SHA-256 指纹，`PushEventDeduplicationService` 通过 PostgreSQL 唯一键 `task_code + event_fingerprint` 原子占位；重复事件不会再次进入发送队列，多实例也共享去重结果。
+4. `GroupPushDispatcher` 使用有界线程池并统一调用 `GroupMessageSender.sendActive`；JX3API WS 查询所有已订阅群，QQ WS 则在队列内再次检查事件所属群的订阅，关闭状态不会占用事件去重记录或调用 QQ。群主动消息总开关、QQ 平台授权和既有频控仍继续生效。
+5. 自定义定时任务实现 `ScheduledGroupPushTask`，负责 `buildResponse(groupOpenId)`；调度触发时调用同一个 `GroupPushDispatcher`，无需直接访问订阅表或 QQ 客户端。
+
+当前 `Mongo日常进度` 已注册为 `SCHEDULED` 预留任务，默认关闭且尚未接入实际 cron/数据拼装器。接入后无需迁移既有订阅数据。WS 去重默认保留 7 天并每日清理，语义为 at-most-once：一旦事件指纹占位成功，即使随后个别群发送失败，也不会因上游重复帧再次群发。
 ## 8. 开发约定
 
 ### 8.1 编码
@@ -703,7 +763,7 @@ JX3API 返回实体集中在：
 .\tools\replay-payload.ps1 .\docs\testing\payloads\group-message-create.json http://localhost:8081/bot/message
 ```
 
-脚本使用严格 UTF-8 读取 JSON，并在发送前执行 JSON 结构校验。
+脚本使用严格 UTF-8 读取 JSON，并在发送前执行 JSON 结构校验。`op=0` 事件回放需要提供 `-Timestamp` 和 `-Signature` 参数透传 QQ 签名头；无签名回放只适合验证 JSON 文件本身，不能绕过 webhook 入口验签。
 
 ## 9. 变更历史
 
@@ -713,26 +773,58 @@ JX3API 返回实体集中在：
 
 项目使用四个独立口径描述完成度：
 
-- HTTP 接口覆盖：`MethodEnum` 与官方返回 JSON 是否具备可执行的反序列化契约，当前覆盖 61 个接口。
-- DTO 覆盖：61 个官方 HTTP contract 均使用类型化根 DTO，当前裸 `Map.class` 数量为 0。
-- 群指令覆盖：接口是否已经在 `REGEX` 注册，并有明确的参数解析规则，当前注册 79 条指令（含帮助、群设置、群公告、调用统计和个人绑定指令）；61 个官方 HTTP contract 已全部覆盖，另有 2 个外部查询仍使用旧接口。
-- 展示覆盖：已注册指令是否有经过业务确认的文本文案或 Vue 图片模板。当前 58 条查询已接入图片模板，其余已注册 JX3API 指令使用经过业务裁剪的精简文本返回。classpath 资源路由及模板字段修复已经通过 Playwright 回归和截图抽查。
+- HTTP 接口覆盖：`MethodEnum` 与官方返回 JSON 是否具备可执行的反序列化契约，当前覆盖 80 个可执行 contract，对应官方 OpenAPI 78 条唯一路径。
+- DTO 覆盖：80 个可执行 HTTP contract 均使用类型化根 DTO，当前裸 `Map.class` 数量为 0。
+- 群指令覆盖：接口是否已经在 `REGEX` 注册，并有明确的参数解析规则，当前注册 122 条指令（含帮助、群设置、群公告、调用统计和个人绑定指令）；80 个 HTTP contract 已全部覆盖，另有 2 个外部查询仍使用旧接口。命名分组由正则表达式自动提取，新增参数不再依赖中央硬编码名单。
+- 展示覆盖：已注册指令是否有经过业务确认的文本文案或 Vue 图片模板。当前 60 条查询已接入图片模板，其余已注册 JX3API 指令使用经过业务裁剪的精简文本返回。classpath 资源路由及模板字段修复已经通过 Playwright 回归和截图抽查。
 
 只有四个口径都满足，才能把某个功能标记为完整的用户可用能力。`MethodEnum` 中存在接口定义或 DTO 能反序列化，不代表该接口已经开放为 QQ 群指令。
 
 ### 10.1 外部环境验收门槛
 
-本地测试只能证明仓库内的结构、编排和渲染行为。下列项目必须保留可追踪的真实环境证据后，才能把对应能力标记为“已验收”；JX3API WebSocket 不在当前 HTTP 群指令验收范围内。
+本地测试只能证明仓库内的结构、编排和渲染行为。下列项目必须保留可追踪的真实环境证据后，才能把对应能力标记为“已验收”；QQ v2 WebSocket 入口与 JX3API WebSocket 游戏事件需要分别验收。
 
 | 验收项 | 完成证据 | 当前状态 |
 | --- | --- | --- |
-| JX3API 在线查询 | 使用目标环境 token 对 61 个官方 contract 按免费/会员权限分组执行 smoke test，保存接口路径、HTTP 结果、官方 code 和脱敏后的 invocation id；不得保存 token 或完整用户数据 | 离线 contract、参数和返回测试完成；60 个非语音接口的显式 live runner 已具备，阿里语音独立验收；当前环境无凭证，真实 smoke test 待执行 |
-| QQ webhook 与群消息 | 正式或沙箱机器人分别收到 `GROUP_MESSAGE_CREATE`、`GROUP_AT_MESSAGE_CREATE`，完成普通成员查询、管理员绑定区服及权限拒绝，并保存平台 trace id | 离线路由和权限测试完成；无副作用的 `/users/@me` 身份 live runner 已具备；当前环境无凭证，平台验收待执行 |
+| JX3API 在线查询 | 使用目标环境 token 对 80 个可执行 contract 按免费/会员权限分组执行 smoke test，保存接口路径、HTTP 结果、官方 code 和脱敏后的 invocation id；不得保存 token 或完整用户数据 | 离线 contract、参数和返回测试完成；79 个非语音 contract 的显式 live runner 已具备并区分普通/LV.2 token，阿里语音独立验收；本轮仅对无需 ticket 的新增接口做了低频实测，需要 ticket 的接口仍待完整环境验收，完整真实 smoke test 待执行 |
+| QQ WS/webhook 与群消息 | 正式或沙箱机器人通过默认 WS 或可选 webhook 分别收到 `GROUP_MESSAGE_CREATE`、`GROUP_AT_MESSAGE_CREATE`，完成普通成员查询、管理员绑定区服及权限拒绝，并保存平台 trace id | WS gateway 帧、webhook 路由和权限测试完成；无副作用的 `/users/@me` 身份 live runner 已具备；当前环境无凭证，平台验收待执行 |
 | QQ 被动与主动发送 | 真实验证 `msg_id` 回复、`event_id` 回复、消息引用、图片、Markdown + Keyboard、群公告主动消息及平台限流/拒绝反馈 | 离线结构与互斥规则完成；单模式、强确认的真实群发送 runner 已具备；当前环境无凭证和测试群参数，平台验收待执行 |
-| 自有媒体域名 | 生成 PNG、上传目标 MinIO/S3、通过自有 HTTPS 域名匿名读取，并由 QQ 成功拉取和发送 | 存储 endpoint 与公网 `minio.public-url` 已分离；Vue PNG 生成、唯一对象上传、HTTPS 回读和 PNG 校验 runner 已具备；当前环境无凭证和媒体域名，真实回读与 QQ `IMAGE` 拉取待执行 |
+| QQ 本地分片媒体上传 | 生成 PNG 后通过 QQ v2 `upload_prepare`、预签名 URL PUT、`upload_part_finish` 与 `/files` 合并取得 `file_info` 并发送 | 本地分片流程已有离线单元测试；真实 QQ 平台上传与发送待执行。MinIO/S3 自有媒体域名保留为 `MINIO` 模式和 URL 上传验收入口 |
 | 阿里语音 | 使用正式凭证生成音频，经 QQ `file_type=3` 上传并发送群语音，日志确认凭证与音频 URL 未泄露 | 默认关闭，离线链路完成；语音生成 live runner 与 QQ 群消息 `AUDIO` live smoke 入口已具备，正式凭证联调待执行 |
 | PostgreSQL 多实例行为 | 两个应用实例共享群绑定、个人绑定、指令冷却、主动消息频控、JX3 缓存和调用审计，验证竞争与租约恢复 | Mapper/服务并发语义测试完成；仅允许空的 `botjava_smoke_*` 专用 schema、带强确认的双上下文 live runner 已具备；当前环境无目标数据库凭证，真实验收待执行 |
 | 可观测性 | 目标 Prometheus 采集 `bot_*` 指标，集中日志平台可按 `invocation_id` 检索且不出现敏感字段 | 本地指标、MDC、Prometheus scrape 契约与目标环境 Prometheus live runner 完成；日志平台接入待执行 |
 | GitHub Actions | 目标仓库 workflow 在 Ubuntu 22.04 + Java 21 上成功完成 UTF-8、变更空白、Chromium 和完整 Maven 测试，记录 run URL 与 commit SHA | workflow 已编写并完成本地等价命令验证；远端首次运行待执行 |
 
 外部验收记录应按 `docs/testing/external-acceptance-record-template.md` 脱敏整理后追加到变更历史，至少包含环境、日期、版本或 commit、结果和脱敏证据位置。不得为了让清单显示完成而在仓库中写入真实密钥、openid、消息正文或上游完整响应。
+### PostgreSQL + MongoDB 双数据库边界
+
+PostgreSQL/JPA 始终保留为关系型权威数据源。设置 bot.mongodb.enabled=true 后，应用额外创建独立的 botMongoClient 和 botMongoTemplate，两套数据库同时运行。
+
+MongoDB 配置与通用存储组件：
+
+- config/BotMongoProperties.java
+- config/BotMongoConfiguration.java
+- service/MongoDocumentStore.java
+
+MongoDB 默认关闭，不扫描或接管现有 JPA Mapper，也不注册 Mongo 事务管理器。具体业务应固定集合名并封装 MongoDocumentStore；跨数据库一致性由具体业务通过 outbox、幂等和补偿处理。详细说明见 docs/MONGODB.md。
+Lua 脚本维护的平铺角色状态集合是例外：Java 使用专用 `LuaRoleStatusStore`，不套用 `MongoDocumentStore` 信封结构，不创建或修改索引，也不增删角色文档。QQ 用户只通过“区服 + 角色名”建立当前群 `member_openid` 的 PostgreSQL 绑定；查询读取全部同名记录并分块渲染，受控更新只允许 PostgreSQL 白名单中标记为可写的顶层字段。多条匹配更新时先读取受上限保护的候选，再按候选现有 `_id` 全部更新；`_id`、账号、`全局ID` 和字段值不进入 QQ 或审计日志。详细命令与配置见 `docs/MONGODB.md`。
+
+## 21. 群日常进度与外部限速
+
+- 所有外部请求入口共用 `OutboundHttpRateLimiter`，生产默认最多 2 次/秒；离线测试通过 Surefire 关闭真实等待并单独验证限速时间线。
+- `user_role_binding` 增加 `group_open_id`，定时任务可以按群反查角色，成员在不同群的绑定不会串用。
+- `MongoDailyProgressPushTask` 实现 `ScheduledGroupPushTask`，默认每天 10:00 由 `ScheduledGroupPushRunner` 进入统一订阅、主动消息策略和 QQ 发送链路。
+- `GroupDailyPushFieldService` 提供群维度动态字段，默认读取真实 Mongo 平铺字段；`MongoDisplayValueFormatter` 负责 Unix 秒、毫秒、BSON Date 与 Lua 文本时间转换。
+- `DatabaseGroupCommandPermissionConfiguration` 已接管日常字段配置指令，授权来源是 PostgreSQL `group_command_permission_grant`，与群主/管理员身份无关。
+- QQ WebSocket 每次连接带单调递增 generation，并只允许当前 generation 触发心跳、dispatch、关闭和重连；重复重连请求合并为一个计划任务。
+## 22. 运行状态与 WS 监控
+
+`Jx3ApiWebSocketStatus` 是 JX3API WS 运行状态的单一读取入口。它综合 `jx3api.enabled`、`jx3api.ws.enabled` 和 `WebSocketClientInitializer.getConnectStatus()`，只返回启用、连接和脱敏描述，不暴露连接凭证或地址。
+
+同一状态快照被三个出口复用：
+
+- `Jx3ApiWebSocketHealthIndicator` 将已启用但未连接映射为 Actuator `DOWN`，配置关闭映射为 `UP`。
+- `Jx3ApiWebSocketMetrics` 注册 `bot.jx3.websocket.connected` Gauge，连接时为 1，其余状态为 0。
+- `SystemStatusAction` 通过 `SystemStatusService` 输出 `/actuator/health`、`/actuator/prometheus` 可用状态及 WS 连接状态；命令为 `状态检查`，仅群主和群管理员可执行。
+
+群内状态指令用于人工排障，Actuator 与 Prometheus 用于外部持续监控。当前连接状态依据 Spring `WebSocketConnectionManager`，断线、传输错误和 Ping 发送失败继续进入至少 30 秒的统一重连流程。

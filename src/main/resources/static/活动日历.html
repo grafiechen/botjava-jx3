@@ -46,7 +46,7 @@
                 <div class="task"><span>阵营任务</span><strong>{{ data.orecar || '今日暂无' }}</strong></div>
                 <div class="task"><span>宗门任务</span><strong>{{ data.school || '今日暂无' }}</strong></div>
                 <div class="task"><span>乱世任务</span><strong>{{ data.rescue || '今日暂无' }}</strong></div>
-                <div class="task"><span>美人画图</span><strong>{{ data.draw || '今日暂无' }}</strong></div>
+                <div class="task"><span>美人画图</span><strong>{{ data.draws && data.draws.length ? data.draws.join('、') : '今日暂无' }}</strong></div>
             </section>
             <section class="collections">
                 <div class="collection" v-for="group in [{title:'世界首领', values:data.leaders}, {title:'宠物奇缘', values:data.luck}, {title:'武林通鉴', values:data.cards}, {title:'团队与公共任务', values:data.teams}]" :key="group.title">

@@ -38,7 +38,8 @@ class RegisteredJx3ActionSourceContractTest {
         try (Stream<Path> sources = Files.walk(ACTION_SOURCE_ROOT)) {
             for (Path source : sources.filter(path -> path.toString().endsWith(".java")).toList()) {
                 String sourceText = Files.readString(source, StandardCharsets.UTF_8);
-                if (sourceText.contains("extends Jx3BaseAction")) {
+                if (sourceText.contains("extends Jx3BaseAction")
+                        && !sourceText.contains("abstract class")) {
                     assertNonNullResponseHandler(source);
                 }
             }

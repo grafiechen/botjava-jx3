@@ -1,5 +1,6 @@
 package com.grafie.botjava.jx3.http;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 /**
@@ -26,4 +27,9 @@ public class RequestResult {
      * 时间戳
      */
     private Long time;
+    /**
+     * 本次 HTTP 调用的原始响应体，仅用于日志排障，不进入 JSON 序列化或缓存。
+     */
+    @JsonIgnore
+    private String rawResponseBody;
 }

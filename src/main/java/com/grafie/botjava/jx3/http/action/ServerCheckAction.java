@@ -9,6 +9,7 @@ import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
 import com.grafie.botjava.jx3.http.util.REGEX;
 import com.grafie.botjava.service.GroupConfigurationService;
 import com.grafie.botjava.entity.dto.common.BotResponse;
+import com.grafie.botjava.util.TimeUtils;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,10 +42,23 @@ public class ServerCheckAction extends Jx3BaseAction {
     @Override
     protected String buildTextContent(BaseResult baseResult) {
         ServerCheckData serverCheckData = (ServerCheckData) baseResult.getData();
-        return String.format(
-                "服务器[%s],%s",
-                serverCheckData.getServer(),
-                serverCheckData.getStatus()
-        );
+        String server = firstNotBlank(serverCheckData.getServer(), currentArguments().server(getDefaultServer()));
+        String status = readableStatus(serverCheckData.getStatus());
+        String time = firstNotBlank(serverCheckData.getTime(), TimeUtils.timeFormatting(baseResult.getTime() == null ? 0L : baseResult.getTime()));
+        if (time == null) {
+            return String.format("服务器[%s]：%s", server, status);
+        }
+        return String.format("服务器[%s]：%s，开服时间：%s", server, status, time);
+    }
+
+    private String readableStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return "状态未知";
+        }
+        return switch (status.trim()) {
+            case "1", "true", "TRUE", "已开服", "开服" -> "已开服";
+            case "0", "false", "FALSE", "未开服", "维护", "维护中" -> "维护中";
+            default -> status.trim();
+        };
     }
 }

@@ -1,5 +1,8 @@
 package com.grafie.botjava.jx3.http.data.active;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -36,7 +39,8 @@ public class ActiveCurrentData {
     private String rescue;
 
     @JsonProperty("draw")
-    private String draw;
+    @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+    private List<String> draw;
 
     @JsonProperty("leader")
     private List<String> leader;
@@ -44,10 +48,25 @@ public class ActiveCurrentData {
     @JsonProperty("team")
     private List<String> team;
 
-    @JsonProperty("luck")
+    @JsonProperty("lucky")
+    @JsonAlias("luck")
     private List<String> luck;
 
     @JsonProperty("card")
     private List<String> card;
+
+    @JsonProperty("weekly")
+    private Weekly weekly;
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Weekly {
+
+        @JsonProperty("conn")
+        private List<String> conn;
+
+        @JsonProperty("raid")
+        private List<String> raid;
+    }
 
 }

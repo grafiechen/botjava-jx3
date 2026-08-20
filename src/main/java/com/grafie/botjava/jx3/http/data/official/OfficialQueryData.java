@@ -236,7 +236,7 @@ public final class OfficialQueryData {
     @Data
     public static class TradeListing {
         private String id;
-        private Integer index;
+        private String index;
         private String zone;
         private String server;
         private Long value;

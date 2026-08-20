@@ -1,6 +1,7 @@
 package com.grafie.botjava.contants;
 
 import com.grafie.botjava.action.BaseAction;
+import com.grafie.botjava.action.C2cMessageAction;
 import com.grafie.botjava.action.GroupAtMessageAction;
 import com.grafie.botjava.action.GroupLifecycleAction;
 import com.grafie.botjava.action.InteractionCreateAction;
@@ -22,7 +23,8 @@ public enum PayloadTEnum {
     GROUP_DEL_ROBOT("GROUP_DEL_ROBOT", GroupLifecycleAction.class),
     GROUP_MSG_RECEIVE("GROUP_MSG_RECEIVE", GroupLifecycleAction.class),
     GROUP_MSG_REJECT("GROUP_MSG_REJECT", GroupLifecycleAction.class),
-    INTERACTION_CREATE("INTERACTION_CREATE", InteractionCreateAction.class);
+    INTERACTION_CREATE("INTERACTION_CREATE", InteractionCreateAction.class),
+    C2C_MESSAGE_CREATE("C2C_MESSAGE_CREATE", C2cMessageAction.class);
 
 
     @Getter

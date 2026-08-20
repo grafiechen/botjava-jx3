@@ -4,15 +4,18 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
+import org.springframework.http.ResponseEntity;
 
 /**
  * @author grafie.chen
  * @since 2025/1/23  11:22
  */
+@Slf4j
 public class RequestUtil {
 
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(30);
@@ -50,6 +53,11 @@ public class RequestUtil {
         if (timeout == null || timeout.isZero() || timeout.isNegative()) {
             throw new IllegalArgumentException("HTTP timeout 必须大于 0");
         }
+        OutboundHttpRateLimiter.awaitPermit();
+        long startNanos = System.nanoTime();
+        log.info("外部 HTTP 请求开始，method=>{}，baseUrl=>{}，path=>{}，query=>{}，body=>{}，headers=>{}",
+                method, baseUrl, url, SensitiveDataUtil.redact(queryParam),
+                SensitiveDataUtil.redact(requestBody), SensitiveDataUtil.redact(headersMap));
         WebClient webClient = WebClient.builder().baseUrl(baseUrl).build();
         try {
             WebClient.RequestBodySpec request = webClient.method(method)
@@ -73,14 +81,33 @@ public class RequestUtil {
             WebClient.RequestHeadersSpec<?> requestHeaders = requestBody == null
                     ? request
                     : request.contentType(MediaType.APPLICATION_JSON).bodyValue(requestBody);
-            return requestHeaders.retrieve()
-                    .bodyToMono(clazz)
+            ResponseEntity<T> response = requestHeaders.retrieve()
+                    .toEntity(clazz)
                     .block(timeout);
+            T result = response == null ? null : response.getBody();
+            log.info("外部 HTTP 请求完成，method=>{}，baseUrl=>{}，path=>{}，status=>{}，elapsedMs=>{}，responseType=>{}",
+                    method, baseUrl, url, response == null ? null : response.getStatusCode().value(),
+                    elapsedMillis(startNanos),
+                    result == null ? null : result.getClass().getSimpleName());
+            return result;
         } catch (WebClientResponseException e) {
+            log.error("外部 HTTP 请求返回错误，method=>{}，baseUrl=>{}，path=>{}，query=>{}，body=>{}，headers=>{}，status=>{}，elapsedMs=>{}，responseBody=>{}",
+                    method, baseUrl, url, SensitiveDataUtil.redact(queryParam),
+                    SensitiveDataUtil.redact(requestBody), SensitiveDataUtil.redact(headersMap),
+                    e.getStatusCode().value(), elapsedMillis(startNanos),
+                    SensitiveDataUtil.redactText(e.getResponseBodyAsString()), e);
             throw new RemoteHttpException(
                     e.getStatusCode().value(), e.getResponseBodyAsString(), e);
         } catch (Exception e) {
+            log.error("外部 HTTP 请求失败，method=>{}，baseUrl=>{}，path=>{}，query=>{}，body=>{}，headers=>{}，elapsedMs=>{}，reason=>{}",
+                    method, baseUrl, url, SensitiveDataUtil.redact(queryParam),
+                    SensitiveDataUtil.redact(requestBody), SensitiveDataUtil.redact(headersMap),
+                    elapsedMillis(startNanos), SensitiveDataUtil.summarize(e), e);
             throw new RuntimeException("远程 HTTP 请求失败", e);
         }
+    }
+
+    private static long elapsedMillis(long startNanos) {
+        return (System.nanoTime() - startNanos) / 1_000_000;
     }
 }

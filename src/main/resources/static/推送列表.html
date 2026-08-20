@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>推送列表</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        body { margin: 0; min-width: 1180px; background: #e9edef; color: #20282d; font-family: "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", sans-serif; letter-spacing: 0; }
+        #main { min-height: 720px; padding: 38px 52px; }
+        .board { width: 100%; max-width: 1280px; margin: 0 auto; overflow: hidden; background: #fff; border: 1px solid #cbd3d7; border-radius: 8px; box-shadow: 0 18px 42px rgba(31, 42, 48, .12); }
+        .header { min-height: 136px; padding: 27px 34px 24px; display: flex; align-items: flex-end; justify-content: space-between; gap: 28px; border-top: 8px solid #3f6f70; border-bottom: 1px solid #d9e1e4; }
+        .eyebrow { margin: 0 0 8px; color: #718087; font-size: 15px; }
+        h1 { margin: 0; color: #202b30; font-size: 34px; line-height: 1.2; }
+        .summary { display: grid; grid-template-columns: repeat(3, 92px); gap: 16px; text-align: right; }
+        .metric strong { display: block; color: #315f67; font-size: 25px; line-height: 1.1; }
+        .metric span { display: block; margin-top: 6px; color: #7a878d; font-size: 12px; }
+        .head, .row { display: grid; grid-template-columns: 190px 190px minmax(360px, 1fr) 120px; gap: 18px; align-items: center; }
+        .head { min-height: 48px; padding: 0 34px; color: #6d7a80; background: #f2f5f6; border-bottom: 1px solid #dce3e5; font-size: 13px; font-weight: 700; }
+        .row { min-height: 47px; padding: 8px 34px; border-bottom: 1px solid #e3e8ea; }
+        .row:last-child { border-bottom: 0; }
+        .source { color: #315f67; font-size: 14px; font-weight: 800; }
+        .source.qq { color: #8a5945; }
+        .source.scheduled { color: #655a88; }
+        .category { color: #67757b; font-size: 13px; overflow-wrap: anywhere; }
+        .name { min-width: 0; color: #273238; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+        .name small { display: block; margin-top: 2px; color: #8a959a; font-size: 10px; font-weight: 500; }
+        .state { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; }
+        .state::before { width: 10px; height: 10px; flex: 0 0 10px; border-radius: 50%; background: #a9b2b6; content: ""; }
+        .state.on { color: #28705f; }
+        .state.on::before { background: #3c9b7d; }
+        .state.off { color: #7c888d; }
+        .empty { min-height: 360px; display: flex; align-items: center; justify-content: center; color: #78858b; font-size: 21px; }
+        .footer { padding: 15px 34px 18px; display: flex; justify-content: space-between; gap: 24px; color: #7b878d; background: #fafbfb; border-top: 1px solid #dce3e5; font-size: 12px; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="board">
+        <header class="header">
+            <div>
+                <p class="eyebrow">群级主动推送订阅</p>
+                <h1>推送列表</h1>
+            </div>
+            <div class="summary">
+                <div class="metric"><strong>{{ wsCount || 0 }}</strong><span>WS 推送项</span></div>
+                <div class="metric"><strong>{{ enabledCount || 0 }}</strong><span>已开启</span></div>
+                <div class="metric"><strong>{{ disabledCount || 0 }}</strong><span>未开启</span></div>
+            </div>
+        </header>
+        <template v-if="rows && rows.length">
+            <div class="head"><span>来源</span><span>分类</span><span>推送内容</span><span>本群状态</span></div>
+            <section>
+                <div class="row" v-for="item in rows" :key="item.code">
+                    <span class="source" :class="{qq: item.sourceCode === 'QQ_WS', scheduled: item.sourceCode === 'SCHEDULED'}">{{ item.source }}</span>
+                    <span class="category">{{ item.category }}</span>
+                    <span class="name">{{ item.name }}<small v-if="!item.ready">尚未接入执行器</small></span>
+                    <span class="state" :class="item.enabled ? 'on' : 'off'">{{ item.enabled ? '已开启' : '未开启' }}</span>
+                </div>
+            </section>
+        </template>
+        <div class="empty" v-else>暂无可配置的推送项目</div>
+        <footer class="footer">
+            <span>未保存的项目默认关闭</span>
+            <span>QQ 与 JX3API WebSocket 均按群独立判断</span>
+        </footer>
+    </article>
+</main>
+</body>
+</html>

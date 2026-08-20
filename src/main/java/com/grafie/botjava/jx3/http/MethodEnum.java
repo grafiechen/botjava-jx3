@@ -31,7 +31,10 @@ import com.grafie.botjava.jx3.http.data.music.MusicNeteaseData;
 import com.grafie.botjava.jx3.http.data.music.MusicTencentData;
 import com.grafie.botjava.jx3.http.data.news.NewsAllNewsData;
 import com.grafie.botjava.jx3.http.data.news.NewsAnnounceData;
+import com.grafie.botjava.jx3.http.data.official.ChatRecordsData;
+import com.grafie.botjava.jx3.http.data.official.FlexibleOfficialData;
 import com.grafie.botjava.jx3.http.data.official.OfficialQueryData;
+import com.grafie.botjava.jx3.http.data.official.SkillCalculateData;
 import com.grafie.botjava.jx3.http.data.role.*;
 import com.grafie.botjava.jx3.http.data.role.achievement.RoleAchievementData;
 import com.grafie.botjava.jx3.http.data.role.attribute.RoleAttributeData;
@@ -49,6 +52,7 @@ import com.grafie.botjava.jx3.http.data.table.TableRecordsData;
 import com.grafie.botjava.jx3.http.data.tieba.TiebaItemRecordsData;
 import com.grafie.botjava.jx3.http.data.tieba.TiebaRandomData;
 import com.grafie.botjava.jx3.http.data.trade.TradeDemonData;
+import com.grafie.botjava.jx3.http.data.trade.WanbaolouData;
 import com.grafie.botjava.jx3.http.data.trade.record.TradeRecordData;
 import com.grafie.botjava.jx3.http.data.valuables.ValuablesServerStatisticalData;
 import com.grafie.botjava.jx3.http.data.valuables.ValuablesStatisticalData;
@@ -57,6 +61,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.http.HttpMethod;
 
 /**
  * 关联请求地址和对应的返回值实体类
@@ -71,99 +77,117 @@ public enum MethodEnum {
     /**
      * FREE API
      */
-    DATA_ACTIVE_CALENDAR("活动日历", "/data/active/calendar", ActiveCurrentData.class, null, Object.class),
-    DATA_ACTIVE_LIST_CALENDAR("活动日历", "/data/active/list/calendar", ActiveCalendarData.class, null, Object.class),
-    DATA_ACTIVE_CELEBS("行侠事件", "/data/active/celebs", ActiveCelebritiesData.class, null, List.class),
-    DATA_EXAM_ANSWER("科举试题", "/data/exam/search", ExamAnswerData.class, null, List.class),
-    DATA_HOME_FURNITURE("家园装饰", "/data/home/furniture", HomeFurnitureData.class, null, List.class),
-    DATA_HOME_TRAVEL("器物图谱", "/data/home/travel", HomeTravelData.class, null, List.class),
-    DATA_WEB_NEWS_ALLNEWS("新闻资讯", "/data/news/allnews", NewsAllNewsData.class, null, List.class),
-    DATA_WEB_NEWS_ANNOUNCE("维护公告", "/data/news/announce", NewsAnnounceData.class, null, List.class),
-    DATA_SERVER_MASTER("搜索区服", "/data/master/search", ServerMasterData.class, null, Object.class),
-    DATA_SERVER_CHECK("开服检查", "/data/status/check", ServerCheckData.class, null, Object.class),
-    DATA_SERVER_STATUS("查看状态", "/data/status/check", ServerStatusData.class, null, Object.class),
-    DATA_HOME_FLOWER("鲜花价格", "/data/home/flower", OfficialQueryData.HomeFlower.class, null, Object.class),
-    DATA_SKILL_REWORK("技改记录", "/data/skill/rework", OfficialQueryData.SkillRework.class, null, List.class),
-    DATA_SCHOOL_FOODS("小药推荐", "/data/school/foods", OfficialQueryData.SchoolFood.class, null, List.class),
+    DATA_ACTIVE_CALENDAR("活动日历", "/active/calendar", ActiveCurrentData.class, null, Object.class),
+    DATA_ACTIVE_LIST_CALENDAR("活动日历", "/active/calendar", ActiveCalendarData.class, null, Object.class),
+    DATA_ACTIVE_CELEBS("行侠事件", "/active/celebs", ActiveCelebritiesData.class, null, List.class),
+    DATA_EXAM_ANSWER("科举试题", "/exam/search", ExamAnswerData.class, null, List.class),
+    DATA_HOME_FURNITURE("家园装饰", "/home/furniture", HomeFurnitureData.class, null, List.class),
+    DATA_HOME_TRAVEL("器物图谱", "/home/travel", HomeTravelData.class, null, List.class),
+    DATA_WEB_NEWS_ALLNEWS("新闻资讯", "/news/records", NewsAllNewsData.class, null, List.class),
+    DATA_WEB_NEWS_ANNOUNCE("维护公告", "/news/announce", NewsAnnounceData.class, null, List.class),
+    DATA_SERVER_MASTER("搜索区服", "/master/search", ServerMasterData.class, null, Object.class),
+    DATA_SERVER_CHECK("开服检查", "/server/status/check", ServerCheckData.class, null, Object.class),
+    DATA_SERVER_STATUS("查看状态", "/server/status/check", ServerStatusData.class, null, Object.class),
+    DATA_HOME_FLOWER("鲜花价格", "/home/flower", OfficialQueryData.HomeFlower.class, null, Object.class),
+    DATA_SKILL_REWORK("技改记录", "/skill/rework", OfficialQueryData.SkillRework.class, null, List.class),
+    DATA_SCHOOL_FOODS("小药推荐", "/food/list", OfficialQueryData.SchoolFood.class, null, List.class),
 
     /**
      * VIP1 API
      */
-    DATA_SAVE_DETAILED("角色更新", "/data/save/detailed", SaveDetailedData.class, null, Object.class),
-    DATA_ROLE_DETAILED("角色信息", "/data/role/detail", RoleDetailedData.class, null, Object.class),
-    DATA_SCHOOL_MATRIX("阵眼效果", "/data/school/matrix", SchoolMatrixData.class, null, Object.class),
-    DATA_SCHOOL_FORCE("奇穴效果", "/data/school/talent", SchoolForceData.class, null, List.class),
-    DATA_SCHOOL_SKILL("技能效果", "/data/school/skills", SchoolSkillsData.class, null, List.class),
-    DATA_TIEBA_RANDOM("八卦帖子", "/data/tieba/random", TiebaRandomData.class, null, List.class),
-    DATA_ROLE_ATTRIBUTE("装备属性", "/data/role/attribute", RoleAttributeData.class, null, Object.class),
-    DATA_ROLE_CDLIST("副本记录", "/data/role/teamCdList", RoleTeamCdListData.class, null, Object.class),
-    DATA_LUCK_ADVENTURE("奇遇记录", "/data/event/records", LuckAdventureData.class, null, List.class),
-    DATA_LUCK_RECENT("近期奇遇", "/data/event/recent", LuckAdventureData.class, null, List.class),
-    DATA_LUCK_STATISTICAL("奇遇统计", "/data/event/statistics", LuckStatisticalData.class, null, List.class),
-    DATA_LUCK_SERVER_STATISTICAL("全服统计", "/data/event/statistics", LuckServerStatisticalData.class, null, List.class),
-    DATA_LUCK_COLLECT("奇遇汇总", "/data/event/collect", LuckCollectData.class, null, List.class),
-    DATA_ROLE_ACHIEVEMENT("成就百科", "/data/role/achievement", RoleAchievementData.class, null, Object.class),
-    DATA_MATCH_RECENT("名剑战绩", "/data/arena/recent", OfficialQueryData.ArenaRecent.class, null, Object.class),
-    DATA_MATCH_AWESOME("名剑排行", "/data/arena/awesome", MatchAwesomeData.class, null, List.class),
-    DATA_MATCH_SCHOOLS("名剑统计", "/data/arena/schools", MatchSchoolsData.class, null, List.class),
-    DATA_MEMBER_RECRUIT("团队招募", "/data/recruit/search", MemberRecruitData.class, null, Object.class),
-    DATA_MEMBER_TEACHER("师父列表", "/data/mentor/search", MemberTeacherData.class, null, Object.class),
-    DATA_MEMBER_STUDENT("徒弟列表", "/data/mentor/search", MemberStudentData.class, null, Object.class),
-    DATA_SERVER_SAND("沙盘信息", "/data/sand/records", ServerSandData.class, null, Object.class),
-    DATA_SERVER_EVENT("阵营事件", "/data/fenxian/records", ServerEventData.class, null, List.class),
-    DATA_TRADE_DEMON("金币价格", "/data/trade/demon", TradeDemonData.class, null, List.class),
-    DATA_TRADE_RECORD("物品价格", "/data/trade/item/records", TradeRecordData.class, null, Object.class),
-    DATA_TIEBA_ITEM_RECORDS("贴吧记录", "/data/tieba/item/records", TiebaItemRecordsData.class, null, List.class),
-    DATA_VALUABLES_STATISTICAL("掉落统计", "/data/reward/statistics", ValuablesStatisticalData.class, null, List.class),
-    DATA_VALUABLES_SERVER_STATISTICAL("全服掉落", "/data/reward/statistics", ValuablesServerStatisticalData.class, null, List.class),
-    DATA_SERVER_ANTIVICE("诛恶事件", "/data/smite/records", ServerAntiviceData.class, null, List.class),
-    DATA_RANK_STATISTICAL("风云榜单", "/data/rank/statistics", OfficialQueryData.RankStatistical.class, null, Object.class),
-    DATA_RANK_SERVER_STATISTICAL("全服榜单", "/data/rank/statistics", OfficialQueryData.RankStatistical.class, null, Object.class),
+    DATA_SAVE_DETAILED("角色更新", "/save/detailed", SaveDetailedData.class, null, Object.class),
+    DATA_ROLE_DETAILED("角色信息", "/role/detail", RoleDetailedData.class, null, Object.class),
+    DATA_SCHOOL_MATRIX("阵眼效果", "/school/matrix", SchoolMatrixData.class, null, Object.class),
+    DATA_SCHOOL_FORCE("奇穴效果", "/school/talent", SchoolForceData.class, null, List.class),
+    DATA_SCHOOL_SKILL("技能效果", "/school/skills", SchoolSkillsData.class, null, List.class),
+    DATA_TIEBA_RANDOM("八卦帖子", "/tieba/random", TiebaRandomData.class, null, List.class),
+    DATA_ROLE_ATTRIBUTE("装备属性", "/role/attribute", RoleAttributeData.class, null, Object.class),
+    DATA_ROLE_CDLIST("副本记录", "/role/teamCdList", RoleTeamCdListData.class, null, Object.class),
+    DATA_LUCK_ADVENTURE("奇遇记录", "/event/records", LuckAdventureData.class, null, List.class),
+    DATA_LUCK_RECENT("近期奇遇", "/event/recent", LuckAdventureData.class, null, List.class),
+    DATA_LUCK_STATISTICAL("奇遇统计", "/event/statistics", LuckStatisticalData.class, null, List.class),
+    DATA_LUCK_SERVER_STATISTICAL("全服统计", "/event/statistics", LuckServerStatisticalData.class, null, List.class),
+    DATA_LUCK_COLLECT("奇遇汇总", "/event/collect", LuckCollectData.class, null, List.class),
+    DATA_ROLE_ACHIEVEMENT("成就百科", "/role/achievement", RoleAchievementData.class, null, Object.class, HttpMethod.GET),
+    DATA_MATCH_RECENT("名剑战绩", "/arena/recent", OfficialQueryData.ArenaRecent.class, null, Object.class),
+    DATA_MATCH_AWESOME("名剑排行", "/arena/awesome", MatchAwesomeData.class, null, List.class),
+    DATA_MATCH_SCHOOLS("名剑统计", "/arena/schools", MatchSchoolsData.class, null, List.class),
+    DATA_MEMBER_RECRUIT("团队招募", "/recruit/search", MemberRecruitData.class, null, Object.class),
+    DATA_MEMBER_TEACHER("师父列表", "/mentor/search", MemberTeacherData.class, null, Object.class),
+    DATA_MEMBER_STUDENT("徒弟列表", "/mentor/search", MemberStudentData.class, null, Object.class),
+    DATA_SERVER_SAND("沙盘信息", "/sand/records", ServerSandData.class, null, Object.class),
+    DATA_SERVER_EVENT("阵营事件", "/fenxian/records", ServerEventData.class, null, List.class),
+    DATA_TRADE_DEMON("金币价格", "/trade/demon", TradeDemonData.class, null, List.class),
+    DATA_TRADE_RECORD("物品价格", "/trade/item/records", TradeRecordData.class, null, Object.class),
+    DATA_TIEBA_ITEM_RECORDS("贴吧记录", "/tieba/item/records", TiebaItemRecordsData.class, null, List.class),
+    DATA_VALUABLES_STATISTICAL("掉落统计", "/reward/statistics", ValuablesStatisticalData.class, null, List.class),
+    DATA_VALUABLES_SERVER_STATISTICAL("全服掉落", "/reward/statistics", ValuablesServerStatisticalData.class, null, List.class),
+    DATA_SERVER_ANTIVICE("诛恶事件", "/wicked/records", ServerAntiviceData.class, null, List.class),
+    DATA_RANK_STATISTICAL("风云榜单", "/rank/statistics", OfficialQueryData.RankStatistical.class, null, Object.class),
+    DATA_RANK_SERVER_STATISTICAL("全服榜单", "/rank/statistics", OfficialQueryData.RankStatistical.class, null, Object.class),
     // v1.2新增
-    DATA_TABLE_RECORDS("挂件效果", "/data/table/records", TableRecordsData.class, null, List.class),
-    DATA_LUCK_UNFINISHED("未出奇遇", "/data/event/unfinished", LuckUnfinishedData.class, null, List.class),
+    DATA_TABLE_RECORDS("挂件效果", "/table/records", TableRecordsData.class, null, List.class),
+    DATA_LUCK_UNFINISHED("未出奇遇", "/event/missing", LuckUnfinishedData.class, null, List.class),
+    DATA_EVENT_STRATEGY("奇遇攻略", "/event/strategy", FlexibleOfficialData.class, null, Object.class, HttpMethod.GET),
 
     /**
      * VIP2 API
      */
-    DATA_ACTIVE_MONSTER("百战首领", "/data/active/monster", ActiveMonsterData.class, null, Object.class),
-    DATA_ACTIVE_NEXT_EVENT("扶摇预测", "/data/active/next/event", OfficialQueryData.ActiveNextEvent.class, null, List.class),
-    DATA_HORSE_RECORDS("的卢统计", "/data/steed/records", HorseRecordsData.class, null, List.class),
-    DATA_HORSE_EVENT("马场事件", "/data/ranch/records", HorseRanchData.class, null, Object.class),
-    DATA_WATCH_RECORD("烟花记录", "/data/show/records", FireworkRecordData.class, null, List.class),
-    DATA_WATCH_STATISTICAL("烟花统计", "/data/show/records", FireworkStatisticalData.class, null, List.class),
-    DATA_WATCH_COLLECT("烟花汇总", "/data/show/records", FireworkCollectData.class, null, List.class),
-    DATA_WATCH_RANK_STATISTICAL("烟花排行", "/data/show/records", FireworkRankStatisticalData.class, null, List.class),
+    DATA_ACTIVE_MONSTER("百战首领", "/monster/weekly", ActiveMonsterData.class, null, Object.class),
+    DATA_ACTIVE_NEXT_EVENT("扶摇预测", "/ranch/chat", OfficialQueryData.ActiveNextEvent.class, null, List.class),
+    DATA_HORSE_RECORDS("的卢统计", "/steed/records", HorseRecordsData.class, null, List.class),
+    DATA_HORSE_EVENT("马场事件", "/ranch/records", HorseRanchData.class, null, Object.class),
+    DATA_WATCH_RECORD("烟花记录", "/firework/records", FireworkRecordData.class, null, List.class),
+    DATA_WATCH_STATISTICAL("烟花统计", "/firework/records", FireworkStatisticalData.class, null, List.class),
+    DATA_WATCH_COLLECT("烟花汇总", "/firework/records", FireworkCollectData.class, null, List.class),
+    DATA_WATCH_RANK_STATISTICAL("烟花排行", "/firework/records", FireworkRankStatisticalData.class, null, List.class),
     // v1.2 新增
-    DATA_ROLE_MONSTER("百战精耐", "/data/role/monster", RoleMonsterData.class, null, Object.class),
-    DATA_AUCTION_RECORDS("拍卖记录", "/data/auction/records", AcutionRecordsData.class, null, List.class),
-    DATA_ROLE_SHOW_CARD("角色名片", "/data/card/record", RoleShowCardData.class, null, Object.class),
-    DATA_ROLE_SHOW_CARDS("所有名片", "/data/card/records", RoleShowCardData.class, null, List.class),
-    DATA_ROLE_SHOW_RANDOM("随机名片", "/data/card/random", RoleShowRandomData.class, null, Object.class),
-    DATA_ROLE_SHOW_CACHED("缓存名片", "/data/card/cached", RoleShowCardData.class, null, Object.class),
-    DATA_SCHOOL_SENIORITY("资历排行", "/data/school/seniority", OfficialQueryData.SchoolSeniority.class, null, List.class),
-    DATA_MINE_CART("关隘首领", "/data/mine/cart", OfficialQueryData.MineCart.class, null, List.class),
-    DATA_CHITU_RECORDS("本日赤兔", "/data/chitu/records", OfficialQueryData.ChituRecord.class, null, List.class),
-    DATA_CHITU_WEEK_RECORDS("本周赤兔", "/data/chitu/week/records", OfficialQueryData.ChituWeekRecord.class, null, List.class),
-    DATA_RANK_TRIALS("试炼排行", "/data/rank/trials", OfficialQueryData.TrialRank.class, null, Object.class),
-    DATA_TRADE_RECORDS("黑市物价", "/data/trade/records", OfficialQueryData.TradeRecords.class, null, Object.class),
-    DATA_TRADE_ITEM_SEARCH("搜索物品", "/data/trade/item/search", OfficialQueryData.TradeItem.class, null, List.class),
-    DATA_BATTLE_RECORDS("帮战记录", "/data/battle/records", OfficialQueryData.BattleRecord.class, null, List.class),
-    DATA_MECH_CALCULATOR("副本解密", "/data/mech/calculator", OfficialQueryData.MechCalculator.class, null, Object.class),
-    DATA_DUOWAN_STATISTICS("统战歪歪", "/data/duowan/statistics", OfficialQueryData.DuowanStatistics.class, null, List.class),
+    DATA_ROLE_MONSTER("百战精耐", "/monster/records", RoleMonsterData.class, null, Object.class),
+    DATA_AUCTION_RECORDS("拍卖记录", "/auction/records", AcutionRecordsData.class, null, List.class),
+    DATA_ROLE_SHOW_CARD("角色名片", "/card/record", RoleShowCardData.class, null, Object.class),
+    DATA_ROLE_SHOW_CARDS("所有名片", "/card/records", RoleShowCardData.class, null, List.class),
+    DATA_ROLE_SHOW_RANDOM("随机名片", "/card/random", RoleShowRandomData.class, null, Object.class),
+    DATA_ROLE_SHOW_CACHED("缓存名片", "/card/cached", RoleShowCardData.class, null, Object.class),
+    DATA_SCHOOL_SENIORITY("资历排行", "/school/seniority", OfficialQueryData.SchoolSeniority.class, null, List.class),
+    DATA_MINE_CART("关隘首领", "/castle/status", OfficialQueryData.MineCart.class, null, List.class),
+    DATA_CHITU_RECORDS("本日赤兔", "/chitu/records", OfficialQueryData.ChituRecord.class, null, List.class),
+    DATA_CHITU_WEEK_RECORDS("本周赤兔", "/chitu/week/records", OfficialQueryData.ChituWeekRecord.class, null, List.class),
+    DATA_RANK_TRIALS("试炼排行", "/rank/trials", OfficialQueryData.TrialRank.class, null, Object.class),
+    DATA_TRADE_RECORDS("黑市物价", "/trade/records", OfficialQueryData.TradeRecords.class, null, Object.class),
+    DATA_TRADE_ITEM_SEARCH("搜索物品", "/trade/item/search", OfficialQueryData.TradeItem.class, null, List.class),
+    DATA_TRADE_WANBAOLOU("编号搜索", "/trade/wanbaolou", WanbaolouData.class, null, Object.class, HttpMethod.GET),
+    DATA_CARD_PRESET("名片预设", "/card/preset", FlexibleOfficialData.class, null, Object.class, HttpMethod.GET),
+    DATA_CHAT_RECORDS("角色聊天", "/chat/records", ChatRecordsData.class, null, Object.class, HttpMethod.GET),
+    DATA_RANK_ARENA("跨服名剑", "/rank/arena", FlexibleOfficialData.class, null, Object.class, HttpMethod.GET),
+    DATA_RANK_CHAMPIONSHIP("武林争霸", "/rank/championship", FlexibleOfficialData.class, null, Object.class, HttpMethod.GET),
+    DATA_RANK_CONSTABLE("捕快荣誉", "/rank/constable", FlexibleOfficialData.class, null, Object.class, HttpMethod.GET),
+    DATA_RANK_OUTLAW("江湖浪客", "/rank/outlaw", FlexibleOfficialData.class, null, Object.class, HttpMethod.GET),
+    DATA_RANK_WANTED("决斗挑战", "/rank/wanted", FlexibleOfficialData.class, null, Object.class, HttpMethod.GET),
+    DATA_SAOHUA_CONTEXT("分类语录", "/saohua/context", FlexibleOfficialData.class, null, Object.class, HttpMethod.GET),
+    DATA_SCHOOL_SEARCH("配装搜索", "/school/search", FlexibleOfficialData.class, null, Object.class, HttpMethod.GET),
+    DATA_SKILL_CALCULATE("急速计算", "/skill/calculate", SkillCalculateData.class, null, List.class, HttpMethod.GET),
+    DATA_TRADE_MANUFACTURE("成本计算", "/trade/manufacture", FlexibleOfficialData.class, null, Object.class, HttpMethod.GET),
+    DATA_TUILAN_ACHIEVEMENT("资历分布", "/tuilan/achievement", FlexibleOfficialData.class, null, Object.class, HttpMethod.GET),
+    DATA_BATTLE_RECORDS("帮战记录", "/battle/records", OfficialQueryData.BattleRecord.class, null, List.class),
+    DATA_MECH_CALCULATOR("副本解密", "/mech/decrypt", OfficialQueryData.MechCalculator.class, null, Object.class),
+    DATA_DUOWAN_STATISTICS("统战歪歪", "/duowan/statistics", OfficialQueryData.DuowanStatistics.class, null, List.class),
 
     /**
      * VRF API
      */
-    DATA_CHAT_MIXED("智障聊天", "/data/mixed/chat", ChatMixedData.class, null, Object.class),
-    DATA_MUSIC_TENCENT("腾讯音乐", "/data/music/tencent", MusicTencentData.class, null, List.class),
-    DATA_MUSIC_NETEASE("网易音乐", "/data/music/netease", MusicNeteaseData.class, null, List.class),
-    DATA_MUSIC_KUGOU("酷狗音乐", "/data/music/kugou", MusicKugouData.class, null, List.class),
-    DATA_FRAUD_DETAIL("骗子记录", "/data/fraud/detail", FraudDetailData.class, null, List.class),
-    DATA_IDIOM_SOLITAIRE("成语接龙", "/data/idiom/solitaire", IdiomSolitaireData.class, null, Object.class),
-    DATA_SAOHUA_RANDOM("撩人骚话", "/data/saohua/random", SaohuaRandomData.class, null, Object.class),
-    DATA_SAOHUA_CONTENT("舔狗日记", "/data/saohua/content", SaohuaContentData.class, null, Object.class),
-    DATA_SOUND_CONVERTER("语音合成", "/data/sound/converter", SoundConverterData.class, null, Object.class),
+    DATA_CHAT_MIXED("智障聊天", "/mixed/chat", ChatMixedData.class, null, Object.class),
+    DATA_MUSIC_TENCENT("腾讯音乐", "/music/tencent", MusicTencentData.class, null, List.class),
+    DATA_MUSIC_NETEASE("网易音乐", "/music/netease", MusicNeteaseData.class, null, List.class),
+    DATA_MUSIC_KUGOU("酷狗音乐", "/music/kugou", MusicKugouData.class, null, List.class),
+    DATA_FRAUD_DETAIL("骗子记录", "/fraud/detail", FraudDetailData.class, null, List.class),
+    DATA_IDIOM_SOLITAIRE("成语接龙", "/idiom/solitaire", IdiomSolitaireData.class, null, Object.class),
+    DATA_SAOHUA_RANDOM("撩人骚话", "/saohua/random", SaohuaRandomData.class, null, Object.class),
+    DATA_SAOHUA_CONTENT("舔狗日记", "/saohua/content", SaohuaContentData.class, null, Object.class),
+    DATA_SAOHUA_ANSWER("答案之书", "/saohua/answer", FlexibleOfficialData.class, null, Object.class, HttpMethod.GET),
+    DATA_SAOHUA_DRINK("喝什么", "/saohua/drink", String.class, null, List.class, HttpMethod.GET),
+    DATA_SAOHUA_EAT("吃什么", "/saohua/eat", String.class, null, List.class, HttpMethod.GET),
+    DATA_SAOHUA_ZHANAN("渣男语录", "/saohua/zhanan", FlexibleOfficialData.class, null, Object.class, HttpMethod.GET),
+    DATA_SOUND_CONVERTER("语音合成", "/sound/converter", SoundConverterData.class, null, Object.class),
     ;
     /**
      * 请求名称
@@ -185,13 +209,23 @@ public enum MethodEnum {
      * 返回值中的父级类型，比如外层包裹的是 List
      */
     private final Class pClass;
+    /**
+     * 官方接口请求方法。历史接口默认 POST。
+     */
+    private final HttpMethod httpMethod;
 
     MethodEnum(String methodName, String methodPath, Class resultBeanClass, String jsonKey, Class pClassName) {
+        this(methodName, methodPath, resultBeanClass, jsonKey, pClassName, HttpMethod.POST);
+    }
+
+    MethodEnum(String methodName, String methodPath, Class resultBeanClass, String jsonKey,
+               Class pClassName, HttpMethod httpMethod) {
         this.methodName = methodName;
         this.methodPath = methodPath;
         this.resultBeanClass = resultBeanClass;
         this.jsonKey = jsonKey;
         this.pClass = pClassName;
+        this.httpMethod = httpMethod;
     }
 
     public String getMethodName() {
@@ -214,6 +248,50 @@ public enum MethodEnum {
         return pClass;
     }
 
+    public HttpMethod getHttpMethod() {
+        return httpMethod;
+    }
+
+    public int getApiLevel() {
+        return switch (this) {
+            case DATA_ACTIVE_CALENDAR, DATA_ACTIVE_LIST_CALENDAR, DATA_ACTIVE_CELEBS,
+                    DATA_EXAM_ANSWER, DATA_HOME_FURNITURE, DATA_HOME_TRAVEL,
+                    DATA_WEB_NEWS_ALLNEWS, DATA_WEB_NEWS_ANNOUNCE, DATA_SERVER_MASTER,
+                    DATA_SERVER_CHECK, DATA_SERVER_STATUS, DATA_HOME_FLOWER,
+                    DATA_SKILL_REWORK, DATA_SCHOOL_FOODS, DATA_BATTLE_RECORDS,
+                    DATA_DUOWAN_STATISTICS, DATA_SAOHUA_RANDOM, DATA_SAOHUA_CONTENT,
+                    DATA_SOUND_CONVERTER, DATA_SAOHUA_ANSWER, DATA_SAOHUA_DRINK,
+                    DATA_SAOHUA_EAT, DATA_SAOHUA_ZHANAN -> 0;
+            case DATA_ROLE_ACHIEVEMENT, DATA_SERVER_EVENT, DATA_SERVER_ANTIVICE,
+                    DATA_ACTIVE_MONSTER, DATA_ACTIVE_NEXT_EVENT, DATA_HORSE_RECORDS,
+                    DATA_WATCH_RECORD, DATA_WATCH_STATISTICAL, DATA_WATCH_COLLECT,
+                    DATA_WATCH_RANK_STATISTICAL, DATA_ROLE_MONSTER, DATA_AUCTION_RECORDS,
+                    DATA_ROLE_SHOW_CARD, DATA_ROLE_SHOW_CARDS, DATA_ROLE_SHOW_RANDOM,
+                    DATA_ROLE_SHOW_CACHED, DATA_MINE_CART, DATA_CHITU_RECORDS,
+                    DATA_CHITU_WEEK_RECORDS, DATA_TRADE_WANBAOLOU, DATA_CARD_PRESET,
+                    DATA_CHAT_RECORDS, DATA_RANK_ARENA, DATA_RANK_CHAMPIONSHIP,
+                    DATA_RANK_CONSTABLE, DATA_RANK_OUTLAW, DATA_RANK_WANTED,
+                    DATA_SAOHUA_CONTEXT, DATA_SCHOOL_SEARCH, DATA_SKILL_CALCULATE,
+                    DATA_TRADE_MANUFACTURE, DATA_TUILAN_ACHIEVEMENT -> 2;
+            default -> 1;
+        };
+    }
+
+    public boolean isV2TokenRequired() {
+        return getApiLevel() >= 2;
+    }
+
+    public static MethodEnum findByPath(String path) {
+        if (path == null) {
+            return null;
+        }
+        for (MethodEnum methodEnum : values()) {
+            if (methodEnum.getMethodPath().equals(path)) {
+                return methodEnum;
+            }
+        }
+        return null;
+    }
     public static void main(String[] args) {
         Map<String, String> pickedTimeMap = new HashMap<>();
         List<String> needCheckedList = new ArrayList<>();

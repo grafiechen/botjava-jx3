@@ -3,6 +3,7 @@ package com.grafie.botjava.service;
 import com.grafie.botjava.config.ActiveMessageProperties;
 import com.grafie.botjava.entity.GroupInfo;
 import com.grafie.botjava.mapper.GroupInfoMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class GroupActiveMessagePolicy {
     private final ActiveMessageProperties properties;
     private final Clock clock;
 
+    @Autowired
     public GroupActiveMessagePolicy(GroupInfoMapper groupInfoMapper, ActiveMessageProperties properties) {
         this(groupInfoMapper, properties, Clock.systemDefaultZone());
     }

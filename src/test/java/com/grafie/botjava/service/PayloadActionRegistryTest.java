@@ -1,5 +1,6 @@
 package com.grafie.botjava.service;
 
+import com.grafie.botjava.action.C2cMessageAction;
 import com.grafie.botjava.action.GroupAtMessageAction;
 import com.grafie.botjava.action.GroupLifecycleAction;
 import com.grafie.botjava.action.InteractionCreateAction;
@@ -25,8 +26,9 @@ class PayloadActionRegistryTest {
                 mock(QqInteractionHandlerRegistry.class), mock(GroupMessageSender.class));
         GroupLifecycleAction lifecycleAction = new GroupLifecycleAction(
                 mock(QqGroupLifecycleHandlerRegistry.class));
+        C2cMessageAction c2cAction = new C2cMessageAction(mock(C2cAdminConfigService.class));
         PayloadActionRegistry registry = new PayloadActionRegistry(
-                List.of(groupAction, interactionAction, lifecycleAction));
+                List.of(groupAction, interactionAction, lifecycleAction, c2cAction));
 
         assertSame(groupAction, registry.get(PayloadTEnum.GROUP_AT_MESSAGE_CREATE));
         assertSame(groupAction, registry.get(PayloadTEnum.GROUP_MESSAGE_CREATE));
@@ -35,6 +37,7 @@ class PayloadActionRegistryTest {
         assertSame(lifecycleAction, registry.get(PayloadTEnum.GROUP_DEL_ROBOT));
         assertSame(lifecycleAction, registry.get(PayloadTEnum.GROUP_MSG_RECEIVE));
         assertSame(lifecycleAction, registry.get(PayloadTEnum.GROUP_MSG_REJECT));
+        assertSame(c2cAction, registry.get(PayloadTEnum.C2C_MESSAGE_CREATE));
     }
 
     @Test

@@ -40,6 +40,11 @@ class SensitiveDataUtilTest {
                 "token=real-token ticket:real-ticket server=乾坤一掷");
 
         assertEquals("token=****** ticket=****** server=乾坤一掷", redacted);
+
+        String jsonRedacted = SensitiveDataUtil.redactText(
+                "{\"token\":\"real-token\",\"server\":\"乾坤一掷\"}");
+
+        assertEquals("{\"token\":\"******\",\"server\":\"乾坤一掷\"}", jsonRedacted);
     }
 
     @Test

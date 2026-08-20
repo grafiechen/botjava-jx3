@@ -10,15 +10,14 @@ import com.grafie.botjava.jx3.http.util.Jx3RequestUtil;
 import com.grafie.botjava.jx3.http.util.REGEX;
 import com.grafie.botjava.service.GroupConfigurationService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.StringJoiner;
 
 @Jx3Action
 public class TradeItemSearchAction extends Jx3BaseAction {
+    private static final int MAX_ITEMS = 8;
+
     public TradeItemSearchAction(ApiProperties apiProperties, Jx3RequestUtil requestUtil,
                                  GroupConfigurationService groupConfigurationService) {
         super(apiProperties, requestUtil, groupConfigurationService);
@@ -36,49 +35,68 @@ public class TradeItemSearchAction extends Jx3BaseAction {
 
     @Override
     protected BotResponse.ResponseType getResponseType() {
-        return BotResponse.ResponseType.IMAGE;
+        return BotResponse.ResponseType.TEXT;
     }
 
     @Override
-    protected String getTemplatePath() {
-        return "搜索物品";
-    }
-
-    @Override
-    protected Map<String, Object> buildTemplateData(BaseResult baseResult) {
-        Map<String, Object> template = new LinkedHashMap<>();
-        template.put("name", currentArguments().get("name"));
-        template.put("data", toViews(baseResult == null ? null : baseResult.getData()));
-        return template;
-    }
-
-    private List<ItemView> toViews(Object value) {
-        if (!(value instanceof List<?> values)) {
-            return List.of();
+    protected String buildTextContent(BaseResult baseResult) {
+        if (baseResult == null || !(baseResult.getData() instanceof List<?> values)) {
+            return "未找到相关物品。";
         }
-        List<ItemView> views = new ArrayList<>();
-        Map<String, Optional<String>> images = new HashMap<>();
-        for (Object item : values) {
-            if (item instanceof OfficialQueryData.TradeItem tradeItem) {
-                views.add(new ItemView(tradeItem.getCategory(), tradeItem.getSubclass(), tradeItem.getName(),
-                        tradeItem.getAlias(), tradeItem.getValue(), tradeItem.getDesc(), tradeItem.getDate(),
-                        image(tradeItem.getView(), images)));
-            }
-            if (views.size() >= 8) {
-                break;
-            }
+
+        List<OfficialQueryData.TradeItem> items = values.stream()
+                .filter(OfficialQueryData.TradeItem.class::isInstance)
+                .map(OfficialQueryData.TradeItem.class::cast)
+                .limit(MAX_ITEMS)
+                .toList();
+        if (items.isEmpty()) {
+            return "未找到相关物品。";
         }
-        return List.copyOf(views);
+
+        StringBuilder content = new StringBuilder("搜索物品（显示 ")
+                .append(items.size())
+                .append(" 条）");
+        for (int index = 0; index < items.size(); index++) {
+            content.append('\n').append(formatItem(index + 1, items.get(index)));
+        }
+        return content.toString();
     }
 
-    private String image(String url, Map<String, Optional<String>> images) {
-        if (url == null || url.isBlank()) {
-            return null;
-        }
-        return images.computeIfAbsent(url, jx3RequestUtil::loadRemoteImageDataUri).orElse(null);
+    private String formatItem(int index, OfficialQueryData.TradeItem item) {
+        StringJoiner fields = new StringJoiner("；");
+        fields.add(index + ". " + defaultText(item.getName(), "未知物品"));
+        addField(fields, "别名", combine(item.getAlias(), item.getWblalias()));
+        return fields.toString();
     }
 
-    public record ItemView(String category, String subclass, String name, String alias,
-                           String value, String description, String date, String imageDataUri) {
+    private void addField(StringJoiner fields, String label, String value) {
+        String readable = normalize(value);
+        if (!readable.isEmpty()) {
+            fields.add(label + "：" + readable);
+        }
+    }
+
+    private String combine(String first, String second) {
+        String left = normalize(first);
+        String right = normalize(second);
+        if (left.isEmpty()) {
+            return right;
+        }
+        if (right.isEmpty() || left.equals(right)) {
+            return left;
+        }
+        return left + "/" + right;
+    }
+
+    private String defaultText(String value, String fallback) {
+        String readable = normalize(value);
+        return readable.isEmpty() ? fallback : readable;
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.replaceAll("\\s+", " ").trim();
     }
 }

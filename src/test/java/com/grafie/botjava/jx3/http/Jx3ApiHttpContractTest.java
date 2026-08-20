@@ -107,10 +107,38 @@ class Jx3ApiHttpContractTest {
         assertEquals(expectedString(caseData, "subclass"), data.getSubclass());
         assertEquals(expectedString(caseData, "name"), data.getName());
         assertNotNull(data.getData());
-        assertEquals(expectedString(caseData, "firstRecordServer"), data.getData().get(0).get(0).getServer());
-        assertEquals(((Number) caseData.expected().get("firstRecordSale")).intValue(), data.getData().get(0).get(0).getSales());
+        assertEquals(expectedString(caseData, "firstRecordServer"), data.getData().get(0).getServer());
+        assertEquals(((Number) caseData.expected().get("firstRecordSale")).intValue(), data.getData().get(0).getSales());
     }
 
+
+    @Test
+    @DisplayName("JX3API_TRADE_ITEM_RECORDS_GROUPED_LIST_JSON")
+    void shouldMapGroupedTradeItemRecordsResultJson() throws Exception {
+        String json = """
+                {"code":200,"msg":"success","data":{"category":"发型","name":"金发·因陀罗","alias":"猴金/金发因陀罗","retail":280,"desc":"2016/02/29上架发售，不绑定限时3周。售价280。","date":"2016-02-29","view":"https://static.nicemoe.cn/static/view/demo.png","list":[{"name":"电信区","list":[{"date":"2026-07-08","sale":3,"server":"乾坤一掷","value":4300,"zone":"电信区"}]},{"name":"公示期","list":[{"id":"1099688127587647488","index":"81fd55d64ef82667","zone":"电信区","server":"乾坤一掷","value":6099,"sale":7,"remainingTime":347508,"token":"demo-token","date":"2026-08-12","source":4,"status":1}]}]}}
+                """;
+        ApiProperties apiProperties = new ApiProperties();
+        apiProperties.setApiUrl("https://example.invalid");
+        apiProperties.setApiToken("TEST_TOKEN");
+        Jx3RequestUtil requestUtil = new Jx3RequestUtil(
+                apiProperties, OBJECT_MAPPER.copy(),
+                mock(Jx3ApiResponseCache.class), mock(BotMetrics.class));
+        RequestResult requestResult = OBJECT_MAPPER.readValue(json, RequestResult.class);
+        requestResult.setRawResponseBody(json);
+
+        BaseResult<?> baseResult = requestUtil.getResultRealData(requestResult, MethodEnum.DATA_TRADE_RECORD);
+
+        TradeRecordData data = assertInstanceOf(TradeRecordData.class, baseResult.getData());
+        assertEquals("发型", data.getCategory());
+        assertEquals(280, data.getRetail());
+        assertEquals(2, data.getGroups().size());
+        assertEquals("电信区", data.getGroups().get(0).name());
+        assertEquals("乾坤一掷", data.getGroups().get(0).list().get(0).getServer());
+        assertEquals(4300, data.getGroups().get(0).list().get(0).getValue());
+        assertEquals("81fd55d64ef82667", data.getGroups().get(1).list().get(0).getIndex());
+        assertEquals(2, data.getData().size());
+    }
     @Test
     @DisplayName("JX3API_ROLE_DETAIL_RESULT_JSON")
     void shouldMapRoleDetailResultJson() throws Exception {

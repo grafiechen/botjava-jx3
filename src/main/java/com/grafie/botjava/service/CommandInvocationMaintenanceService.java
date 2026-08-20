@@ -3,6 +3,7 @@ package com.grafie.botjava.service;
 import com.grafie.botjava.config.CommandAuditProperties;
 import com.grafie.botjava.mapper.CommandInvocationMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ public class CommandInvocationMaintenanceService {
     private final CommandAuditProperties properties;
     private final Clock clock;
 
+    @Autowired
     public CommandInvocationMaintenanceService(CommandInvocationMapper mapper, CommandAuditProperties properties) {
         this(mapper, properties, Clock.systemDefaultZone());
     }
