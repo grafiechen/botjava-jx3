@@ -201,7 +201,7 @@ DB_PASSWORD
 
 默认连接地址为 `jdbc:postgresql://localhost:5432/postgres?currentSchema=public`。生产环境应通过 Spring 配置覆盖完整 JDBC URL。
 
-开发环境的 `spring.jpa.hibernate.ddl-auto=update` 会自动维护表结构。生产环境使用 `ddl-auto=none` 时，在发布个人多角色绑定和指令调用记录功能前执行；`user-info.sql` 会创建角色集合表，并幂等迁移旧的默认角色：
+spring.jpa.hibernate.ddl-auto=update 可以增加字段，但不会可靠删除旧唯一约束。无论当前使用 update 还是 none，从旧版升级角色绑定功能时都必须执行下面的 user-info.sql；它会删除旧的三列唯一约束，并建立 group_open_id + member_openid + server + role_name 群级唯一约束：
 
 ```bash
 psql "$DATABASE_URL" -f docs/database/group-info.sql
@@ -216,7 +216,7 @@ psql "$DATABASE_URL" -f docs/database/group-push-subscription.sql
 psql "$DATABASE_URL" -f docs/database/push-event-receipt.sql
 ```
 
-`user-info.sql` 会为旧 `user_info` 表幂等增加 `school` 字段，并保留现有默认角色及多角色数据。
+user-info.sql 会为旧 user_info 表幂等增加 school 字段，并保留现有默认角色及多角色数据。若日志仍出现 uk_user_role_binding_account_role 冲突，说明目标数据库尚未执行该脚本；只替换 JAR 或重启应用不能修复数据库约束。
 
 `group-info.sql` 会增加主动消息本地开关、QQ 平台授权和共享频控字段，并为 `open_group_id` 建立唯一索引。旧库执行脚本前先检查重复群记录；若查询有结果，应先按业务数据合并重复行：
 
@@ -248,13 +248,14 @@ BOT_QQ_IMAGE_UPLOAD_MODE=CHUNK
 
 ```text
 推送列表
-开启推送 开服状态
++
++关闭推送 开服状态
 关闭推送 开服状态
 ```
 
 `推送列表`、`开启推送`、`关闭推送` 仅允许群主或群管理员执行，数据按 `group_open_id` 隔离。`推送列表` 返回表格图片，始终列出注册表中的全部项目：QQ WebSocket 的 4 类群状态事件、JX3API WebSocket 的全部实时事件以及自定义定时任务；数据库没有订阅行的项目显示为“未开启”。开启后，QQ WS 群状态事件只回推事件所属群，JX3API WS 事件只投递到已开启同名任务的群；关闭的群不会进入 QQ 发送。普通 QQ 群消息是指令入口，不注册为推送任务，避免消息回显循环。
 
-所有主动推送仍同时受本群“主动消息”总开关、QQ 平台授权和频控约束。QQ/JX3API WS 实时事件与项目自定义定时任务共用统一投递线程池。
+所有主动推送仍同时受本群“主动消息”总开关、QQ 平台授权和频控约束。QQ/JX3API WS 实时事件与项目自定义定时任务共用统一投递线程池。`定时背包预警` 默认每天 09:00 按运行服务器的系统时区触发；只向执行过 `开启推送 定时背包预警` 的群发送，当前没有背包剩余空间小于 50 的角色时不发送。
 
 群指令调用记录默认保留 30 天，并在每天 `03:15` 清理。可通过以下环境变量调整：
 
@@ -416,13 +417,54 @@ mvn "-Dtest=SoundConverterLiveSmokeIT" test
 
 ## 4. 启动
 
+项目根目录提供 `start.sh`，适用于将脚本、JAR 和外部 YAML 一起部署到常驻 Linux 主机。脚本优先读取同目录 `application.yml`，不存在时回退到 `config/application.yml`；配置文件缺失会直接终止，避免误用 JAR 内默认数据库配置。
+
 ```bash
-java -jar target/botjava-0.0.1.jar \
-  --spring.profiles.active=prod
+chmod +x start.sh
+./start.sh
 ```
 
-建议使用 systemd、Docker 或其他进程管理器，并把日志目录挂载到持久化磁盘。
+也可以直接使用 POSIX sh：
 
+```bash
+sh start.sh
+```
+
+Windows 主机使用同目录的 `start.bat`。双击 BAT 或在 CMD 中执行后，Java 会直接运行在当前可见窗口；不创建后台进程、不写 PID 文件，也不重定向标准输出。日志会实时显示，Java 退出或被系统终止后窗口显示退出码并暂停：
+
+```bat
+start.bat
+```
+
+脚本优先读取同目录 `application.yml`，其次读取 `config\application.yml`。默认使用 `botjava-0.0.1.jar`、端口 `8081` 和 `-Xms128m -Xmx512m`，避免 JVM 堆无限增长挤占小内存主机。脚本通过 `chcp 65001` 将当前 CMD 切换为 UTF-8，并固定 JVM 标准输出、标准错误及 Spring Boot 控制台日志为 UTF-8；修改 `JAVA_OPTS` 不会覆盖这些编码参数。可在启动前覆盖参数：
+
+```bat
+set SERVER_PORT=8081
+set JAVA_OPTS=-Xms128m -Xmx768m
+set CONFIG_FILE=application.yml
+start.bat
+```
+
+关闭应用时在该窗口按 `Ctrl+C`。前台运行只能让退出原因和日志可见，不能替代操作系统内存保护；如果仍被杀，应继续降低 `-Xmx`，并为 Chromium 图片渲染进程预留额外内存。
+
+默认使用 `botjava-0.0.1.jar`、端口 `8081`，日志写入 `logs/botjava.log`，PID 写入 `botjava.pid`。可通过环境变量覆盖：
+
+```bash
+JAR_NAME=botjava-0.0.1.jar \
+CONFIG_FILE=./application.yml \
+SERVER_PORT=8081 \
+JAVA_OPTS="-Xms256m -Xmx1g" \
+sh start.sh
+```
+
+查看日志和停止进程：
+
+```bash
+tail -f logs/botjava.log
+kill "$(cat botjava.pid)"
+```
+
+脚本会检查已有 PID，存活时不会重复启动；发现失效 PID 会先清理。生产环境长期运行仍建议使用 systemd、Docker 或其他进程管理器，并把日志目录挂载到持久化磁盘。
 ## 5. QQ 回调
 
 - 应用监听端口以 Spring `server.port` 为准。
@@ -485,6 +527,7 @@ MongoDB URI 必须通过环境变量或外部 Secret 提供，禁止提交真实
 BOT_OUTBOUND_HTTP_RATE_LIMIT_ENABLED=true
 BOT_OUTBOUND_HTTP_MAX_REQUESTS_PER_SECOND=2
 BOT_PUSH_MONGO_DAILY_CRON="0 0 10 * * *"
+BOT_PUSH_MONGO_BAG_WARNING_CRON="0 0 9 * * *"
 BOT_PUSH_MONGO_DAILY_ZONE=Asia/Tokyo
 ```
 

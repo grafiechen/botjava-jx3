@@ -52,11 +52,12 @@ class Jx3CommandRegistryTest {
     void shouldResolveUserBindingAndRoleQueryWithoutArguments() throws Exception {
         Jx3CommandRegistry registry = new Jx3CommandRegistry(allRegisteredActions());
 
-        ResolvedJx3Command binding = registry.resolve("/绑定角色 乾坤一掷 加菲 万花").orElseThrow();
+        ResolvedJx3Command binding = registry.resolve("/绑定角色 乾坤一掷 加菲").orElseThrow();
         assertEquals(REGEX.BindRole, binding.definition());
         assertEquals("乾坤一掷", binding.arguments().server(null));
         assertEquals("加菲", binding.arguments().roleName());
-        assertEquals("万花", binding.arguments().school());
+        assertEquals(null, binding.arguments().school());
+        assertTrue(registry.resolve("绑定角色 乾坤一掷 加菲 万花").isEmpty());
 
         ResolvedJx3Command roleQuery = registry.resolve("装备").orElseThrow();
         assertEquals(REGEX.RoleAttribute, roleQuery.definition());
@@ -82,14 +83,30 @@ class Jx3CommandRegistryTest {
         Jx3CommandRegistry registry = new Jx3CommandRegistry(allRegisteredActions());
 
         ResolvedJx3Command status = registry.resolve("脚本状态").orElseThrow();
+        ResolvedJx3Command fieldQuery = registry.resolve("/查询信息 乾坤一掷 加菲 侠行点").orElseThrow();
+        ResolvedJx3Command allFieldQuery = registry.resolve("/查询全部信息 背包剩余空间").orElseThrow();
         ResolvedJx3Command update = registry.resolve("脚本设置 乾坤一掷 加菲 秘籍 完成").orElseThrow();
+        ResolvedJx3Command bagWarning = registry.resolve("/背包预警").orElseThrow();
 
         assertEquals(REGEX.ScriptStatus, status.definition());
+        assertEquals(REGEX.RoleFieldQuery, fieldQuery.definition());
+        assertEquals("乾坤一掷", fieldQuery.arguments().server(null));
+        assertEquals("加菲", fieldQuery.arguments().roleName());
+        assertEquals("侠行点", fieldQuery.arguments().get("name"));
+        assertEquals(REGEX.AllRoleFieldQuery, allFieldQuery.definition());
+        assertEquals("背包剩余空间", allFieldQuery.arguments().get("name"));
+        assertTrue(allFieldQuery.definition().getCommandAccess().allows("member"));
+        assertFalse(allFieldQuery.definition().requiresRoleName());
+        assertTrue(allFieldQuery.definition().usesExternalCall());
         assertEquals(REGEX.ScriptStatusUpdate, update.definition());
         assertEquals("乾坤一掷", update.arguments().server(null));
         assertEquals("加菲", update.arguments().roleName());
         assertEquals("秘籍", update.arguments().get("name"));
         assertEquals("完成", update.arguments().get("text"));
+        assertEquals(REGEX.BagSpaceWarning, bagWarning.definition());
+        assertTrue(bagWarning.definition().getCommandAccess().allows("member"));
+        assertFalse(bagWarning.definition().requiresRoleName());
+        assertTrue(bagWarning.definition().usesExternalCall());
         assertTrue(update.definition().usesExternalCall());
         assertEquals(30, update.definition().getDefaultCooldownSeconds());
     }

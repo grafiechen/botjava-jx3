@@ -70,6 +70,9 @@ bot:
     # WS 原始帧指纹的持久化去重保留时间；重复帧不会再次进入发送队列。
     ws-dedup-retention-days: ${BOT_PUSH_WS_DEDUP_RETENTION_DAYS:7}
     ws-dedup-cleanup-cron: ${BOT_PUSH_WS_DEDUP_CLEANUP_CRON:0 30 3 * * *}
+    mongo-bag-warning:
+      # 使用运行服务器的系统时区，每天 09:00 仅向已开启“定时背包预警”的群发送。
+      cron: ${BOT_PUSH_MONGO_BAG_WARNING_CRON:0 0 9 * * *}
     mongo-daily:
       # 默认按日本时区每天 10:00 生成日常进度图片；仅向已开启 Mongo日常进度 且存在角色绑定的群发送。
       cron: ${BOT_PUSH_MONGO_DAILY_CRON:0 0 10 * * *}
@@ -85,7 +88,14 @@ bot:
       collection: ${BOT_MONGODB_ROLE_STATUS_COLLECTION:roles}
       server-field: ${BOT_MONGODB_ROLE_STATUS_SERVER_FIELD:服务器}
       role-name-field: ${BOT_MONGODB_ROLE_STATUS_ROLE_NAME_FIELD:角色名}
+      bag-remaining-field: ${BOT_MONGODB_ROLE_STATUS_BAG_REMAINING_FIELD:背包剩余空间}
       max-matches: ${BOT_MONGODB_ROLE_STATUS_MAX_MATCHES:20}
+    role-field-query:
+      # 内置敏感字段始终禁止；可追加黑名单。白名单默认关闭，后续可按部署需要开启。
+      whitelist-enabled: ${BOT_MONGODB_QUERY_FIELD_WHITELIST_ENABLED:false}
+      allowed-fields: ${BOT_MONGODB_QUERY_FIELD_ALLOWED_FIELDS:}
+      denied-fields: ${BOT_MONGODB_QUERY_FIELD_DENIED_FIELDS:}
+      max-items: ${BOT_MONGODB_QUERY_FIELD_MAX_ITEMS:200}
   command:
     runtime-mode: ${BOT_COMMAND_RUNTIME_MODE:PRODUCTION}
     cooldown-in-flight-timeout-seconds: ${BOT_COMMAND_COOLDOWN_IN_FLIGHT_TIMEOUT_SECONDS:300}

@@ -20,6 +20,8 @@ class ProjectDocumentationContractTest {
     private static final Path README = Path.of("README.md");
     private static final Path ARCHITECTURE = Path.of("docs", "PROJECT_ARCHITECTURE.md");
     private static final Path DEPLOYMENT = Path.of("docs", "DEPLOYMENT.md");
+    private static final Path MONGODB = Path.of("docs", "MONGODB.md");
+    private static final Path USER_INFO_SQL = Path.of("docs", "database", "user-info.sql");
     private static final Path ACCEPTANCE_TEMPLATE = Path.of(
             "docs", "testing", "external-acceptance-record-template.md");
     private static final Path ACCEPTANCE_PREFLIGHT_SCRIPT = Path.of(
@@ -173,6 +175,24 @@ class ProjectDocumentationContractTest {
         assertFalse(dpsAction.contains("先写死"));
     }
 
+    @Test
+    void shouldDocumentAllRoleMongoFieldQuery() throws Exception {
+        String mongodb = read(MONGODB);
+
+        assertTrue(mongodb.contains("查询全部信息 Mongo字段"));
+        assertTrue(mongodb.contains("LuaRoleStatusStore.findAllRoleFields"));
+        assertTrue(mongodb.contains("src/main/resources/static/查询全部信息.html"));
+        assertTrue(mongodb.contains("每行最多 5 个角色"));
+        assertTrue(mongodb.contains("不套用单角色 `BOT_MONGODB_QUERY_FIELD_MAX_ITEMS` 限制"));
+    }
+    @Test
+    void shouldMigrateLegacyRoleBindingConstraintToGroupScope() throws Exception {
+        String migration = read(USER_INFO_SQL);
+
+        assertTrue(migration.contains("DROP CONSTRAINT IF EXISTS uk_user_role_binding_account_role"));
+        assertTrue(migration.contains("ARRAY['member_openid', 'server', 'role_name']::TEXT[]"));
+        assertTrue(migration.contains("UNIQUE (group_open_id, member_openid, server, role_name)"));
+    }
     private boolean usesImageResponse(REGEX definition) {
         Path source = Path.of("src", "main", "java",
                 definition.getBaseAction().getName().replace('.', '/') + ".java");

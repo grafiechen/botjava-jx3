@@ -57,17 +57,17 @@ public class UserBindingAction extends Jx3BaseAction {
     private BotResponse bind() {
         UserInfo userInfo = preferenceService.bind(
                 currentMessage(), currentArguments().get("server"),
-                currentArguments().roleName(), currentArguments().school());
+                currentArguments().roleName());
         return BotResponse.text("默认角色已绑定："
-                + roleDisplay(userInfo.getServer(), userInfo.getRoleName(), userInfo.getSchool()));
+                + roleDisplay(userInfo.getServer(), userInfo.getRoleName()));
     }
 
     private BotResponse add() {
         UserRoleBinding binding = preferenceService.addRole(
                 currentMessage(), currentArguments().get("server"),
-                currentArguments().roleName(), currentArguments().school());
+                currentArguments().roleName());
         return BotResponse.text("常用角色已添加："
-                + roleDisplay(binding.getServer(), binding.getRoleName(), binding.getSchool()));
+                + roleDisplay(binding.getServer(), binding.getRoleName()));
     }
 
     private BotResponse modify() {
@@ -89,8 +89,7 @@ public class UserBindingAction extends Jx3BaseAction {
             content.append("\n")
                     .append(selected ? "【默认】" : "- ")
                     .append(role.getServer()).append(" ")
-                    .append(role.getRoleName()).append(" ")
-                    .append(role.getSchool() == null ? "门派未设置" : role.getSchool());
+                    .append(role.getRoleName());
         }
         return BotResponse.text(content.toString());
     }
@@ -107,9 +106,8 @@ public class UserBindingAction extends Jx3BaseAction {
         return BotResponse.text("删除角色必须提供区服和角色名。");
     }
 
-    private String roleDisplay(String server, String roleName, String school) {
-        String base = server + " " + roleName;
-        return school == null || school.isBlank() ? base + "（门派未设置）" : base + " " + school;
+    private String roleDisplay(String server, String roleName) {
+        return server + " " + roleName;
     }
     private boolean sameRole(UserRoleBinding role, UserInfo defaultRole) {
         return role != null && defaultRole != null

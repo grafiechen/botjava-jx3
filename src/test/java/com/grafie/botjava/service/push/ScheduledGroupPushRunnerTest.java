@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 class ScheduledGroupPushRunnerTest {
@@ -34,6 +35,38 @@ class ScheduledGroupPushRunnerTest {
         runner.run(task);
 
         verify(dispatcher).publish(eq(definition), isA(Function.class));
+    }
+
+    @Test
+    void shouldBuildSharedScheduledResponseOnceBeforeDispatch() {
+        GroupPushDispatcher dispatcher = mock(GroupPushDispatcher.class);
+        ScheduledGroupPushRunner runner = new ScheduledGroupPushRunner(dispatcher);
+        PushTaskDefinition definition = new PushTaskRegistry()
+                .find(PushTaskRegistry.MONGO_BAG_SPACE_WARNING).orElseThrow();
+        ScheduledGroupPushTask task = mock(ScheduledGroupPushTask.class);
+        BotResponse response = BotResponse.text("背包预警");
+        org.mockito.Mockito.when(task.definition()).thenReturn(definition);
+        org.mockito.Mockito.when(task.buildResponse(null)).thenReturn(response);
+
+        runner.runShared(task);
+
+        verify(task).buildResponse(null);
+        verify(dispatcher).publish(definition, response);
+    }
+
+    @Test
+    void shouldSkipSharedDispatchWhenTaskHasNoContent() {
+        GroupPushDispatcher dispatcher = mock(GroupPushDispatcher.class);
+        ScheduledGroupPushRunner runner = new ScheduledGroupPushRunner(dispatcher);
+        PushTaskDefinition definition = new PushTaskRegistry()
+                .find(PushTaskRegistry.MONGO_BAG_SPACE_WARNING).orElseThrow();
+        ScheduledGroupPushTask task = mock(ScheduledGroupPushTask.class);
+        org.mockito.Mockito.when(task.definition()).thenReturn(definition);
+        org.mockito.Mockito.when(task.buildResponse(null)).thenReturn(null);
+
+        runner.runShared(task);
+
+        verify(dispatcher, never()).publish(eq(definition), isA(BotResponse.class));
     }
 
     @Test

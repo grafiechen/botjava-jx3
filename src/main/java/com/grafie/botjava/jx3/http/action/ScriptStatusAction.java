@@ -35,6 +35,10 @@ public class ScriptStatusAction extends Jx3BaseAction {
         String roleName = currentArguments().roleName();
         return switch (currentRegex()) {
             case ScriptStatus -> scriptStatusService.query(currentMessage(), server, roleName);
+            case RoleFieldQuery -> scriptStatusService.queryField(
+                    currentMessage(), server, roleName, currentArguments().get("name"));
+            case AllRoleFieldQuery -> scriptStatusService.queryAllFields(currentArguments().get("name"));
+            case BagSpaceWarning -> scriptStatusService.queryBagSpaceWarning();
             case ScriptStatusUpdate -> scriptStatusService.update(
                     currentMessage(), server, roleName,
                     currentArguments().get("name"), currentArguments().get("text"));

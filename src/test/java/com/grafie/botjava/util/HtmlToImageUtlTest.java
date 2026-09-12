@@ -1174,6 +1174,115 @@ class HtmlToImageUtlTest {
     }
 
     @Test
+    void shouldRenderBuiltInRoleInfoAsCompactFiveColumnTable() throws Exception {
+        String template = HtmlToImageUtl.readHtmlFromResources("static/查询信息.html");
+        assertFalse(template.contains("脚本"));
+
+        List<Map<String, Object>> fields = List.of(
+                queryField("背包剩余空间", "背包剩余空间", "66"),
+                queryField("金币", "角色金币", "125860"),
+                queryField("精力", "精力", "750"),
+                queryField("侠义点", "侠行点", "1280"),
+                queryField("威望", "威望", "3220"));
+        Map<String, Object> data = Map.of(
+                "server", "乾坤一掷",
+                "roleName", "琉枫",
+                "queryName", "角色信息",
+                "fieldCount", fields.size(),
+                "visibleFieldCount", fields.size(),
+                "matchCount", 1,
+                "recordCount", 1,
+                "itemCount", fields.size(),
+                "truncated", false,
+                "records", List.of(Map.of("index", 1, "fields", fields)));
+        Path output = Path.of("target", "test-output", "html-image", "查询信息.png");
+        Files.createDirectories(output.getParent());
+
+        HtmlToImageUtl.renderTemplateToImage("查询信息", data, output.toString());
+
+        BufferedImage image = ImageIO.read(output.toFile());
+        assertNotNull(image);
+        assertTrue(image.getWidth() >= 850 && image.getWidth() <= 900,
+                "查询信息图片应按五列表格宽度收紧，实际宽度=" + image.getWidth());
+        assertTrue(image.getHeight() >= 180 && image.getHeight() < 320,
+                "查询信息图片应按实际内容高度裁剪，实际高度=" + image.getHeight());
+    }
+
+    @Test
+    void shouldRenderBagSpaceWarningAsCompactFiveColumnCards() throws Exception {
+        Map<String, Object> data = Map.of(
+                "threshold", 50,
+                "count", 6,
+                "records", List.of(
+                        Map.of("index", 1, "server", "梦江南", "roleName", "琉枫", "remainingSpace", "8"),
+                        Map.of("index", 2, "server", "乾坤一掷", "roleName", "加菲", "remainingSpace", "12"),
+                        Map.of("index", 3, "server", "唯我独尊", "roleName", "角色三", "remainingSpace", "20"),
+                        Map.of("index", 4, "server", "长安城", "roleName", "角色四", "remainingSpace", "28"),
+                        Map.of("index", 5, "server", "斗转星移", "roleName", "角色五", "remainingSpace", "35"),
+                        Map.of("index", 6, "server", "蝶恋花", "roleName", "角色六", "remainingSpace", "49")));
+        Path output = Path.of("target", "test-output", "html-image", "背包预警.png");
+        Files.createDirectories(output.getParent());
+
+        HtmlToImageUtl.renderTemplateToImage("背包预警", data, output.toString());
+
+        BufferedImage image = ImageIO.read(output.toFile());
+        assertNotNull(image);
+        assertTrue(image.getWidth() >= 800 && image.getWidth() <= 850,
+                "背包预警图片应采用五列紧凑布局，实际宽度=" + image.getWidth());
+        assertTrue(image.getHeight() >= 250 && image.getHeight() < 420,
+                "超过五条后应换行并按内容裁剪，实际高度=" + image.getHeight());
+    }
+
+    @Test
+    void shouldRenderAllRoleFieldQueryAsCompactFiveColumnCards() throws Exception {
+        String template = HtmlToImageUtl.readHtmlFromResources("static/查询全部信息.html");
+        assertFalse(template.contains("脚本"));
+        assertTrue(template.contains("已拥有"));
+        assertTrue(template.contains("values-owned"));
+        List<Map<String, Object>> records = List.of(
+                Map.of("index", 1, "server", "乾坤一掷", "roleName", "角色一",
+                        "fields", List.of(queryField("周年挂件", "周年挂件", "是"))),
+                Map.of("index", 2, "server", "梦江南", "roleName", "角色二",
+                        "fields", List.of(queryField("周年挂件", "周年挂件", "是"))),
+                Map.of("index", 3, "server", "唯我独尊", "roleName", "角色三",
+                        "fields", List.of(queryField("周年挂件", "周年挂件", "是"))),
+                Map.of("index", 4, "server", "长安城", "roleName", "角色四",
+                        "fields", List.of(queryField("周年挂件", "周年挂件", "是"))),
+                Map.of("index", 5, "server", "斗转星移", "roleName", "角色五",
+                        "fields", List.of(queryField("周年挂件", "周年挂件", "是"))),
+                Map.of("index", 6, "server", "蝶恋花", "roleName", "角色六",
+                        "fields", List.of(queryField("周年挂件", "周年挂件", "是"))));
+        Map<String, Object> data = Map.of(
+                "queryName", "2026周年挂件",
+                "fieldCount", 1,
+                "recordCount", records.size(),
+                "itemCount", records.size(),
+                "truncated", false,
+                "hasOwnedValues", true,
+                "records", records);
+        Path output = Path.of("target", "test-output", "html-image", "查询全部信息.png");
+        Files.createDirectories(output.getParent());
+
+        HtmlToImageUtl.renderTemplateToImage("查询全部信息", data, output.toString());
+
+        BufferedImage image = ImageIO.read(output.toFile());
+        assertNotNull(image);
+        assertTrue(image.getWidth() >= 800 && image.getWidth() <= 850,
+                "全库字段查询图片应采用五列紧凑布局，实际宽度=" + image.getWidth());
+        assertTrue(image.getHeight() >= 190 && image.getHeight() < 330,
+                "拥有状态行应紧凑换行并按内容裁剪，实际高度=" + image.getHeight());
+    }
+    private Map<String, Object> queryField(String displayName, String mongoFieldName, String value) {
+        return Map.of(
+                "displayName", displayName,
+                "mongoFieldName", mongoFieldName,
+                "items", List.of(Map.of(
+                        "index", 1,
+                        "value", value,
+                        "owned", "是".equals(value))));
+    }
+
+    @Test
     void shouldOnlyRetryTransientBrowserTermination() {
         assertTrue(HtmlToImageUtl.isTransientBrowserTermination(
                 new com.microsoft.playwright.PlaywrightException("Page closed")));

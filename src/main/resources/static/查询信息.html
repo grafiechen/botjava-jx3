@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查询信息</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        html, body { margin: 0; }
+        body { background: #eef2f3; color: #20282d; font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
+        #main { display: inline-block; padding: 14px; }
+        .sheet { overflow: hidden; background: #fff; border: 1px solid #cbd4d7; border-top: 6px solid #326f68; border-radius: 6px; box-shadow: 0 8px 22px rgba(31, 42, 48, .10); }
+        .header { min-height: 72px; padding: 15px 20px 14px; border-bottom: 1px solid #d9e0e2; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 18px; }
+        .eyebrow { margin: 0 0 4px; color: #78868c; font-size: 11px; }
+        h1 { margin: 0; font-size: 22px; line-height: 1.3; overflow-wrap: anywhere; }
+        .identity { max-width: 210px; color: #326f68; text-align: right; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+        .identity span { display: block; margin-top: 3px; color: #7b888e; font-size: 11px; font-weight: 400; }
+        .record + .record { border-top: 5px solid #edf1f2; }
+        .record-title { margin: 0; padding: 8px 12px; color: #765143; background: #f7f9f9; border-bottom: 1px solid #dce3e5; font-size: 12px; }
+        .field-grid { display: grid; border-left: 1px solid #dce3e5; }
+        .field { min-width: 0; border-right: 1px solid #dce3e5; border-bottom: 1px solid #dce3e5; }
+        .field-title { min-height: 38px; margin: 0; padding: 9px 10px; display: flex; align-items: center; justify-content: center; color: #326f68; background: #f3f7f7; border-bottom: 1px solid #dce3e5; font-size: 13px; line-height: 1.4; text-align: center; overflow-wrap: anywhere; }
+        .values { min-height: 46px; display: flex; flex-direction: column; justify-content: center; }
+        .value { min-height: 46px; padding: 11px 9px; display: flex; align-items: center; justify-content: center; color: #20282d; font-size: 15px; line-height: 1.5; text-align: center; overflow-wrap: anywhere; }
+        .value + .value { border-top: 1px solid #edf0f1; }
+        .footer { min-height: 36px; padding: 9px 14px; display: flex; align-items: center; justify-content: space-between; gap: 16px; color: #7a878d; background: #fafbfb; font-size: 10px; }
+        .warning { color: #9a5540; font-weight: 700; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="sheet" data-capture-root
+             :style="{ width: Math.max(460, Math.min(Math.max(visibleFieldCount || fieldCount || 1, 1), 5) * 176) + 'px' }">
+        <header class="header">
+            <div><p class="eyebrow">小猫饼 · 角色信息</p><h1>{{ queryName }}</h1></div>
+            <div class="identity">{{ roleName || '未知角色' }}<span>{{ server || '未知区服' }} · {{ fieldCount || 0 }} 项</span></div>
+        </header>
+        <section class="record" v-for="record in records" :key="record.index">
+            <h2 class="record-title" v-if="matchCount > 1">角色记录 {{ record.index }}</h2>
+            <div class="field-grid"
+                 :style="{ gridTemplateColumns: 'repeat(' + Math.min(Math.max(record.fields.length, 1), 5) + ', minmax(0, 1fr))' }">
+                <div class="field" v-for="field in record.fields" :key="field.mongoFieldName">
+                    <h3 class="field-title">{{ field.displayName }}</h3>
+                    <div class="values">
+                        <div class="value" v-for="item in field.items" :key="item.index">{{ item.value }}</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <footer class="footer">
+            <span>数据来自本人已绑定角色</span>
+            <span class="warning" v-if="truncated">内容较多，仅展示前 {{ itemCount }} 项</span>
+            <span v-else>{{ recordCount }} 组记录</span>
+        </footer>
+    </article>
+</main>
+</body>
+</html>

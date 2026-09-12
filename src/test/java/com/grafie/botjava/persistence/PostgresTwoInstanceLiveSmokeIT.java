@@ -109,13 +109,14 @@ class PostgresTwoInstanceLiveSmokeIT {
         AuthorDto author = new AuthorDto();
         author.setMemberOpenid(memberKey);
         message.setAuthor(author);
+        message.setGroupOpenid("smoke-group-" + memberKey);
         first.getBean(UserCommandPreferenceService.class)
-                .bind(message, "测试服务器", "测试角色", "测试门派");
+                .bind(message, "测试服务器", "测试角色");
         UserCommandPreferenceService.BindingSnapshot snapshot = second
                 .getBean(UserCommandPreferenceService.class).findBindings(message);
         assertEquals("测试服务器", snapshot.defaultRole().getServer());
         assertEquals("测试角色", snapshot.defaultRole().getRoleName());
-        assertEquals("测试门派", snapshot.defaultRole().getSchool());
+        assertEquals(null, snapshot.defaultRole().getSchool());
         assertEquals(1, snapshot.roles().size());
     }
 

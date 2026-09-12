@@ -71,26 +71,24 @@ public class UserCommandPreferenceService {
     }
 
     @Transactional
-    public UserInfo bind(GroupAtMessageCreateDto message, String server, String roleName, String school) {
+    public UserInfo bind(GroupAtMessageCreateDto message, String server, String roleName) {
         String groupOpenId = requireGroupOpenId(message);
         String memberOpenId = requireMemberOpenId(message);
         String cleanedServer = requireText(server, "服务器");
         String cleanedRoleName = requireText(roleName, "角色名");
-        String cleanedSchool = clean(school);
-        saveRole(groupOpenId, memberOpenId, cleanedServer, cleanedRoleName, cleanedSchool);
-        return saveDefault(memberOpenId, cleanedServer, cleanedRoleName, cleanedSchool);
+        saveRole(groupOpenId, memberOpenId, cleanedServer, cleanedRoleName);
+        return saveDefaultRole(memberOpenId, cleanedServer, cleanedRoleName);
     }
 
     @Transactional
-    public UserRoleBinding addRole(GroupAtMessageCreateDto message, String server, String roleName, String school) {
+    public UserRoleBinding addRole(GroupAtMessageCreateDto message, String server, String roleName) {
         String groupOpenId = requireGroupOpenId(message);
         String memberOpenId = requireMemberOpenId(message);
         String cleanedServer = requireText(server, "服务器");
         String cleanedRoleName = requireText(roleName, "角色名");
-        String cleanedSchool = clean(school);
-        UserRoleBinding binding = saveRole(groupOpenId, memberOpenId, cleanedServer, cleanedRoleName, cleanedSchool);
+        UserRoleBinding binding = saveRole(groupOpenId, memberOpenId, cleanedServer, cleanedRoleName);
         if (userInfoMapper.findByMemberOpenId(memberOpenId) == null) {
-            saveDefault(memberOpenId, cleanedServer, cleanedRoleName, cleanedSchool);
+            saveDefaultRole(memberOpenId, cleanedServer, cleanedRoleName);
         }
         return binding;
     }
@@ -159,7 +157,7 @@ public class UserCommandPreferenceService {
                 clearDefaultRole(defaultRole);
             } else {
                 UserRoleBinding next = remaining.getFirst();
-                saveDefault(memberOpenId, next.getServer(), next.getRoleName(), next.getSchool());
+                saveDefaultRole(memberOpenId, next.getServer(), next.getRoleName());
             }
         }
         return true;
@@ -190,6 +188,17 @@ public class UserCommandPreferenceService {
         return userInfoMapper.save(userInfo);
     }
 
+    private UserInfo saveDefaultRole(String memberOpenId, String server, String roleName) {
+        UserInfo userInfo = userInfoMapper.findByMemberOpenId(memberOpenId);
+        if (userInfo == null) {
+            userInfo = new UserInfo();
+            userInfo.setMemberOpenId(memberOpenId);
+        }
+        userInfo.setServer(server);
+        userInfo.setRoleName(roleName);
+        return userInfoMapper.save(userInfo);
+    }
+
     private void clearDefaultRole(UserInfo userInfo) {
         if (userInfo != null) {
             userInfoMapper.delete(userInfo);
@@ -197,19 +206,17 @@ public class UserCommandPreferenceService {
     }
 
     private UserRoleBinding saveRole(String groupOpenId, String memberOpenId,
-                                     String server, String roleName, String school) {
+                                     String server, String roleName) {
         UserRoleBinding existing = roleBindingMapper.findByGroupOpenIdAndMemberOpenIdAndServerAndRoleName(
                 groupOpenId, memberOpenId, server, roleName);
         if (existing != null) {
-            existing.setSchool(school);
-            return roleBindingMapper.save(existing);
+            return existing;
         }
         UserRoleBinding binding = new UserRoleBinding();
         binding.setGroupOpenId(groupOpenId);
         binding.setMemberOpenId(memberOpenId);
         binding.setRoleName(roleName);
         binding.setServer(server);
-        binding.setSchool(school);
         return roleBindingMapper.save(binding);
     }
 

@@ -18,6 +18,11 @@ BOT_MONGODB_ENABLED=true
 BOT_MONGODB_URI=mongodb://<username>:<password>@<host>:27017/?authSource=admin
 BOT_MONGODB_DATABASE=botjava
 BOT_MONGODB_MAX_DOCUMENT_BYTES=1048576
+BOT_MONGODB_ROLE_STATUS_BAG_REMAINING_FIELD=背包剩余空间
+BOT_MONGODB_QUERY_FIELD_WHITELIST_ENABLED=false
+BOT_MONGODB_QUERY_FIELD_ALLOWED_FIELDS=
+BOT_MONGODB_QUERY_FIELD_DENIED_FIELDS=
+BOT_MONGODB_QUERY_FIELD_MAX_ITEMS=200
 ~~~
 
 如果密码包含特殊字符，必须先进行 URI percent-encoding。生产环境建议启用 TLS，并通过部署平台 Secret 或 JAR 同目录的外部 YAML 提供 URI。
@@ -105,6 +110,10 @@ Lua 脚本维护的角色状态集合属于外部既有数据，和 `MongoDocume
 群指令：
 
 - `脚本状态 [区服 角色名]`：省略参数时使用个人默认角色，返回 `脚本状态.html` 图片。
+- `背包预警`：公开群指令，不检查发送者身份和角色绑定。直接扫描配置的角色集合，但 MongoDB 只投影服务器、角色名和背包剩余空间三个字段；Java 将可解析数值中小于 50 的记录按剩余空间升序生成 `背包预警.html` 图片，每行最多 5 项。标题为“角色名 - 服务器”，下方显示剩余背包空间；没有命中时返回纯文本。字段名由 `bot.mongodb.role-status.server-field`、`role-name-field` 和 `bag-remaining-field` 配置。该全量预警查询不受单角色查询的 `max-matches` 限制。
+- `查询信息 区服 角色名 Mongo字段或别名`：查询当前群内本人已绑定角色的指定顶层字段，返回 `查询信息.html` 图片。真实 Mongo 字段名精确匹配优先；未命中真实字段时，以已启用字段配置的 `display_name` 或 `group_name` 作为别名，一个别名可展开为多个 Mongo 字段。图片使用紧凑的 Excel 表格布局，每个查询项上方显示字段名、下方显示字段值，每行最多 5 项并按实际内容区域裁剪；标量按单项展示，数组或集合在对应字段格内逐项展示。全部字段均无值时返回“未查询到数据”。
+`角色信息` 是内置查询别名，不要求 PostgreSQL 预先存在字段配置。`查询信息 区服 角色名 角色信息` 固定按顺序读取：`背包剩余空间 -> 背包剩余空间`、`角色金币 -> 金币`、`精力 -> 精力`、`侠行点 -> 侠义点`、`威望 -> 威望`。内置映射优先于数据库别名，但展开后的每个 MongoDB 字段仍分别执行敏感字段、黑名单和可选白名单校验。五人日常和门派日常暂不属于该映射。
+
 - `脚本设置 [区服 角色名] Mongo字段 值`：只能修改自己已绑定角色、且管理员标记为可写的字段。
 
 主号 C2C 字段管理：
@@ -113,12 +122,52 @@ Lua 脚本维护的角色状态集合属于外部既有数据，和 `MongoDocume
 - `脚本字段设置 Mongo字段 显示名 分组 TEXT|INTEGER|DECIMAL|BOOLEAN|DATETIME READ|WRITE 排序`
 - `脚本字段删除 Mongo字段`
 
-字段配置保存在 PostgreSQL `script_status_field`。MongoDB 更新操作写入现有 `bot_admin_audit_log`，审计不保存字段值、角色名或消息原文。
+字段配置保存在 PostgreSQL `script_status_field`。`display_name` 和 `group_name` 同时作为查询别名；显示名通常定位一个字段，分组名用于展开同组的全部启用字段。例如：
+
+```text
+脚本字段设置 角色金币 金币 货币 INTEGER READ 10
+脚本字段设置 侠行点 侠义 货币 INTEGER READ 20
+查询信息 乾坤一掷 加菲 货币
+```
+
+最后一条会把分组别名 `货币` 展开并同时读取 `角色金币` 和 `侠行点`；`查询信息 乾坤一掷 加菲 角色金币` 仍只读取真实字段 `角色金币`。别名匹配兼容全半角、大小写以及空白、点号、下划线、连字符和间隔点差异。MongoDB 更新操作写入现有 `bot_admin_audit_log`，审计不保存字段值、角色名或消息原文。
+
+指定字段查询不把字段名拼入 MongoDB 条件，只在按“区服 + 角色名”精确查询得到的文档中读取已校验的顶层键。命中别名后，展开出的每一个真实字段都必须分别通过同一套敏感字段、黑名单和可选白名单策略；任一字段不允许时整次请求拒绝，不做可能产生误解的部分返回。`_id`、账号、账户、用户名、全局 ID、角色 ID、OpenID、手机号、身份证、邮箱、password、secret、token、cookie、ticket、access key、private key 等内置敏感字段始终拒绝；`BOT_MONGODB_QUERY_FIELD_DENIED_FIELDS` 可用逗号继续追加精确字段名。白名单能力已预留，默认关闭；后续设置 `BOT_MONGODB_QUERY_FIELD_WHITELIST_ENABLED=true` 后，仅 `BOT_MONGODB_QUERY_FIELD_ALLOWED_FIELDS` 中的字段可查询。对象类型不会展开，避免一个顶层对象夹带未授权内部字段；单次图片最多展示 `BOT_MONGODB_QUERY_FIELD_MAX_ITEMS` 项，默认 200。MongoDB 不可用、匹配超过安全上限或驱动异常均转换为群内可读提示，并在服务端保留完整异常堆栈。
+
+## 全库指定字段查询
+
+群内公开指令 `查询全部信息 Mongo字段`（同样支持 `/查询全部信息 Mongo字段`）用于读取角色集合中所有包含该字段且值非空的文档，不要求发送者绑定角色。例如：
+
+```text
+查询全部信息 侠行点
+查询全部信息 背包剩余空间
+```
+
+参数既可以是 MongoDB 顶层真实字段名，也可以是 PostgreSQL 字段配置中的显示名或分组别名；别名展开后的每一个真实字段都会单独经过 `RoleFieldQueryAccessPolicy`。账号、全局 ID、token 等内置敏感字段、配置黑名单及可选白名单规则与单角色 `查询信息` 完全一致，未通过校验时不会访问 MongoDB。
+
+`LuaRoleStatusStore.findAllRoleFields` 使用字段 `exists` 条件，并只 projection 配置的服务器字段、角色名字段和已校验的目标字段，显式排除 `_id`，不会把整份 Lua 文档加载到响应模型。字段不存在、全部为 `null`、空字符串、空列表或对象值时返回 `未查询到“字段名”的数据。`；MongoDB 未启用或驱动异常时返回可读错误文本。
+
+图片模板为 `src/main/resources/static/查询全部信息.html`。模板数据结构为 `queryName / fieldCount / recordCount / itemCount / truncated / records[]`；每个 `record` 包含 `server / roleName / fields[]`，每格上方显示“角色名 - 区服”，下方显示数据库值。网格每行最多 5 个角色并按实际内容裁剪；标量和列表均可展示。全库指令会展示所有具有可读值的匹配记录，不套用单角色 `BOT_MONGODB_QUERY_FIELD_MAX_ITEMS` 限制；该限制仍只用于 `查询信息 区服 角色名 字段`。
 ## 定时状态推送实现
 
 `MongoDailyProgressPushTask` 已实现 `ScheduledGroupPushTask`，由 `ScheduledGroupPushRunner` 按配置 cron 触发，并将按群生成的图片 `BotResponse` 交给 `GroupPushDispatcher`。群订阅、线程池、主动消息权限、频控和 QQ 发送保持统一处理。
 
 该任务只在 `bot.mongodb.enabled=true` 时加载；群订阅默认关闭。实现继续遵守现有边界：不创建或修改 MongoDB 索引，不新增/删除 Lua 角色文档，不在日志或图片中暴露 `_id`、账号、`全局ID` 或未配置字段。
+
+## 每日 9 点背包预警推送
+
+- `定时背包预警` 注册为 `SCHEDULED` 任务，默认使用运行服务器的系统时区每天 `09:00` 触发；不固定为 `Asia/Tokyo`。
+- 群主或群管理员执行 `开启推送 定时背包预警` 后当前群才会接收；执行 `关闭推送 定时背包预警` 即停止。订阅按 `group_open_id` 隔离。
+- 每次调度只扫描一次角色集合，并继续只投影服务器、角色名、背包剩余空间三个字段；同一张预警图片复用给所有已订阅群，避免订阅群数量放大 MongoDB 查询。
+- 仅当存在背包剩余空间小于 50 的记录时发送；没有命中、MongoDB 未启用或查询失败时跳过本次推送。交互指令 `背包预警` 的可读空结果提示保持不变。
+- 实际发送仍受群主动消息总开关、QQ 平台授权与频控约束。默认 cron 可用 `BOT_PUSH_MONGO_BAG_WARNING_CRON` 覆盖。
+
+```yaml
+bot:
+  push:
+    mongo-bag-warning:
+      cron: 0 0 9 * * *
+```
 
 ## 每日 10 点群推送
 

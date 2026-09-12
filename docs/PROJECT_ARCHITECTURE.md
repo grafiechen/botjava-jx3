@@ -213,7 +213,7 @@ QQ 身份作用域约束：
 3. `group_info` 中当前 `group_openid` 的群默认区服。
 4. `jx3api.api.default-server` 全局默认区服。
 
-`绑定 乾坤一掷` 是群管理员指令，只按当前 `group_openid` 修改 `group_info`，作用于整个群，不写入个人账号表。个人指令只按发送者 `member_openid` 操作，不附带 `group_openid`，由于 QQ 官方为同一用户在不同群分配不同的 `member_openid`，个人绑定按群成员身份隔离，不能跨群或 C2C 自动关联：`绑定角色 区服 角色名` 添加并设为默认，`添加角色 区服 角色名` 只添加常用角色，`切换角色 区服 角色名` 切换默认角色，`我的角色` 列出全部角色，`解绑角色 区服 角色名` 删除单个角色，无参的 `解绑角色` 清空当前账号的全部角色；`绑定门派 门派名` 与 `解绑门派` 独立维护默认门派。依赖角色或门派的查询使用 `user_info` 中的个人默认值补齐参数，显式参数始终优先。
+绑定 乾坤一掷是群管理员指令，只按当前 group_openid 修改 group_info，作用于整个群。角色集合同时以当前 group_openid 和发送者 member_openid 隔离：绑定角色 区服 角色名添加角色并设为默认，添加角色 区服 角色名只添加常用角色，我的角色只列出当前群的角色，删除角色 区服 角色名只删除当前群的指定角色。角色绑定、MongoDB 归属校验和角色列表只使用区服与角色名，不接收或展示门派。绑定门派与解绑门派仍独立维护 user_info 中的默认门派，绑定角色不会覆盖该值。
 
 群指令冷却约定：
 
@@ -279,7 +279,7 @@ bot:
 - `GroupInfo` / `group_info`：以唯一 `open_group_id` 查询，保存整群默认区服、查询开关、实验功能开关、主动消息本地开关、QQ 平台授权状态和共享频控占位。
 - `GroupCommandSetting` / `group_command_setting`：以群 openid 与稳定的 `REGEX` 枚举名唯一定位单项指令开关。
 - `UserInfo` / `user_info`：以唯一 `member_openid` 查询，保存单独 QQ 账号当前默认角色的区服、角色名和默认门派。
-- `UserRoleBinding` / `user_role_binding`：以 `member_openid` 查询个人常用角色集合，同一账号下的区服与角色名组合唯一。
+- UserRoleBinding / user_role_binding：以 group_open_id + member_openid 查询当前群的个人常用角色集合，同一群、成员、区服与角色名组合唯一；角色绑定不依赖门派。
 - `CommandInvocation` / `command_invocation`：保存群指令执行元数据和脱敏结果，不保存用户原始消息。
 - `GroupCommandCooldown` / `group_command_cooldown`：保存群与指令的执行占位、租约和下次可执行时间，供多应用实例共享。
 - `Jx3ApiCacheEntry` / `jx3_api_cache`：保存公共 JX3API 查询的 JSON 响应和过期时间，缓存键不包含 token。
@@ -290,10 +290,10 @@ bot:
 
 - Action 只调用领域服务，不直接新增或修改 `GroupInfo`、`UserInfo` 和 `UserRoleBinding`。
 - 整群配置以 `group_openid` 为作用域，只能通过 `GroupConfigurationService` 读写；不同群的数据互不影响。
-- 个人角色、常用角色和门派以 `member_openid` 为作用域，只能通过 `UserCommandPreferenceService` 写入；同一自然人在不同群会使用不同的 `member_openid`，因此不会自动共享绑定。
+- 常用角色以 group_open_id + member_openid 为作用域，只能通过 UserCommandPreferenceService 写入；默认角色与独立默认门派保存在 user_info。所有角色归属查询必须同时携带群标识、成员标识、区服和角色名。
 - 群配置条件更新在 Mapper 方法内使用短事务；唯一键竞争失败后可在独立事务中重试，不在 QQ 或 JX3API 网络调用期间持有数据库事务。
 
-开发环境由 Hibernate `ddl-auto=update` 创建或更新表；生产环境关闭自动建表时，先执行 `docs/database/group-info.sql`、`docs/database/user-info.sql`、`docs/database/group-command-setting.sql`、`docs/database/group-command-cooldown.sql`、`docs/database/jx3-api-cache.sql` 和 `docs/database/command-invocation.sql`。
+Hibernate ddl-auto=update 可以增加字段，但不会可靠删除旧唯一约束；升级已有数据库时必须先执行 docs/database/user-info.sql。生产环境关闭自动建表时，再依次执行 docs/database 目录中的其他迁移脚本。
 - `service/GroupCommandPolicy.java`
 - `service/GroupCommandPermissionConfiguration.java`
 
@@ -709,9 +709,9 @@ JX3API 返回实体集中在：
 2. 群主或群管理员通过 `开启推送 任务名`、`关闭推送 任务名` 和 `推送列表` 管理当前群订阅；不存在订阅记录时默认关闭。列表使用 Vue 表格图片，同时显示 QQ WS、JX3API WS 和定时任务的已开启/未开启状态。
 3. WS 事件 JSON 递归按字段名排序后计算 SHA-256 指纹，`PushEventDeduplicationService` 通过 PostgreSQL 唯一键 `task_code + event_fingerprint` 原子占位；重复事件不会再次进入发送队列，多实例也共享去重结果。
 4. `GroupPushDispatcher` 使用有界线程池并统一调用 `GroupMessageSender.sendActive`；JX3API WS 查询所有已订阅群，QQ WS 则在队列内再次检查事件所属群的订阅，关闭状态不会占用事件去重记录或调用 QQ。群主动消息总开关、QQ 平台授权和既有频控仍继续生效。
-5. 自定义定时任务实现 `ScheduledGroupPushTask`，负责 `buildResponse(groupOpenId)`；调度触发时调用同一个 `GroupPushDispatcher`，无需直接访问订阅表或 QQ 客户端。
+5. 自定义定时任务实现 `ScheduledGroupPushTask`。需要按群动态拼装时使用 `run`；所有群共用内容时使用 `runShared`，先构建一次响应再交给 `GroupPushDispatcher` 查询订阅并投递，避免订阅数量放大上游查询。任务实现无需直接访问订阅表或 QQ 客户端。
 
-当前 `Mongo日常进度` 已注册为 `SCHEDULED` 预留任务，默认关闭且尚未接入实际 cron/数据拼装器。接入后无需迁移既有订阅数据。WS 去重默认保留 7 天并每日清理，语义为 at-most-once：一旦事件指纹占位成功，即使随后个别群发送失败，也不会因上游重复帧再次群发。
+当前 `Mongo日常进度` 与 `定时背包预警` 均注册为 `SCHEDULED` 任务并默认关闭。`Mongo日常进度` 默认每天 10:00 按群绑定动态生成；`定时背包预警` 使用服务器系统时区每天 09:00 全局生成一次，仅在存在剩余空间小于 50 的记录时向已订阅群发送。WS 去重默认保留 7 天并每日清理，语义为 at-most-once：一旦事件指纹占位成功，即使随后个别群发送失败，也不会因上游重复帧再次群发。
 ## 8. 开发约定
 
 ### 8.1 编码
@@ -775,7 +775,7 @@ JX3API 返回实体集中在：
 
 - HTTP 接口覆盖：`MethodEnum` 与官方返回 JSON 是否具备可执行的反序列化契约，当前覆盖 80 个可执行 contract，对应官方 OpenAPI 78 条唯一路径。
 - DTO 覆盖：80 个可执行 HTTP contract 均使用类型化根 DTO，当前裸 `Map.class` 数量为 0。
-- 群指令覆盖：接口是否已经在 `REGEX` 注册，并有明确的参数解析规则，当前注册 122 条指令（含帮助、群设置、群公告、调用统计和个人绑定指令）；80 个 HTTP contract 已全部覆盖，另有 2 个外部查询仍使用旧接口。命名分组由正则表达式自动提取，新增参数不再依赖中央硬编码名单。
+- 群指令覆盖：接口是否已经在 `REGEX` 注册，并有明确的参数解析规则，当前注册 125 条指令（含帮助、群设置、群公告、调用统计和个人绑定指令）；80 个 HTTP contract 已全部覆盖，另有 2 个外部查询仍使用旧接口。命名分组由正则表达式自动提取，新增参数不再依赖中央硬编码名单。
 - 展示覆盖：已注册指令是否有经过业务确认的文本文案或 Vue 图片模板。当前 60 条查询已接入图片模板，其余已注册 JX3API 指令使用经过业务裁剪的精简文本返回。classpath 资源路由及模板字段修复已经通过 Playwright 回归和截图抽查。
 
 只有四个口径都满足，才能把某个功能标记为完整的用户可用能力。`MethodEnum` 中存在接口定义或 DTO 能反序列化，不代表该接口已经开放为 QQ 群指令。
@@ -807,7 +807,7 @@ MongoDB 配置与通用存储组件：
 - service/MongoDocumentStore.java
 
 MongoDB 默认关闭，不扫描或接管现有 JPA Mapper，也不注册 Mongo 事务管理器。具体业务应固定集合名并封装 MongoDocumentStore；跨数据库一致性由具体业务通过 outbox、幂等和补偿处理。详细说明见 docs/MONGODB.md。
-Lua 脚本维护的平铺角色状态集合是例外：Java 使用专用 `LuaRoleStatusStore`，不套用 `MongoDocumentStore` 信封结构，不创建或修改索引，也不增删角色文档。QQ 用户只通过“区服 + 角色名”建立当前群 `member_openid` 的 PostgreSQL 绑定；查询读取全部同名记录并分块渲染，受控更新只允许 PostgreSQL 白名单中标记为可写的顶层字段。多条匹配更新时先读取受上限保护的候选，再按候选现有 `_id` 全部更新；`_id`、账号、`全局ID` 和字段值不进入 QQ 或审计日志。详细命令与配置见 `docs/MONGODB.md`。
+Lua 脚本维护的平铺角色状态集合是例外：Java 使用专用 `LuaRoleStatusStore`，不套用 `MongoDocumentStore` 信封结构，不创建或修改索引，也不增删角色文档。QQ 用户只通过“区服 + 角色名”建立当前群 `member_openid` 的 PostgreSQL 绑定；查询读取全部同名记录并分块渲染；`查询信息 区服 角色名 字段或别名` 将标量和数组统一生成为列表图片；`script_status_field.display_name/group_name` 可将查询别名有序解析为一个或多个启用的 Mongo 顶层字段，真实字段名精确匹配优先，展开后的每个字段仍分别经过敏感字段黑名单和可配置白名单。受控更新只允许 PostgreSQL 白名单中标记为可写的顶层字段。公开指令 `背包预警` 不依赖 PostgreSQL 角色绑定，扫描整个角色集合时仅投影服务器、角色名和可配置的背包剩余空间字段，在 Java 中筛选数值小于 50 的记录并生成五列紧凑图片；其他 Mongo 字段、`_id` 和发送者身份不会进入结果。多条匹配更新时先读取受上限保护的候选，再按候选现有 `_id` 全部更新；`_id`、账号、`全局ID` 和字段值不进入 QQ 或审计日志。详细命令与配置见 `docs/MONGODB.md`。
 
 ## 21. 群日常进度与外部限速
 

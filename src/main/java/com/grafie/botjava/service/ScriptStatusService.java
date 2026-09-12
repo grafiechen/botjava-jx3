@@ -12,12 +12,14 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Array;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,19 +30,23 @@ import java.util.Map;
 public class ScriptStatusService {
 
     private static final int MAX_DISPLAY_VALUE_LENGTH = 300;
+    private static final int LOW_BAG_SPACE_THRESHOLD = 50;
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final ObjectProvider<LuaRoleStatusStore> storeProvider;
     private final ScriptStatusFieldService fieldService;
+    private final RoleFieldQueryAccessPolicy fieldQueryAccessPolicy;
     private final UserCommandPreferenceService preferenceService;
     private final BotAdminAuditService auditService;
 
     public ScriptStatusService(ObjectProvider<LuaRoleStatusStore> storeProvider,
                                ScriptStatusFieldService fieldService,
+                               RoleFieldQueryAccessPolicy fieldQueryAccessPolicy,
                                UserCommandPreferenceService preferenceService,
                                BotAdminAuditService auditService) {
         this.storeProvider = storeProvider;
         this.fieldService = fieldService;
+        this.fieldQueryAccessPolicy = fieldQueryAccessPolicy;
         this.preferenceService = preferenceService;
         this.auditService = auditService;
     }
@@ -48,7 +54,7 @@ public class ScriptStatusService {
     public BotResponse query(GroupAtMessageCreateDto message, String server, String roleName) {
         RoleIdentity identity = requireOwnedRole(message, server, roleName);
         if (identity == null) {
-            return BotResponse.text("只能查询自己已绑定的角色，请先使用：绑定角色 区服 角色名 门派");
+            return BotResponse.text("只能查询自己已绑定的角色，请先使用：绑定角色 区服 角色名");
         }
         LuaRoleStatusStore store = storeProvider.getIfAvailable();
         if (store == null) {
@@ -73,13 +79,136 @@ public class ScriptStatusService {
         }
     }
 
+    public BotResponse queryField(GroupAtMessageCreateDto message, String server, String roleName,
+                                  String requestedField) {
+        RoleIdentity identity = requireOwnedRole(message, server, roleName);
+        if (identity == null) {
+            return BotResponse.text("只能查询自己已绑定的角色，请先使用：绑定角色 区服 角色名");
+        }
+
+        List<ScriptStatusFieldService.ResolvedQueryField> fields;
+        try {
+            fields = fieldService.resolveQueryFields(requestedField).stream()
+                    .map(field -> new ScriptStatusFieldService.ResolvedQueryField(
+                            fieldQueryAccessPolicy.requireQueryableField(field.mongoFieldName()),
+                            field.displayName()))
+                    .toList();
+        } catch (IllegalArgumentException exception) {
+            return BotResponse.text(exception.getMessage());
+        }
+
+        LuaRoleStatusStore store = storeProvider.getIfAvailable();
+        if (store == null) {
+            return BotResponse.text("信息查询功能未开启，请联系管理员配置 MongoDB。");
+        }
+        try {
+            List<Document> documents = store.findByServerAndRoleName(identity.server(), identity.roleName());
+            FieldQueryResult result = buildFieldQueryData(identity, requestedField.trim(), fields, documents);
+            if (result.itemCount() == 0) {
+                return BotResponse.text("未查询到数据。");
+            }
+            return BotResponse.image("查询信息", result.templateData());
+        } catch (LuaRoleStatusStore.TooManyMatchesException exception) {
+            log.warn("MongoDB 指定字段查询匹配数量超过安全上限，maximum=>{}", exception.getMaximum());
+            return BotResponse.text("该角色匹配的脚本记录过多，请联系管理员整理数据后重试。");
+        } catch (RuntimeException exception) {
+            log.error("查询 MongoDB 指定字段失败，reason=>{}", SensitiveDataUtil.summarize(exception), exception);
+            return BotResponse.text("信息查询失败，请稍后重试。");
+        }
+    }
+
+    public BotResponse queryAllFields(String requestedField) {
+        String queryName = clean(requestedField);
+        if (queryName == null) {
+            return BotResponse.text("查询字段不能为空。");
+        }
+        List<ScriptStatusFieldService.ResolvedQueryField> fields;
+        try {
+            fields = fieldService.resolveQueryFields(queryName).stream()
+                    .map(field -> new ScriptStatusFieldService.ResolvedQueryField(
+                            fieldQueryAccessPolicy.requireQueryableField(field.mongoFieldName()),
+                            field.displayName()))
+                    .toList();
+            if (fields.isEmpty()) {
+                return BotResponse.text("查询字段不能为空。");
+            }
+        } catch (IllegalArgumentException exception) {
+            return BotResponse.text(exception.getMessage());
+        }
+
+        LuaRoleStatusStore store = storeProvider.getIfAvailable();
+        if (store == null) {
+            return BotResponse.text("全部信息查询功能未开启，请联系管理员配置 MongoDB。");
+        }
+        try {
+            List<LuaRoleStatusStore.RoleFieldRecord> documents = store.findAllRoleFields(
+                    fields.stream().map(ScriptStatusFieldService.ResolvedQueryField::mongoFieldName).toList());
+            FieldQueryResult result = buildAllRoleFieldQueryData(queryName, fields, documents);
+            if (result.itemCount() == 0) {
+                return BotResponse.text("未查询到“" + queryName + "”的数据。");
+            }
+            return BotResponse.image("查询全部信息", result.templateData());
+        } catch (RuntimeException exception) {
+            log.error("查询 MongoDB 全部角色指定字段失败，field=>{}，reason=>{}",
+                    queryName, SensitiveDataUtil.summarize(exception), exception);
+            return BotResponse.text("全部信息查询失败，请稍后重试。");
+        }
+    }
+
+    public BotResponse queryBagSpaceWarning() {
+        return buildBagSpaceWarningResponse(true);
+    }
+
+    public BotResponse buildBagSpaceWarningPush() {
+        return buildBagSpaceWarningResponse(false);
+    }
+
+    private BotResponse buildBagSpaceWarningResponse(boolean interactive) {
+        LuaRoleStatusStore store = storeProvider.getIfAvailable();
+        if (store == null) {
+            return interactive
+                    ? BotResponse.text("背包预警功能未开启，请联系管理员配置 MongoDB。") : null;
+        }
+        try {
+            List<BagSpaceWarningRecord> matches = store.findAllRoleBagSpaces().stream()
+                    .map(this::toBagSpaceWarningRecord)
+                    .filter(java.util.Objects::nonNull)
+                    .filter(record -> record.remainingSpace().compareTo(BigDecimal.valueOf(LOW_BAG_SPACE_THRESHOLD)) < 0)
+                    .sorted(Comparator.comparing(BagSpaceWarningRecord::remainingSpace)
+                            .thenComparing(BagSpaceWarningRecord::server)
+                            .thenComparing(BagSpaceWarningRecord::roleName))
+                    .toList();
+            if (matches.isEmpty()) {
+                return interactive ? BotResponse.text("当前没有背包剩余空间少于 50 的角色。") : null;
+            }
+            List<Map<String, Object>> records = new ArrayList<>();
+            for (int index = 0; index < matches.size(); index++) {
+                BagSpaceWarningRecord match = matches.get(index);
+                Map<String, Object> record = new LinkedHashMap<>();
+                record.put("index", index + 1);
+                record.put("server", match.server());
+                record.put("roleName", match.roleName());
+                record.put("remainingSpace", formatNumber(match.remainingSpace()));
+                records.add(record);
+            }
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("threshold", LOW_BAG_SPACE_THRESHOLD);
+            data.put("count", records.size());
+            data.put("records", records);
+            return BotResponse.image("背包预警", data);
+        } catch (RuntimeException exception) {
+            log.error("查询 MongoDB 背包空间失败，reason=>{}", SensitiveDataUtil.summarize(exception), exception);
+            return interactive ? BotResponse.text("背包预警查询失败，请稍后重试。") : null;
+        }
+    }
+
     public BotResponse update(GroupAtMessageCreateDto message, String server, String roleName,
                               String fieldName, String rawValue) {
         String actorOpenId = memberOpenId(message);
         RoleIdentity identity = requireOwnedRole(message, server, roleName);
         if (identity == null) {
             recordUpdate(fieldName, actorOpenId, false, "角色未绑定到当前用户");
-            return BotResponse.text("只能修改自己已绑定的角色，请先使用：绑定角色 区服 角色名 门派");
+            return BotResponse.text("只能修改自己已绑定的角色，请先使用：绑定角色 区服 角色名");
         }
         ScriptStatusFieldDefinition definition;
         try {
@@ -149,6 +278,203 @@ public class ScriptStatusService {
         data.put("matchCount", documents.size());
         data.put("records", records);
         return data;
+    }
+
+    private FieldQueryResult buildFieldQueryData(RoleIdentity identity, String queryName,
+                                                  List<ScriptStatusFieldService.ResolvedQueryField> queryFields,
+                                                  List<Document> documents) {
+        int maxItems = fieldQueryAccessPolicy.maxItems();
+        List<Map<String, Object>> records = new ArrayList<>();
+        QueryValueCollector collector = new QueryValueCollector(maxItems);
+        int visibleFieldCount = 0;
+        for (int documentIndex = 0; documentIndex < documents.size(); documentIndex++) {
+            Document document = documents.get(documentIndex);
+            List<Map<String, Object>> fieldRows = new ArrayList<>();
+            for (ScriptStatusFieldService.ResolvedQueryField queryField : queryFields) {
+                List<String> values = new ArrayList<>();
+                appendQueryValues(document.get(queryField.mongoFieldName()), collector, values);
+                if (values.isEmpty()) {
+                    continue;
+                }
+                List<Map<String, Object>> items = new ArrayList<>();
+                for (int valueIndex = 0; valueIndex < values.size(); valueIndex++) {
+                    items.add(Map.of("index", valueIndex + 1, "value", values.get(valueIndex)));
+                }
+                Map<String, Object> fieldData = new LinkedHashMap<>();
+                fieldData.put("displayName", queryField.displayName());
+                fieldData.put("mongoFieldName", queryField.mongoFieldName());
+                fieldData.put("items", items);
+                fieldRows.add(fieldData);
+            }
+            if (!fieldRows.isEmpty()) {
+                visibleFieldCount = Math.max(visibleFieldCount, fieldRows.size());
+                records.add(Map.of("index", documentIndex + 1, "fields", fieldRows));
+            }
+        }
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("server", identity.server());
+        data.put("roleName", identity.roleName());
+        data.put("queryName", queryName);
+        data.put("fieldCount", queryFields.size());
+        data.put("visibleFieldCount", visibleFieldCount);
+        data.put("matchCount", documents.size());
+        data.put("recordCount", records.size());
+        data.put("itemCount", collector.count());
+        data.put("truncated", collector.truncated());
+        data.put("records", records);
+        return new FieldQueryResult(data, collector.count());
+    }
+
+    private FieldQueryResult buildAllRoleFieldQueryData(
+            String queryName,
+            List<ScriptStatusFieldService.ResolvedQueryField> queryFields,
+            List<LuaRoleStatusStore.RoleFieldRecord> documents) {
+        QueryValueCollector collector = new QueryValueCollector(Integer.MAX_VALUE);
+        List<AllRoleFieldCard> cards = new ArrayList<>();
+        boolean hasOwnedValues = false;
+        for (LuaRoleStatusStore.RoleFieldRecord document : documents) {
+            List<Map<String, Object>> fieldRows = new ArrayList<>();
+            for (ScriptStatusFieldService.ResolvedQueryField queryField : queryFields) {
+                List<String> values = new ArrayList<>();
+                appendQueryValues(document.values().get(queryField.mongoFieldName()), collector, values);
+                if (values.isEmpty()) {
+                    continue;
+                }
+                List<Map<String, Object>> items = new ArrayList<>();
+                for (int index = 0; index < values.size(); index++) {
+                    String value = values.get(index);
+                    boolean owned = isOwnedDisplayValue(value);
+                    Map<String, Object> item = new LinkedHashMap<>();
+                    item.put("index", index + 1);
+                    item.put("value", value);
+                    item.put("owned", owned);
+                    items.add(item);
+                    hasOwnedValues = hasOwnedValues || owned;
+                }
+                Map<String, Object> fieldData = new LinkedHashMap<>();
+                fieldData.put("displayName", queryField.displayName());
+                fieldData.put("mongoFieldName", queryField.mongoFieldName());
+                fieldData.put("items", items);
+                fieldRows.add(fieldData);
+            }
+            if (!fieldRows.isEmpty()) {
+                cards.add(new AllRoleFieldCard(
+                        textOrFallback(document.server(), "未知区服"),
+                        textOrFallback(document.roleName(), "未知角色"),
+                        fieldRows));
+            }
+        }
+        cards.sort(Comparator.comparing(AllRoleFieldCard::server)
+                .thenComparing(AllRoleFieldCard::roleName));
+        List<Map<String, Object>> records = new ArrayList<>();
+        for (int index = 0; index < cards.size(); index++) {
+            AllRoleFieldCard card = cards.get(index);
+            Map<String, Object> record = new LinkedHashMap<>();
+            record.put("index", index + 1);
+            record.put("server", card.server());
+            record.put("roleName", card.roleName());
+            record.put("fields", card.fields());
+            records.add(record);
+        }
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("queryName", queryName);
+        data.put("fieldCount", queryFields.size());
+        data.put("recordCount", records.size());
+        data.put("itemCount", collector.count());
+        data.put("truncated", collector.truncated());
+        data.put("hasOwnedValues", hasOwnedValues);
+        data.put("records", records);
+        return new FieldQueryResult(data, collector.count());
+    }
+
+    private boolean isOwnedDisplayValue(String value) {
+        return "是".equals(value) || "true".equalsIgnoreCase(value) || "已拥有".equals(value);
+    }
+
+    private void appendQueryValues(Object value, QueryValueCollector collector, List<String> target) {
+        if (value == null) {
+            return;
+        }
+        if (value instanceof Collection<?> collection) {
+            for (Object element : collection) {
+                appendQueryValues(element, collector, target);
+            }
+            return;
+        }
+        if (value.getClass().isArray()) {
+            for (int index = 0; index < Array.getLength(value); index++) {
+                appendQueryValues(Array.get(value, index), collector, target);
+            }
+            return;
+        }
+        // 平铺 Mongo 数据只展示标量；对象值可能夹带未授权的内部字段，按无可展示数据处理。
+        if (value instanceof Map<?, ?>) {
+            return;
+        }
+        String displayed = queryDisplayValue(value);
+        if (displayed == null) {
+            return;
+        }
+        if (!collector.tryAdd()) {
+            return;
+        }
+        target.add(displayed);
+    }
+
+    private String queryDisplayValue(Object value) {
+        if (value instanceof Date || value instanceof Instant || value instanceof LocalDateTime
+                || value instanceof Boolean) {
+            return displayValue(value);
+        }
+        String text = clean(String.valueOf(value));
+        if (text == null) {
+            return null;
+        }
+        return text.length() <= MAX_DISPLAY_VALUE_LENGTH
+                ? text : text.substring(0, MAX_DISPLAY_VALUE_LENGTH - 3) + "...";
+    }
+
+    private BagSpaceWarningRecord toBagSpaceWarningRecord(LuaRoleStatusStore.RoleBagSpaceRecord source) {
+        if (source == null) {
+            return null;
+        }
+        BigDecimal remainingSpace = parseNumber(source.remainingSpace());
+        if (remainingSpace == null) {
+            return null;
+        }
+        return new BagSpaceWarningRecord(
+                textOrFallback(source.server(), "未知区服"),
+                textOrFallback(source.roleName(), "未知角色"),
+                remainingSpace);
+    }
+
+    private BigDecimal parseNumber(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            if (value instanceof BigDecimal decimal) {
+                return decimal;
+            }
+            if (value instanceof Number number) {
+                double numericValue = number.doubleValue();
+                return Double.isFinite(numericValue) ? BigDecimal.valueOf(numericValue) : null;
+            }
+            String text = clean(String.valueOf(value));
+            return text == null ? null : new BigDecimal(text);
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+    }
+
+    private String textOrFallback(Object value, String fallback) {
+        String text = value == null ? null : clean(String.valueOf(value));
+        return text == null ? fallback : text;
+    }
+
+    private String formatNumber(BigDecimal value) {
+        return value.stripTrailingZeros().toPlainString();
     }
 
     private RoleIdentity requireOwnedRole(GroupAtMessageCreateDto message, String server, String roleName) {
@@ -222,6 +548,42 @@ public class ScriptStatusService {
         return value == null || value.trim().isEmpty() ? null : value.trim();
     }
 
+    private record AllRoleFieldCard(String server, String roleName, List<Map<String, Object>> fields) {
+    }
+
+    private record BagSpaceWarningRecord(String server, String roleName, BigDecimal remainingSpace) {
+    }
+
     private record RoleIdentity(String server, String roleName) {
+    }
+
+    private record FieldQueryResult(Map<String, Object> templateData, int itemCount) {
+    }
+
+    private static final class QueryValueCollector {
+        private final int maximum;
+        private int count;
+        private boolean truncated;
+
+        private QueryValueCollector(int maximum) {
+            this.maximum = maximum;
+        }
+
+        private boolean tryAdd() {
+            if (count >= maximum) {
+                truncated = true;
+                return false;
+            }
+            count++;
+            return true;
+        }
+
+        private int count() {
+            return count;
+        }
+
+        private boolean truncated() {
+            return truncated;
+        }
     }
 }

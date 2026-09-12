@@ -57,6 +57,61 @@ class LuaRoleStatusStoreTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    void shouldReadOnlyRoleAndBagFieldsFromEveryDocument() {
+        MongoTemplate template = mock(MongoTemplate.class);
+        MongoCollection<Document> collection = mock(MongoCollection.class);
+        FindIterable<Document> iterable = mock(FindIterable.class);
+        when(template.getCollection("roles")).thenReturn(collection);
+        when(collection.find()).thenReturn(iterable);
+        when(iterable.projection(any(Bson.class))).thenReturn(iterable);
+        when(iterable.into(any(Collection.class))).thenAnswer(invocation -> {
+            Collection<Document> target = invocation.getArgument(0);
+            target.addAll(List.of(
+                    new Document("服务器", "乾坤一掷").append("角色名", "加菲").append("背包剩余空间", 12),
+                    new Document("服务器", "梦江南").append("角色名", "琉枫").append("背包剩余空间", "49")
+            ));
+            return target;
+        });
+        LuaRoleStatusStore store = new LuaRoleStatusStore(template, new BotMongoProperties());
+
+        List<LuaRoleStatusStore.RoleBagSpaceRecord> records = store.findAllRoleBagSpaces();
+
+        assertEquals(2, records.size());
+        assertEquals("乾坤一掷", records.getFirst().server());
+        assertEquals(12, records.getFirst().remainingSpace());
+        verify(collection).find();
+        verify(iterable).projection(any(Bson.class));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void shouldReadOnlyIdentityAndRequestedFieldsFromMatchingDocuments() {
+        MongoTemplate template = mock(MongoTemplate.class);
+        MongoCollection<Document> collection = mock(MongoCollection.class);
+        FindIterable<Document> iterable = mock(FindIterable.class);
+        when(template.getCollection("roles")).thenReturn(collection);
+        when(collection.find(any(Bson.class))).thenReturn(iterable);
+        when(iterable.projection(any(Bson.class))).thenReturn(iterable);
+        when(iterable.into(any(Collection.class))).thenAnswer(invocation -> {
+            Collection<Document> target = invocation.getArgument(0);
+            target.addAll(List.of(
+                    new Document("服务器", "乾坤一掷").append("角色名", "加菲").append("侠行点", 1200),
+                    new Document("服务器", "梦江南").append("角色名", "琉枫").append("侠行点", 3600)
+            ));
+            return target;
+        });
+        LuaRoleStatusStore store = new LuaRoleStatusStore(template, new BotMongoProperties());
+
+        List<LuaRoleStatusStore.RoleFieldRecord> records = store.findAllRoleFields(List.of("侠行点"));
+
+        assertEquals(2, records.size());
+        assertEquals("加菲", records.getFirst().roleName());
+        assertEquals(java.util.Map.of("侠行点", 1200), records.getFirst().values());
+        verify(collection).find(any(Bson.class));
+        verify(iterable).projection(any(Bson.class));
+    }
+    @Test
+    @SuppressWarnings("unchecked")
     void shouldRejectMoreMatchesThanConfiguredLimit() {
         MongoTemplate template = mock(MongoTemplate.class);
         MongoCollection<Document> collection = mock(MongoCollection.class);

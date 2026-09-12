@@ -20,6 +20,7 @@ import java.util.Optional;
 public class PushTaskRegistry {
 
     public static final String MONGO_DAILY_PROGRESS = "MONGO_DAILY_PROGRESS";
+    public static final String MONGO_BAG_SPACE_WARNING = "MONGO_BAG_SPACE_WARNING";
 
     private final List<PushTaskDefinition> definitions;
     private final Map<String, PushTaskDefinition> byCode;
@@ -54,6 +55,13 @@ public class PushTaskRegistry {
                 MONGO_DAILY_PROGRESS,
                 "Mongo日常进度",
                 "脚本状态",
+                PushTaskSource.SCHEDULED,
+                null,
+                true));
+        registered.add(new PushTaskDefinition(
+                MONGO_BAG_SPACE_WARNING,
+                "定时背包预警",
+                "角色状态",
                 PushTaskSource.SCHEDULED,
                 null,
                 true));

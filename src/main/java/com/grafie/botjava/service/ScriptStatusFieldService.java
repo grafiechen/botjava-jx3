@@ -7,12 +7,15 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -20,6 +23,14 @@ public class ScriptStatusFieldService {
 
     private static final Set<String> PROTECTED_FIELDS = Set.of(
             "_id", "全局ID", "账号", "角色ID", "token", "password", "secret"
+    );
+    private static final String ROLE_INFO_QUERY_ALIAS = "角色信息";
+    private static final List<ResolvedQueryField> ROLE_INFO_QUERY_FIELDS = List.of(
+            new ResolvedQueryField("背包剩余空间", "背包剩余空间"),
+            new ResolvedQueryField("角色金币", "金币"),
+            new ResolvedQueryField("精力", "精力"),
+            new ResolvedQueryField("侠行点", "侠义点"),
+            new ResolvedQueryField("威望", "威望")
     );
 
     private final ScriptStatusFieldDefinitionMapper mapper;
@@ -42,6 +53,31 @@ public class ScriptStatusFieldService {
     public ScriptStatusFieldDefinition findEnabled(String mongoFieldName) {
         ScriptStatusFieldDefinition definition = mapper.findByMongoFieldName(requireFieldName(mongoFieldName));
         return definition != null && definition.isEnabled() ? definition : null;
+    }
+
+    public List<ResolvedQueryField> resolveQueryFields(String requestedName) {
+        String requested = requireQueryName(requestedName);
+        String normalized = normalizeQueryName(requested);
+        if (normalized.equals(normalizeQueryName(ROLE_INFO_QUERY_ALIAS))) {
+            return ROLE_INFO_QUERY_FIELDS;
+        }
+        List<ScriptStatusFieldDefinition> enabled = enabledFields();
+
+        List<ScriptStatusFieldDefinition> exactFields = enabled.stream()
+                .filter(definition -> normalized.equals(normalizeQueryName(definition.getMongoFieldName())))
+                .toList();
+        if (!exactFields.isEmpty()) {
+            return toResolvedQueryFields(exactFields);
+        }
+
+        List<ScriptStatusFieldDefinition> aliasFields = enabled.stream()
+                .filter(definition -> normalized.equals(normalizeQueryName(definition.getDisplayName()))
+                        || normalized.equals(normalizeQueryName(definition.getGroupName())))
+                .toList();
+        if (!aliasFields.isEmpty()) {
+            return toResolvedQueryFields(aliasFields);
+        }
+        return List.of(new ResolvedQueryField(requested, requested));
     }
 
     @Transactional
@@ -113,6 +149,34 @@ public class ScriptStatusFieldService {
         };
     }
 
+    private List<ResolvedQueryField> toResolvedQueryFields(List<ScriptStatusFieldDefinition> definitions) {
+        Map<String, ResolvedQueryField> fields = new LinkedHashMap<>();
+        for (ScriptStatusFieldDefinition definition : definitions) {
+            String mongoFieldName = definition.getMongoFieldName();
+            if (mongoFieldName == null) {
+                continue;
+            }
+            String displayName = clean(definition.getDisplayName());
+            fields.putIfAbsent(mongoFieldName, new ResolvedQueryField(
+                    mongoFieldName, displayName == null ? mongoFieldName : displayName));
+        }
+        return List.copyOf(fields.values());
+    }
+
+    private String requireQueryName(String value) {
+        return requireText(value, "查询字段或别名", 100);
+    }
+
+    private String normalizeQueryName(String value) {
+        String cleaned = clean(value);
+        if (cleaned == null) {
+            return "";
+        }
+        return Normalizer.normalize(cleaned, Normalizer.Form.NFKC)
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[\\s._\\-·]+", "");
+    }
+
     private String requireFieldName(String value) {
         String field = requireText(value, "MongoDB 字段名", 100);
         if (field.contains(".") || field.startsWith("$") || field.indexOf('\0') >= 0) {
@@ -149,4 +213,7 @@ public class ScriptStatusFieldService {
 
     private String clean(String value) { return value == null || value.trim().isEmpty() ? null : value.trim(); }
     private String limit(String value, int max) { return value == null || value.length() <= max ? value : value.substring(0, max); }
+
+    public record ResolvedQueryField(String mongoFieldName, String displayName) {
+    }
 }

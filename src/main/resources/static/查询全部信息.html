@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查询全部信息</title>
+    <style>
+        * { box-sizing: border-box; }
+        [v-cloak] { display: none; }
+        html, body { margin: 0; }
+        body { background: #eef2f3; color: #20282d; font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; letter-spacing: 0; }
+        #main { display: inline-block; padding: 12px; }
+        .sheet { overflow: hidden; background: #fff; border: 1px solid #cbd4d7; border-top: 5px solid #326f68; border-radius: 6px; box-shadow: 0 7px 18px rgba(31, 42, 48, .10); }
+        .header { min-height: 58px; padding: 12px 16px 11px; border-bottom: 1px solid #d9e0e2; display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+        .eyebrow { margin: 0 0 2px; color: #78868c; font-size: 10px; }
+        h1 { margin: 0; max-width: 540px; font-size: 20px; line-height: 1.3; overflow-wrap: anywhere; }
+        .summary { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; color: #765143; font-size: 11px; white-space: nowrap; }
+        .owned-legend { display: inline-flex; align-items: center; gap: 5px; color: #326f68; font-weight: 700; }
+        .owned-icon { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 16px; color: #fff; background: #249a68; border-radius: 50%; font-size: 11px; line-height: 1; font-weight: 800; }
+        .grid { display: grid; }
+        .card { min-width: 0; border-right: 1px solid #dce3e5; border-bottom: 1px solid #dce3e5; }
+        .card:nth-child(5n) { border-right: 0; }
+        .name { min-height: 43px; margin: 0; padding: 9px 8px; display: flex; align-items: center; justify-content: center; color: #326f68; background: #f4f7f7; border-bottom: 1px solid #dce3e5; font-size: 12px; line-height: 1.35; text-align: center; overflow-wrap: anywhere; }
+        .field + .field { border-top: 1px solid #e4e9ea; }
+        .field-label { padding: 5px 7px 0; color: #7b888e; font-size: 9px; text-align: center; overflow-wrap: anywhere; }
+        .values { min-height: 62px; padding: 7px; display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 4px; }
+        .values-owned { min-height: 30px; padding-top: 4px; padding-bottom: 4px; }
+        .value { color: #765143; font-size: 17px; line-height: 1.35; font-weight: 700; text-align: center; overflow-wrap: anywhere; }
+        .value-owned { display: flex; align-items: center; justify-content: center; line-height: 1; }
+        .value + .value { padding-top: 4px; border-top: 1px solid #edf0f1; }
+        .footer { min-height: 30px; padding: 7px 12px; display: flex; align-items: center; justify-content: space-between; gap: 16px; color: #7a878d; background: #fafbfb; font-size: 9px; }
+        .warning { color: #9a5540; font-weight: 700; }
+    </style>
+</head>
+<body>
+<main id="main" v-cloak>
+    <article class="sheet" data-capture-root
+             :style="{ width: (Math.min(Math.max(recordCount || 1, 1), 5) * 164) + 'px' }">
+        <header class="header">
+            <div><p class="eyebrow">小猫饼 · 角色状态</p><h1>{{ queryName }}</h1></div>
+            <div class="summary">
+                <div class="owned-legend" v-if="hasOwnedValues"><span class="owned-icon" aria-hidden="true">✓</span><span>已拥有</span></div>
+                <div>{{ recordCount }} 个角色 · {{ itemCount }} 项</div>
+            </div>
+        </header>
+        <section class="grid"
+                 :style="{ gridTemplateColumns: 'repeat(' + Math.min(Math.max(recordCount || 1, 1), 5) + ', 164px)' }">
+            <article class="card" v-for="record in records" :key="record.index">
+                <h2 class="name">{{ record.roleName }} - {{ record.server }}</h2>
+                <section class="field" v-for="field in record.fields" :key="field.mongoFieldName">
+                    <div class="field-label" v-if="fieldCount > 1">{{ field.displayName }}</div>
+                    <div class="values" :class="{ 'values-owned': field.items.length === 1 && field.items[0].owned }">
+                        <div class="value" :class="{ 'value-owned': item.owned }" v-for="item in field.items" :key="item.index">
+                            <span class="owned-icon" v-if="item.owned" role="img" aria-label="已拥有">✓</span>
+                            <span v-else>{{ item.value }}</span>
+                        </div>
+                    </div>
+                </section>
+            </article>
+        </section>
+        <footer class="footer">
+            <span>数据来自角色状态数据库</span>
+            <span class="warning" v-if="truncated">内容较多，仅展示前 {{ itemCount }} 项</span>
+            <span v-else>{{ recordCount }} 个角色</span>
+        </footer>
+    </article>
+</main>
+</body>
+</html>

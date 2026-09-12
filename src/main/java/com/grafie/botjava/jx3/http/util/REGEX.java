@@ -31,11 +31,11 @@ public enum REGEX {
     UnbindSchool("^解绑门派$", UserBindingAction.class, null,
             CommandGroup.BASIC, "解绑门派", "清除个人默认门派", "解绑门派",
             CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
-    BindRole("^绑定角色 (?<server>\\S+) (?<roleName>\\S+)(?: (?<school>\\S+))?$", UserBindingAction.class, null,
-            CommandGroup.BASIC, "绑定角色", "设置个人默认角色，门派可选", "绑定角色 乾坤一掷 角色名",
+    BindRole("^绑定角色 (?<server>\\S+) (?<roleName>\\S+)$", UserBindingAction.class, null,
+            CommandGroup.BASIC, "绑定角色", "设置个人默认角色", "绑定角色 乾坤一掷 角色名",
             CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
-    AddRole("^添加角色 (?<server>\\S+) (?<roleName>\\S+)(?: (?<school>\\S+))?$", UserBindingAction.class, null,
-            CommandGroup.BASIC, "添加角色", "保存个人常用角色，门派可选", "添加角色 梦江南 角色名",
+    AddRole("^添加角色 (?<server>\\S+) (?<roleName>\\S+)$", UserBindingAction.class, null,
+            CommandGroup.BASIC, "添加角色", "保存个人常用角色", "添加角色 梦江南 角色名",
             CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
     ModifyRole("^修改角色 (?<server>\\S+) (?<roleName>\\S+) (?<school>\\S+)$", UserBindingAction.class, null,
             CommandGroup.BASIC, "修改角色门派", "修改个人角色的门派，区服和角色名需要删除后重新添加", "修改角色 梦江南 角色名 万花",
@@ -48,6 +48,15 @@ public enum REGEX {
             CommandAccess.PUBLIC, CommandAvailability.SYSTEM),
     ScriptStatus("^脚本状态(?: (?<server>\\S+) (?<roleName>\\S+))?$", ScriptStatusAction.class, null,
             CommandGroup.BASIC, "脚本状态", "查看自己已绑定角色的脚本状态", "脚本状态 乾坤一掷 角色名",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION, 30),
+    RoleFieldQuery("^查询信息 (?<server>\\S+) (?<roleName>\\S+) (?<name>\\S{1,100})$", ScriptStatusAction.class, null,
+            CommandGroup.BASIC, "查询角色信息", "查看自己已绑定角色的指定脚本字段", "查询信息 乾坤一掷 角色名 侠行点",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION, 30),
+    AllRoleFieldQuery("^查询全部信息 (?<name>\\S{1,100})$", ScriptStatusAction.class, null,
+            CommandGroup.BASIC, "查询全部信息", "查看数据库内全部角色的指定字段", "查询全部信息 背包剩余空间",
+            CommandAccess.PUBLIC, CommandAvailability.PRODUCTION, 30),
+    BagSpaceWarning("^背包预警$", ScriptStatusAction.class, null,
+            CommandGroup.BASIC, "背包预警", "查看全部背包剩余空间少于 50 的角色", "背包预警",
             CommandAccess.PUBLIC, CommandAvailability.PRODUCTION, 30),
     ScriptStatusUpdate("^脚本设置(?: (?<server>\\S+) (?<roleName>\\S+))? (?<name>\\S{1,100}) (?<text>[\\s\\S]{1,500})$", ScriptStatusAction.class, null,
             CommandGroup.BASIC, "脚本设置", "修改自己已绑定角色允许写入的脚本字段", "脚本设置 秘籍 完成",
@@ -443,7 +452,7 @@ public enum REGEX {
             case HomeFlower, HomeFurniture, HomeTravel, ExamAnswer, SchoolMatrix,
                     SchoolSkills, SchoolForce, MechCalculator, SchoolSearch, SkillCalculate -> CommandListGroup.HOME_WIKI;
             case RoleDetailed, RoleMonster, RoleShowCard, RoleShowCards, RoleShowRandom,
-                    RoleShowCached, RoleAttribute, DungeonRecord, DpsCompute, ScriptStatus, ScriptStatusUpdate,
+                    RoleShowCached, RoleAttribute, DungeonRecord, DpsCompute, ScriptStatus, RoleFieldQuery, AllRoleFieldQuery, BagSpaceWarning, ScriptStatusUpdate,
                     WatchRecord, FraudDetail, CardPreset, ChatRecords, TuilanAchievement,
                     RoleAchievement -> CommandListGroup.ROLE_QUERY;
             case MemberTeacher, MemberRecruit -> CommandListGroup.RECRUIT_SOCIAL;
@@ -487,7 +496,8 @@ public enum REGEX {
     }
 
     public boolean usesExternalCall() {
-        return methodEnum != null || this == DpsCompute || this == ScriptStatus || this == ScriptStatusUpdate;
+        return methodEnum != null || this == DpsCompute || this == ScriptStatus || this == RoleFieldQuery
+                || this == AllRoleFieldQuery || this == BagSpaceWarning || this == ScriptStatusUpdate;
     }
 
     public static String buildHelpText() {

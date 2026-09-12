@@ -21,16 +21,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class UserCommandPreferenceServiceTest {
 
     @Test
-    void shouldPersistRoleAndDefaultByMemberOpenId() {
+    void shouldPersistGroupRoleWithoutChangingIndependentSchool() {
         Fixture fixture = fixture();
+        UserInfo preferences = userInfo(null, null, "万花");
+        when(fixture.users.findByMemberOpenId("account-1")).thenReturn(preferences);
 
-        UserInfo saved = fixture.service.bind(message("account-1"), " 乾坤一掷 ", " 加菲 ", " 万花 ");
+        UserInfo saved = fixture.service.bind(message("account-1"), " 乾坤一掷 ", " 加菲 ");
 
         ArgumentCaptor<UserRoleBinding> roleCaptor = ArgumentCaptor.forClass(UserRoleBinding.class);
         verify(fixture.roles).save(roleCaptor.capture());
@@ -38,21 +41,34 @@ class UserCommandPreferenceServiceTest {
         assertEquals("account-1", roleCaptor.getValue().getMemberOpenId());
         assertEquals("乾坤一掷", roleCaptor.getValue().getServer());
         assertEquals("加菲", roleCaptor.getValue().getRoleName());
-        assertEquals("万花", roleCaptor.getValue().getSchool());
+        assertEquals(null, roleCaptor.getValue().getSchool());
         assertEquals("乾坤一掷", saved.getServer());
         assertEquals("加菲", saved.getRoleName());
         assertEquals("万花", saved.getSchool());
     }
-
     @Test
     void shouldAddAnotherRoleWithoutReplacingExistingDefault() {
         Fixture fixture = fixture();
         when(fixture.users.findByMemberOpenId("account-1")).thenReturn(userInfo("乾坤一掷", "加菲", "万花"));
 
-        fixture.service.addRole(message("account-1"), "梦江南", "乔峰", "丐帮");
+        fixture.service.addRole(message("account-1"), "梦江南", "乔峰");
 
         verify(fixture.roles).save(any(UserRoleBinding.class));
         verify(fixture.users, never()).save(any(UserInfo.class));
+    }
+
+    @Test
+    void shouldKeepSameRoleIndependentAcrossGroups() {
+        Fixture fixture = fixture();
+
+        fixture.service.addRole(message("account-1", "group-a"), "乾坤一掷", "加菲");
+        fixture.service.addRole(message("account-1", "group-b"), "乾坤一掷", "加菲");
+
+        ArgumentCaptor<UserRoleBinding> roles = ArgumentCaptor.forClass(UserRoleBinding.class);
+        verify(fixture.roles, times(2)).save(roles.capture());
+        assertEquals(List.of("group-a", "group-b"), roles.getAllValues().stream()
+                .map(UserRoleBinding::getGroupOpenId)
+                .toList());
     }
 
     @Test
@@ -93,7 +109,7 @@ class UserCommandPreferenceServiceTest {
         verify(fixture.users).save(defaultCaptor.capture());
         assertEquals("梦江南", defaultCaptor.getValue().getServer());
         assertEquals("乔峰", defaultCaptor.getValue().getRoleName());
-        assertEquals("丐帮", defaultCaptor.getValue().getSchool());
+        assertEquals("万花", defaultCaptor.getValue().getSchool());
     }
 
     @Test
@@ -184,14 +200,17 @@ class UserCommandPreferenceServiceTest {
     }
 
     private static GroupAtMessageCreateDto message(String memberOpenId) {
+        return message(memberOpenId, "group-1");
+    }
+
+    private static GroupAtMessageCreateDto message(String memberOpenId, String groupOpenId) {
         AuthorDto author = new AuthorDto();
         author.setMemberOpenid(memberOpenId);
         GroupAtMessageCreateDto message = new GroupAtMessageCreateDto();
         message.setAuthor(author);
-        message.setGroupOpenid("group-1");
+        message.setGroupOpenid(groupOpenId);
         return message;
     }
-
     private record Fixture(UserInfoMapper users, UserRoleBindingMapper roles,
                            UserCommandPreferenceService service) {
     }

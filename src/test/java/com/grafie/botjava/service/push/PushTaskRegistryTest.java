@@ -26,6 +26,11 @@ class PushTaskRegistryTest {
                 .get()
                 .matches(task -> task.source() == PushTaskSource.SCHEDULED)
                 .matches(PushTaskDefinition::producerReady);
+        assertThat(registry.find("定时背包预警"))
+                .get()
+                .matches(task -> task.code().equals(PushTaskRegistry.MONGO_BAG_SPACE_WARNING))
+                .matches(task -> task.source() == PushTaskSource.SCHEDULED)
+                .matches(PushTaskDefinition::producerReady);
     }
 
     @Test

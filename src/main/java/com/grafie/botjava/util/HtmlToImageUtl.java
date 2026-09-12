@@ -157,9 +157,15 @@ public class HtmlToImageUtl {
             waitForRenderReady(page);
             assertPageResourcesLoaded(page);
 
-            page.screenshot(new Page.ScreenshotOptions()
-                    .setPath(Paths.get(outputPath))
-                    .setFullPage(true));
+            Locator captureRoot = page.locator("[data-capture-root]");
+            if (captureRoot.count() > 0) {
+                captureRoot.first().screenshot(new Locator.ScreenshotOptions()
+                        .setPath(Paths.get(outputPath)));
+            } else {
+                page.screenshot(new Page.ScreenshotOptions()
+                        .setPath(Paths.get(outputPath))
+                        .setFullPage(true));
+            }
 
             return outputPath;
         }

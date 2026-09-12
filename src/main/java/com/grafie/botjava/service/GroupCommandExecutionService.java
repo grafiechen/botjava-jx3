@@ -111,7 +111,7 @@ public class GroupCommandExecutionService {
             CommandArguments effectiveArguments = preferenceService.applyDefaults(message, command.arguments());
             if (command.definition().requiresRoleName() && effectiveArguments.roleName() == null) {
                 sendAndRecord(invocationId, startNanos, message, command,
-                        BotResponse.text("请提供角色名，或先使用：绑定角色 服务器 角色名 门派"),
+                        BotResponse.text("请提供角色名，或先使用：绑定角色 服务器 角色名"),
                         CommandInvocationStatus.INVALID_ARGUMENTS);
                 return;
             }
